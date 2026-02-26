@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
   }
 
   const typeParam = req.nextUrl.searchParams.get("type");
-  const fallbackNext = typeParam === "signup" ? "/start" : "/login/reset?mode=update";
+  const fallbackNext = typeParam === "recovery" ? "/login/reset?mode=update" : "/start";
   const nextPath = normalizeNextPath(req.nextUrl.searchParams.get("next"), fallbackNext);
   const destination = new URL(nextPath, req.nextUrl.origin);
   const response = NextResponse.redirect(destination);

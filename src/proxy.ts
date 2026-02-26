@@ -43,9 +43,18 @@ function redirectToLegalDoc(req: NextRequest, doc: "privacy" | "terms") {
 
 export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
+  const hasCodeParam = req.nextUrl.searchParams.has("code");
 
   if (isStaticPath(pathname)) {
     return NextResponse.next();
+  }
+
+  // Legacy confirmation/recovery links can still land on "/?code=...".
+  // Handle them server-side so auth doesn't depend on homepage client hydration.
+  if (pathname === "/" && hasCodeParam) {
+    const url = req.nextUrl.clone();
+    url.pathname = "/auth/callback";
+    return NextResponse.redirect(url);
   }
 
   if (pathname === "/sign-in") {
