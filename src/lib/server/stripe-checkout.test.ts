@@ -15,6 +15,7 @@ describe("buildStripeCheckoutSessionParams", () => {
 
     expect(params.ui_mode).toBe("custom");
     expect(params.mode).toBe("payment");
+    expect(params.allow_promotion_codes).toBe(true);
     expect(params.payment_method_types).toEqual(["card"]);
     expect(params.return_url).toBe("https://untie.example/signup/payment/success?session_id={CHECKOUT_SESSION_ID}");
     expect(params.client_reference_id).toBe("user_123");

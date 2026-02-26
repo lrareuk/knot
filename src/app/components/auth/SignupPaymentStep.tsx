@@ -127,6 +127,15 @@ function CheckoutExperience() {
   const checkoutState = useCheckout();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [promotionCode, setPromotionCode] = useState("");
+  const [promotionBusy, setPromotionBusy] = useState(false);
+  const [promotionStatus, setPromotionStatus] = useState<string | null>(null);
+  const [promotionError, setPromotionError] = useState<string | null>(null);
+
+  const appliedPromotionCode =
+    checkoutState.type === "success"
+      ? checkoutState.checkout.discountAmounts?.find((discountAmount) => discountAmount.promotionCode)?.promotionCode ?? null
+      : null;
 
   const confirmCheckout = async (expressEvent?: StripeExpressCheckoutElementConfirmEvent) => {
     if (checkoutState.type !== "success" || submitting) {
@@ -156,9 +165,68 @@ function CheckoutExperience() {
     router.push("/signup/payment/success");
   };
 
+  const applyPromotionCode = async () => {
+    if (checkoutState.type !== "success" || promotionBusy || submitting) {
+      return;
+    }
+
+    const trimmedCode = promotionCode.trim();
+    if (!trimmedCode) {
+      setPromotionStatus(null);
+      setPromotionError("Enter a coupon code.");
+      return;
+    }
+
+    setPromotionBusy(true);
+    setPromotionStatus(null);
+    setPromotionError(null);
+
+    const applyResult = await checkoutState.checkout.applyPromotionCode(trimmedCode);
+
+    if (applyResult.type === "error") {
+      setPromotionBusy(false);
+      setPromotionError(
+        applyResult.error.code === "invalidCode"
+          ? "That coupon code is invalid."
+          : applyResult.error.message ?? "Unable to apply coupon code right now."
+      );
+      return;
+    }
+
+    setPromotionCode("");
+    setPromotionBusy(false);
+    setPromotionStatus("Coupon applied.");
+  };
+
+  const removePromotionCode = async () => {
+    if (checkoutState.type !== "success" || promotionBusy || submitting || !appliedPromotionCode) {
+      return;
+    }
+
+    setPromotionBusy(true);
+    setPromotionStatus(null);
+    setPromotionError(null);
+
+    const removeResult = await checkoutState.checkout.removePromotionCode();
+
+    if (removeResult.type === "error") {
+      setPromotionBusy(false);
+      setPromotionError(removeResult.error.message ?? "Unable to remove coupon code right now.");
+      return;
+    }
+
+    setPromotionBusy(false);
+    setPromotionStatus("Coupon removed.");
+  };
+
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     await confirmCheckout();
+  };
+
+  const onPromotionSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    await applyPromotionCode();
   };
 
   const onExpressConfirm = async (event: StripeExpressCheckoutElementConfirmEvent) => {
@@ -192,11 +260,61 @@ function CheckoutExperience() {
         <span>or pay by card</span>
       </div>
 
+      <form className={styles.promoForm} onSubmit={onPromotionSubmit}>
+        <label htmlFor="promotion-code" className={styles.label}>
+          Coupon code
+        </label>
+        <div className={styles.promoRow}>
+          <input
+            id="promotion-code"
+            type="text"
+            autoComplete="off"
+            value={promotionCode}
+            onChange={(event) => {
+              setPromotionCode(event.target.value);
+              setPromotionStatus(null);
+              setPromotionError(null);
+            }}
+            className={`${styles.input} ${styles.promoInput}`.trim()}
+            placeholder="Enter code"
+          />
+          <button
+            type="submit"
+            className={styles.promoButton}
+            disabled={promotionBusy || submitting || Boolean(appliedPromotionCode) || promotionCode.trim().length === 0}
+          >
+            {promotionBusy ? "Applying..." : "Apply"}
+          </button>
+        </div>
+
+        {appliedPromotionCode ? (
+          <p className={styles.promoStatus}>
+            Code <span className={styles.promoCode}>{appliedPromotionCode}</span> applied.
+            <button
+              type="button"
+              className={styles.promoLinkButton}
+              onClick={removePromotionCode}
+              disabled={promotionBusy || submitting}
+            >
+              Remove
+            </button>
+          </p>
+        ) : promotionStatus ? (
+          <p className={styles.promoStatus}>{promotionStatus}</p>
+        ) : null}
+
+        {promotionError ? <p className={styles.inlineError}>{promotionError}</p> : null}
+      </form>
+
       <form className={styles.cardForm} onSubmit={onSubmit}>
         <div className={styles.cardElementPanel}>
           <PaymentElement />
         </div>
-        <button type="submit" className={`${styles.primaryButton} ${submitting ? styles.loading : ""}`.trim()} disabled={submitting}>
+        <button
+          type="submit"
+          className={`${styles.primaryButton} ${submitting ? styles.loading : ""}`.trim()}
+          disabled={submitting || promotionBusy}
+        >
           {submitting ? "Finalizing payment..." : "Pay £449"}
         </button>
       </form>

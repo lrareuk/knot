@@ -16,6 +16,7 @@ export function buildStripeCheckoutSessionParams(
   return {
     ui_mode: "custom",
     mode: "payment",
+    allow_promotion_codes: true,
     payment_method_types: ["card"],
     customer_email: input.email ?? undefined,
     line_items: [

@@ -125,6 +125,7 @@ describe("POST /api/stripe/checkout", () => {
       expect.objectContaining({
         ui_mode: "custom",
         mode: "payment",
+        allow_promotion_codes: true,
         payment_method_types: ["card"],
         return_url: "http://localhost:3000/signup/payment/success?session_id={CHECKOUT_SESSION_ID}",
         client_reference_id: "user_123",

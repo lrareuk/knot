@@ -373,6 +373,88 @@
   gap: 12px;
 }
 
+.promoForm {
+  display: grid;
+  gap: 8px;
+}
+
+.promoRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.promoInput {
+  height: 44px;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.promoButton {
+  min-width: 96px;
+  height: 44px;
+  border: 1px solid #2a2a2a;
+  background: #1e1e1e;
+  color: #f4f1ea;
+  font-family: var(--font-manrope), "Manrope", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.promoButton:hover:not(:disabled) {
+  border-color: #c2185b;
+  color: #c2185b;
+}
+
+.promoButton:disabled {
+  border-color: #2a2a2a;
+  color: #555555;
+  cursor: not-allowed;
+}
+
+.promoStatus {
+  font-family: var(--font-manrope), "Manrope", sans-serif;
+  font-size: 13px;
+  color: #9a9590;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.promoCode {
+  color: #f4f1ea;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.promoLinkButton {
+  border: none;
+  background: transparent;
+  color: #9a9590;
+  font-family: var(--font-manrope), "Manrope", sans-serif;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.promoLinkButton:hover:not(:disabled) {
+  color: #f4f1ea;
+}
+
+.promoLinkButton:disabled {
+  color: #555555;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
 .cardElementPanel {
   border: 1px solid #2a2a2a;
   background: #1e1e1e;
