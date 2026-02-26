@@ -620,6 +620,18 @@ function PropertyEditor({
         onEstimatedChange={(checked) => onChange({ ...item, current_value_estimated: checked })}
         onChange={(value) => onChange({ ...item, current_value: value, equity: value - item.mortgage_outstanding })}
       />
+      <p className="muted">
+        If you do not know your property value, use{" "}
+        <a
+          href="https://www.zoopla.co.uk/home-values/"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-link"
+        >
+          Zoopla&apos;s valuation tool
+        </a>
+        . You can still enter your own estimate here.
+      </p>
       <NumberField
         label="Mortgage outstanding"
         value={item.mortgage_outstanding}

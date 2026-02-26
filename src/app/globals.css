@@ -1207,6 +1207,17 @@ h3 {
   color: var(--text-muted);
 }
 
+.inline-link {
+  color: var(--text-primary);
+  text-decoration: underline;
+  text-decoration-color: var(--accent-raspberry);
+  text-underline-offset: 3px;
+}
+
+.inline-link:hover {
+  color: var(--text-primary);
+}
+
 input,
 select,
 textarea,
