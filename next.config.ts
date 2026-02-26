@@ -8,7 +8,7 @@ const csp = [
   "font-src 'self' https://fonts.gstatic.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com",
-  "connect-src 'self' https://*.supabase.co https://api.stripe.com https://www.google-analytics.com https://region1.google-analytics.com",
+  "connect-src 'self' https://*.supabase.co https://api.stripe.com https://m.stripe.network https://r.stripe.com https://www.google-analytics.com https://region1.google-analytics.com",
   "frame-src https://js.stripe.com https://hooks.stripe.com https://checkout.stripe.com",
 ].join("; ");
 

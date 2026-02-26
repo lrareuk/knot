@@ -10,7 +10,7 @@ export function resolveStartRedirect(input: StartRouteInput): string {
   }
 
   if (!input.paid) {
-    return "/payment";
+    return "/signup/payment";
   }
 
   if (!input.onboardingDone) {

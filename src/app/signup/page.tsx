@@ -1,9 +1,10 @@
-import AuthForm from "@/app/components/auth/AuthForm";
+import AuthFlowShell from "@/app/components/auth/AuthFlowShell";
+import SignupNameStep from "@/app/components/auth/SignupNameStep";
 
 export default function SignupPage() {
   return (
-    <main className="page-shell auth-shell">
-      <AuthForm mode="sign-up" />
-    </main>
+    <AuthFlowShell>
+      <SignupNameStep />
+    </AuthFlowShell>
   );
 }

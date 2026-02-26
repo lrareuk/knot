@@ -6,7 +6,7 @@ import { requireApiUser, serverError } from "@/lib/server/api";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 
 const patchSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(40).optional(),
   config: scenarioConfigSchema.optional(),
 });
 
@@ -53,7 +53,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   } = {};
 
   if (parsed.data.name) {
-    updateData.name = parsed.data.name;
+    updateData.name = parsed.data.name.trim().slice(0, 40);
   }
 
   if (parsed.data.config) {

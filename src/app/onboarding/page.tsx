@@ -12,7 +12,7 @@ export default async function OnboardingRootPage() {
   }
 
   if (!profile.paid) {
-    redirect("/payment");
+    redirect("/signup/payment");
   }
 
   const position = await getOrCreateFinancialPosition(supabase, user.id);

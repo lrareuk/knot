@@ -9,10 +9,10 @@ export default function SiteFooter() {
       </div>
       <ul className="footer-links">
         <li>
-          <Link href="/privacy">Privacy</Link>
+          <Link href="/legal?doc=privacy">Privacy</Link>
         </li>
         <li>
-          <Link href="/terms">Terms</Link>
+          <Link href="/legal?doc=terms">Terms</Link>
         </li>
         <li>
           <a href="mailto:hello@untie.app">Contact</a>

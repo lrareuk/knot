@@ -1,9 +1,13 @@
-import AuthForm from "@/app/components/auth/AuthForm";
+import { Suspense } from "react";
+import AuthFlowShell from "@/app/components/auth/AuthFlowShell";
+import LoginStep from "@/app/components/auth/LoginStep";
 
 export default function LoginPage() {
   return (
-    <main className="page-shell auth-shell">
-      <AuthForm mode="sign-in" />
-    </main>
+    <AuthFlowShell>
+      <Suspense fallback={null}>
+        <LoginStep />
+      </Suspense>
+    </AuthFlowShell>
   );
 }

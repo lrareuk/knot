@@ -8,12 +8,12 @@ import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 import { listScenarios } from "@/lib/server/scenarios";
 
 const createSchema = z.object({
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(40).optional(),
 });
 
 const patchSchema = z.object({
   id: z.string().uuid(),
-  name: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(40).optional(),
   config: scenarioConfigSchema.optional(),
 });
 
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   const config = createDefaultScenarioConfig(position);
   const results = computeScenario(position, config);
 
-  const nextName = parsed.data.name ?? `Scenario ${String.fromCharCode(65 + current.length)}`;
+  const nextName = (parsed.data.name?.trim() || `Scenario ${String.fromCharCode(65 + current.length)}`).slice(0, 40);
 
   const { data, error } = await context.supabase
     .from("scenarios")
@@ -105,7 +105,7 @@ export async function PATCH(req: Request) {
   } = {};
 
   if (parsed.data.name) {
-    updateData.name = parsed.data.name;
+    updateData.name = parsed.data.name.trim().slice(0, 40);
   }
 
   if (parsed.data.config) {

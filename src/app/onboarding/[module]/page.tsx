@@ -22,7 +22,7 @@ export default async function OnboardingModulePage({
   }
 
   if (!profile.paid) {
-    redirect("/payment");
+    redirect("/signup/payment");
   }
 
   const position = await getOrCreateFinancialPosition(supabase, user.id);

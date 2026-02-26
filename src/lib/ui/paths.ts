@@ -4,7 +4,7 @@ export const ROUTES = {
   start: "/start",
   login: "/login",
   signup: "/signup",
-  payment: "/payment",
+  payment: "/signup/payment",
   onboarding: "/onboarding",
   dashboard: "/dashboard",
 } as const;

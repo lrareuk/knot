@@ -214,3 +214,26 @@ export type ComparisonMetric = {
     value: number;
   }>;
 };
+
+export type ComparisonGroupKey = "assets" | "liabilities" | "monthly";
+
+export type ComparisonMetricRow = {
+  key: string;
+  label: string;
+  group: ComparisonGroupKey;
+  better: "higher" | "lower";
+  baseline: number;
+  scenarios: Array<{
+    id: string;
+    name: string;
+    value: number;
+    delta: number;
+    isBest: boolean;
+  }>;
+};
+
+export type ComparisonMetricGroup = {
+  key: ComparisonGroupKey;
+  label: string;
+  rows: ComparisonMetricRow[];
+};

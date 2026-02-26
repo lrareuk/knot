@@ -36,16 +36,21 @@ export default function AccountDeletionForm() {
   };
 
   return (
-    <section className="panel stack-md">
-      <h2>Delete account</h2>
-      <p className="muted">
+    <div style={{ display: "grid", gap: 14 }}>
+      <h2 className="dashboard-scenario-name">Delete account</h2>
+      <p className="dashboard-help">
         This is permanent and irreversible. Type <strong>{REQUIRED_TEXT}</strong> to confirm.
       </p>
-      <input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />
-      <button type="button" className="btn-danger" disabled={loading || confirmation !== REQUIRED_TEXT} onClick={deleteAccount}>
+      <input className="dashboard-input" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />
+      <button
+        type="button"
+        className="dashboard-btn-danger"
+        disabled={loading || confirmation !== REQUIRED_TEXT}
+        onClick={deleteAccount}
+      >
         {loading ? "Deleting..." : "Delete my account permanently"}
       </button>
-      {status ? <p className="muted">{status}</p> : null}
-    </section>
+      {status ? <p className="dashboard-status">{status}</p> : null}
+    </div>
   );
 }

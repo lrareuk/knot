@@ -3,6 +3,7 @@ import { Manrope, Space_Grotesk } from "next/font/google";
 import Analytics from "@/app/components/layout/Analytics";
 import CookieConsent from "@/app/components/layout/CookieConsent";
 import "./globals.css";
+import "./dashboard.css";
 
 const manrope = Manrope({
   variable: "--font-manrope",

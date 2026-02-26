@@ -5,9 +5,19 @@ import { useRouter } from "next/navigation";
 
 type Props = {
   disabled?: boolean;
+  label?: string;
+  className?: string;
+  redirectToEditor?: boolean;
+  title?: string;
 };
 
-export default function CreateScenarioButton({ disabled }: Props) {
+export default function CreateScenarioButton({
+  disabled,
+  label = "Create scenario",
+  className = "btn-primary",
+  redirectToEditor = true,
+  title,
+}: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -18,9 +28,16 @@ export default function CreateScenarioButton({ disabled }: Props) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({}),
     });
+
+    const payload = (await response.json().catch(() => ({}))) as { scenario?: { id: string } };
     setLoading(false);
 
-    if (!response.ok) {
+    if (!response.ok || !payload.scenario?.id) {
+      return;
+    }
+
+    if (redirectToEditor) {
+      router.push(`/dashboard/scenarios/${payload.scenario.id}`);
       return;
     }
 
@@ -28,8 +45,8 @@ export default function CreateScenarioButton({ disabled }: Props) {
   };
 
   return (
-    <button type="button" className="btn-primary" disabled={disabled || loading} onClick={createScenario}>
-      {loading ? "Creating..." : "Create scenario"}
+    <button type="button" className={className} disabled={disabled || loading} onClick={createScenario} title={title}>
+      {loading ? "Creating..." : label}
     </button>
   );
 }

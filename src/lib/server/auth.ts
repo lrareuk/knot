@@ -4,6 +4,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 export type AccessProfile = {
   id: string;
   email: string;
+  first_name: string | null;
   paid: boolean;
   onboarding_done: boolean;
   jurisdiction: string;
@@ -19,10 +20,16 @@ export async function getAuthContext() {
     return { supabase, user: null, profile: null };
   }
 
+  const metadataFirstName =
+    typeof user.user_metadata?.first_name === "string" && user.user_metadata.first_name.trim()
+      ? user.user_metadata.first_name.trim()
+      : null;
+
   await supabase.from("users").upsert(
     {
       id: user.id,
       email: user.email ?? "",
+      ...(metadataFirstName ? { first_name: metadataFirstName } : {}),
     },
     {
       onConflict: "id",
@@ -32,7 +39,7 @@ export async function getAuthContext() {
 
   const { data: profile } = await supabase
     .from("users")
-    .select("id,email,paid,onboarding_done,jurisdiction")
+    .select("id,email,first_name,paid,onboarding_done,jurisdiction")
     .eq("id", user.id)
     .single<AccessProfile>();
 
@@ -54,7 +61,7 @@ export async function requireAuthContext() {
 export async function requireDashboardAccess() {
   const context = await requireAuthContext();
   if (!context.profile.paid) {
-    redirect("/payment");
+    redirect("/signup/payment");
   }
   if (!context.profile.onboarding_done) {
     redirect("/onboarding");

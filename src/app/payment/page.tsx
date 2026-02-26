@@ -1,31 +1,23 @@
 import { redirect } from "next/navigation";
-import CheckoutButton from "@/app/components/dashboard/CheckoutButton";
-import { getAuthContext } from "@/lib/server/auth";
 
-export default async function PaymentPage() {
-  const { user, profile } = await getAuthContext();
+export default async function LegacyPaymentPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const resolved = await searchParams;
+  const query = new URLSearchParams();
 
-  if (!user || !profile) {
-    redirect("/login");
+  for (const [key, value] of Object.entries(resolved)) {
+    if (Array.isArray(value)) {
+      value.forEach((entry) => query.append(key, entry));
+      continue;
+    }
+    if (typeof value === "string") {
+      query.set(key, value);
+    }
   }
 
-  if (profile.paid && profile.onboarding_done) {
-    redirect("/dashboard");
-  }
-
-  if (profile.paid) {
-    redirect("/onboarding");
-  }
-
-  return (
-    <main className="page-shell narrow">
-      <section className="panel stack-md">
-        <h1>Payment required</h1>
-        <p className="muted">
-          Untie is a one-time payment of £449. Billing descriptor is <strong>LRARE</strong>.
-        </p>
-        <CheckoutButton />
-      </section>
-    </main>
-  );
+  const suffix = query.toString();
+  redirect(suffix ? `/signup/payment?${suffix}` : "/signup/payment");
 }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import type Stripe from "stripe";
+import { isPaidCheckoutSession } from "@/lib/server/stripe-checkout";
 import { stripe } from "@/lib/stripe";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 
@@ -42,9 +43,11 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const userId = session.metadata?.supabase_user_id;
-    const stripeCustomerId =
-      typeof session.customer === "string" ? session.customer : session.customer?.id ?? null;
+    const userId = session.metadata?.supabase_user_id ?? session.metadata?.user_id ?? session.client_reference_id;
+
+    if (!isPaidCheckoutSession(session)) {
+      return NextResponse.json({ received: true, ignored: "session_not_paid" });
+    }
 
     if (userId) {
       await admin.from("users").upsert(
@@ -55,17 +58,6 @@ export async function POST(req: Request) {
           stripe_session: session.id,
         },
         { onConflict: "id", ignoreDuplicates: false }
-      );
-
-      await admin.from("user_billing").upsert(
-        {
-          user_id: userId,
-          stripe_customer_id: stripeCustomerId,
-          plan: "one_time",
-          status: "active",
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id", ignoreDuplicates: false }
       );
     }
   }

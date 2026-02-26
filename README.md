@@ -35,3 +35,20 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 # knot
+
+## Stripe checkout (custom in-site)
+
+This app uses Stripe Checkout Sessions with `ui_mode=custom` on `/signup/payment`.
+
+### Required env vars
+
+- `STRIPE_SECRET_KEY`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `NEXT_PUBLIC_SITE_URL`
+
+### Wallet prerequisites (Apple Pay / Google Pay)
+
+- Use HTTPS in both test and live environments.
+- Register your domain in Stripe Payment Method Domains for both test and live mode.
+- Keep webhook delivery enabled to `/api/webhooks/stripe` (or `/api/stripe/webhook`) because paid access is granted from webhook events.

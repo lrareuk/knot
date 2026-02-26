@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
+import { buildStripeCheckoutSessionParams, mapStripeCheckoutRouteError } from "@/lib/server/stripe-checkout";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export async function POST() {
@@ -20,51 +21,46 @@ export async function POST() {
     { onConflict: "id", ignoreDuplicates: false }
   );
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  const priceId = process.env.STRIPE_PRICE_ID;
+  const { data: profile } = await supabase
+    .from("users")
+    .select("paid")
+    .eq("id", user.id)
+    .maybeSingle<{ paid: boolean }>();
 
-  if (!siteUrl || !priceId) {
+  if (profile?.paid) {
+    return NextResponse.json({ error: "Payment already completed" }, { status: 409 });
+  }
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (!siteUrl) {
     return NextResponse.json({ error: "Missing Stripe configuration" }, { status: 500 });
   }
 
-  const { data: billing } = await supabase
-    .from("user_billing")
-    .select("stripe_customer_id")
-    .eq("user_id", user.id)
-    .maybeSingle<{ stripe_customer_id: string | null }>();
-
-  let customerId = billing?.stripe_customer_id ?? null;
-
-  if (!customerId) {
-    const customer = await stripe.customers.create({
-      email: user.email ?? undefined,
-      metadata: { supabase_user_id: user.id },
-    });
-    customerId = customer.id;
-
-    await supabase.from("user_billing").upsert(
-      {
-        user_id: user.id,
-        stripe_customer_id: customerId,
-        status: "inactive",
-      },
-      { onConflict: "user_id", ignoreDuplicates: false }
+  try {
+    const session = await stripe.checkout.sessions.create(
+      buildStripeCheckoutSessionParams({
+        siteUrl,
+        userId: user.id,
+        email: user.email,
+      })
     );
+
+    if (!session.client_secret) {
+      return NextResponse.json({ error: "Unable to initialize checkout right now." }, { status: 500 });
+    }
+
+    await supabase
+      .from("users")
+      .update({ stripe_session: session.id })
+      .eq("id", user.id);
+
+    return NextResponse.json({
+      clientSecret: session.client_secret,
+      sessionId: session.id,
+    });
+  } catch (error) {
+    const mappedError = mapStripeCheckoutRouteError(error);
+    return NextResponse.json({ error: mappedError.message }, { status: mappedError.status });
   }
-
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${siteUrl}/onboarding?checkout=success`,
-    cancel_url: `${siteUrl}/payment?checkout=cancel`,
-    metadata: { supabase_user_id: user.id },
-  });
-
-  await supabase
-    .from("users")
-    .update({ stripe_session: session.id })
-    .eq("id", user.id);
-
-  return NextResponse.json({ url: session.url });
 }

@@ -15,10 +15,16 @@ export async function requireApiUser() {
     };
   }
 
+  const metadataFirstName =
+    typeof user.user_metadata?.first_name === "string" && user.user_metadata.first_name.trim()
+      ? user.user_metadata.first_name.trim()
+      : null;
+
   await supabase.from("users").upsert(
     {
       id: user.id,
       email: user.email ?? "",
+      ...(metadataFirstName ? { first_name: metadataFirstName } : {}),
     },
     { onConflict: "id", ignoreDuplicates: false }
   );

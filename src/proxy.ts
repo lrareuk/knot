@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { deserializeSignupFirstName, SIGNUP_STATE_COOKIE } from "@/lib/auth/signup-state";
 import { resolveAccessRedirect } from "@/lib/server/access-guard";
 
-const PUBLIC_PATHS = new Set(["/", "/privacy", "/terms", "/login", "/signup"]);
+const PUBLIC_PATHS = new Set(["/", "/legal", "/login", "/login/reset", "/signup", "/signup/email"]);
 
 function isStaticPath(pathname: string) {
   return (
@@ -19,7 +20,7 @@ function isStaticPath(pathname: string) {
 function isAuthOnlyPath(pathname: string) {
   return (
     pathname.startsWith("/settings") ||
-    pathname.startsWith("/payment") ||
+    pathname.startsWith("/signup/payment") ||
     pathname.startsWith("/onboarding") ||
     pathname.startsWith("/dashboard")
   );
@@ -29,6 +30,13 @@ function redirectTo(req: NextRequest, pathname: string) {
   const url = req.nextUrl.clone();
   url.pathname = pathname;
   return NextResponse.redirect(url);
+}
+
+function redirectToLegalDoc(req: NextRequest, doc: "privacy" | "terms") {
+  const url = req.nextUrl.clone();
+  url.pathname = "/legal";
+  url.searchParams.set("doc", doc);
+  return NextResponse.redirect(url, 308);
 }
 
 export async function proxy(req: NextRequest) {
@@ -44,6 +52,22 @@ export async function proxy(req: NextRequest) {
 
   if (pathname === "/sign-up") {
     return redirectTo(req, "/signup");
+  }
+
+  if (pathname === "/payment") {
+    return redirectTo(req, "/signup/payment");
+  }
+
+  if (pathname === "/privacy") {
+    return redirectToLegalDoc(req, "privacy");
+  }
+
+  if (pathname === "/terms") {
+    return redirectToLegalDoc(req, "terms");
+  }
+
+  if (pathname === "/onboarding/dates") {
+    return redirectTo(req, "/onboarding/key-dates");
   }
 
   if (pathname === "/app" || pathname.startsWith("/app/")) {
@@ -78,6 +102,7 @@ export async function proxy(req: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isApi = pathname.startsWith("/api");
+  const hasSignupName = Boolean(deserializeSignupFirstName(req.cookies.get(SIGNUP_STATE_COOKIE)?.value));
 
   if (!user) {
     const redirectPath = resolveAccessRedirect({
@@ -85,6 +110,7 @@ export async function proxy(req: NextRequest) {
       isAuthenticated: false,
       paid: false,
       onboardingDone: false,
+      hasSignupName,
     });
 
     if (redirectPath) {
@@ -96,10 +122,16 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
+  const metadataFirstName =
+    typeof user.user_metadata?.first_name === "string" && user.user_metadata.first_name.trim()
+      ? user.user_metadata.first_name.trim()
+      : null;
+
   await supabase.from("users").upsert(
     {
       id: user.id,
       email: user.email ?? "",
+      ...(metadataFirstName ? { first_name: metadataFirstName } : {}),
     },
     { onConflict: "id", ignoreDuplicates: false }
   );
@@ -118,6 +150,7 @@ export async function proxy(req: NextRequest) {
     isAuthenticated: true,
     paid,
     onboardingDone,
+    hasSignupName,
   });
 
   if (redirectPath) {

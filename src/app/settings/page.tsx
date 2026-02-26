@@ -1,21 +1,13 @@
-import { redirect } from "next/navigation";
-import AccountDeletionForm from "@/app/components/settings/AccountDeletionForm";
-import { requireAuthContext } from "@/lib/server/auth";
+import DashboardShell from "@/app/components/dashboard/DashboardShell";
+import SettingsView from "@/app/components/settings/SettingsView";
+import { requireDashboardAccess } from "@/lib/server/auth";
 
 export default async function SettingsPage() {
-  const { user } = await requireAuthContext();
-  if (!user) {
-    redirect("/login");
-  }
+  const { profile } = await requireDashboardAccess();
 
   return (
-    <main className="page-shell narrow stack-lg">
-      <section className="panel stack-sm">
-        <h1>Settings</h1>
-        <p className="muted">Manage your account and data controls.</p>
-      </section>
-
-      <AccountDeletionForm />
-    </main>
+    <DashboardShell firstName={profile.first_name}>
+      <SettingsView firstName={profile.first_name} email={profile.email} jurisdiction={profile.jurisdiction} />
+    </DashboardShell>
   );
 }

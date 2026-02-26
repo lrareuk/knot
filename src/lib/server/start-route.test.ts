@@ -19,7 +19,7 @@ describe("resolveStartRedirect", () => {
         paid: false,
         onboardingDone: false,
       })
-    ).toBe("/payment");
+    ).toBe("/signup/payment");
   });
 
   it("routes paid users with incomplete onboarding to onboarding", () => {
