@@ -35,7 +35,7 @@ function HeaderLink({ item }: { item: SiteNavItem }) {
 
 export default function SiteHeader({
   navItems = SITE_NAV_ITEMS,
-  ctaHref = "/#pricing",
+  ctaHref = "/start",
   ctaLabel = "Get started",
 }: SiteHeaderProps) {
   const ctaIsAnchor = ctaHref.startsWith("#");

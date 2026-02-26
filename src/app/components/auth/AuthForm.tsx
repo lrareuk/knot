@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/browser";
@@ -10,20 +11,32 @@ type Props = {
   mode: AuthMode;
 };
 
+function normalizeNextPath(next: string | null) {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) {
+    return "/start";
+  }
+
+  return next;
+}
+
 export default function AuthForm({ mode }: Props) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const nextPath = normalizeNextPath(
+    typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("next")
+  );
+  const switchPath = mode === "sign-up" ? "/login" : "/signup";
+  const switchHref = `${switchPath}?next=${encodeURIComponent(nextPath)}`;
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setLoading(true);
     setStatus(null);
-
-    const next = new URLSearchParams(window.location.search).get("next") || "/dashboard";
     const supabase = supabaseBrowser();
+    const next = normalizeNextPath(new URLSearchParams(window.location.search).get("next"));
 
     const response =
       mode === "sign-up"
@@ -52,11 +65,12 @@ export default function AuthForm({ mode }: Props) {
     }
 
     const supabase = supabaseBrowser();
+    const next = normalizeNextPath(new URLSearchParams(window.location.search).get("next"));
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: mode === "sign-up",
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}${next}`,
       },
     });
 
@@ -112,7 +126,7 @@ export default function AuthForm({ mode }: Props) {
 
       <p className="muted auth-switch">
         {mode === "sign-up" ? "Already have an account? " : "Need an account? "}
-        <a href={mode === "sign-up" ? "/login" : "/signup"}>{mode === "sign-up" ? "Sign in" : "Sign up"}</a>
+        <Link href={switchHref}>{mode === "sign-up" ? "Sign in" : "Sign up"}</Link>
       </p>
     </div>
   );

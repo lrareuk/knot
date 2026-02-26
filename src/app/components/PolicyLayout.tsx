@@ -29,7 +29,7 @@ export default function PolicyLayout({
 }: PolicyLayoutProps) {
   return (
     <main className="policy-page">
-      <SiteHeader navItems={SITE_NAV_ITEMS} ctaHref="/#pricing" ctaLabel="Get started" />
+      <SiteHeader navItems={SITE_NAV_ITEMS} ctaHref="/start" ctaLabel="Get started" />
 
       <div className="policy-shell policy-hero">
         <p className="section-label">{eyebrow}</p>

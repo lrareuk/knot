@@ -1,6 +1,7 @@
 import type { OnboardingModule } from "@/lib/domain/defaults";
 
 export const ROUTES = {
+  start: "/start",
   login: "/login",
   signup: "/signup",
   payment: "/payment",

@@ -34,7 +34,7 @@ export default function Home() {
 
   return (
     <>
-      <SiteHeader navItems={HOME_NAV_ITEMS} ctaHref="#pricing" ctaLabel="Get started" />
+      <SiteHeader navItems={HOME_NAV_ITEMS} ctaHref="/start" ctaLabel="Get started" />
 
       <section className="hero">
         <div className="hero-eyebrow">Financial scenario platform</div>
@@ -48,7 +48,7 @@ export default function Home() {
           changes — before anything escalates.
         </p>
         <div className="hero-actions">
-          <a href="#pricing" className="btn-primary">
+          <a href="/start" className="btn-primary">
             Start with clarity
           </a>
           <a href="#how" className="btn-secondary">
@@ -227,9 +227,9 @@ export default function Home() {
             <li>Private — no data sharing, no accounts linked</li>
             <li>Optional solicitor referral directory (fully disclosed)</li>
           </ul>
-          <button type="button" className="pricing-cta">
+          <a href="/start" className="pricing-cta">
             Get clarity now
-          </button>
+          </a>
         </Reveal>
       </section>
 

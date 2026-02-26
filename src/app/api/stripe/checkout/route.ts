@@ -56,7 +56,7 @@ export async function POST() {
     mode: "payment",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${siteUrl}/dashboard?checkout=success`,
+    success_url: `${siteUrl}/onboarding?checkout=success`,
     cancel_url: `${siteUrl}/payment?checkout=cancel`,
     metadata: { supabase_user_id: user.id },
   });
