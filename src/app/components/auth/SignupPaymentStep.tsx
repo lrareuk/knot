@@ -116,7 +116,7 @@ export default function SignupPaymentStep({ firstName }: Props) {
           <rect x="3" y="7" width="10" height="7" />
           <path d="M5 7V5a3 3 0 016 0v2" />
         </svg>
-        Secure payment via Stripe. Card is enabled by default.
+        Secure payment via Stripe.
       </p>
     </div>
   );
