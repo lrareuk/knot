@@ -1,14 +1,8 @@
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
+import { ensureAndFetchUserProfile } from "@/lib/server/user-profile";
 
-export type AccessProfile = {
-  id: string;
-  email: string;
-  first_name: string | null;
-  paid: boolean;
-  onboarding_done: boolean;
-  jurisdiction: string;
-};
+export type AccessProfile = NonNullable<Awaited<ReturnType<typeof ensureAndFetchUserProfile>>>;
 
 export async function getAuthContext() {
   const supabase = await supabaseServer();
@@ -20,28 +14,7 @@ export async function getAuthContext() {
     return { supabase, user: null, profile: null };
   }
 
-  const metadataFirstName =
-    typeof user.user_metadata?.first_name === "string" && user.user_metadata.first_name.trim()
-      ? user.user_metadata.first_name.trim()
-      : null;
-
-  await supabase.from("users").upsert(
-    {
-      id: user.id,
-      email: user.email ?? "",
-      ...(metadataFirstName ? { first_name: metadataFirstName } : {}),
-    },
-    {
-      onConflict: "id",
-      ignoreDuplicates: false,
-    }
-  );
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("id,email,first_name,paid,onboarding_done,jurisdiction")
-    .eq("id", user.id)
-    .single<AccessProfile>();
+  const profile = await ensureAndFetchUserProfile(supabase, user);
 
   return { supabase, user, profile: profile ?? null };
 }
@@ -60,11 +33,17 @@ export async function requireAuthContext() {
 
 export async function requireDashboardAccess() {
   const context = await requireAuthContext();
+  if (context.profile.account_state !== "active") {
+    redirect("/login");
+  }
   if (!context.profile.paid) {
     redirect("/signup/payment");
   }
   if (!context.profile.onboarding_done) {
     redirect("/onboarding");
+  }
+  if (context.profile.recovery_key_required) {
+    redirect("/recovery-key");
   }
   return context;
 }

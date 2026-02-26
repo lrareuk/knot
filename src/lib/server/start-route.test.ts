@@ -8,6 +8,8 @@ describe("resolveStartRedirect", () => {
         isAuthenticated: false,
         paid: false,
         onboardingDone: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
       })
     ).toBe("/signup?next=%2Fstart");
   });
@@ -18,6 +20,8 @@ describe("resolveStartRedirect", () => {
         isAuthenticated: true,
         paid: false,
         onboardingDone: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
       })
     ).toBe("/signup/payment");
   });
@@ -28,6 +32,8 @@ describe("resolveStartRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
       })
     ).toBe("/onboarding");
   });
@@ -38,7 +44,33 @@ describe("resolveStartRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: true,
+        accountState: "active",
+        recoveryKeyRequired: false,
       })
     ).toBe("/dashboard");
+  });
+
+  it("routes hidden users to login", () => {
+    expect(
+      resolveStartRedirect({
+        isAuthenticated: true,
+        paid: true,
+        onboardingDone: true,
+        accountState: "panic_hidden",
+        recoveryKeyRequired: false,
+      })
+    ).toBe("/login");
+  });
+
+  it("routes ready users with required recovery key to recovery-key", () => {
+    expect(
+      resolveStartRedirect({
+        isAuthenticated: true,
+        paid: true,
+        onboardingDone: true,
+        accountState: "active",
+        recoveryKeyRequired: true,
+      })
+    ).toBe("/recovery-key");
   });
 });

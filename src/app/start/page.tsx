@@ -9,6 +9,8 @@ export default async function StartPage() {
     isAuthenticated: Boolean(user),
     paid: profile?.paid ?? false,
     onboardingDone: profile?.onboarding_done ?? false,
+    accountState: profile?.account_state ?? "active",
+    recoveryKeyRequired: profile?.recovery_key_required ?? false,
   });
 
   redirect(destination);

@@ -15,7 +15,7 @@ export default function SiteFooter() {
           <Link href="/legal?doc=terms">Terms</Link>
         </li>
         <li>
-          <a href="mailto:hello@untie.app">Contact</a>
+          <a href="mailto:legal@untie.lrare.co.uk">Contact</a>
         </li>
       </ul>
     </footer>

@@ -5,8 +5,9 @@ import type { LegalDocKey } from "@/app/legal/model";
 const COMPANY_NAME = "LRARE Holdings Ltd";
 const STATEMENT_DESCRIPTOR = "LRARE";
 const COMPANY_ADDRESS = "The Stamp Exchange, Newcastle-upon-Tyne, NE1 1SA";
-const PRIVACY_EMAIL = "privacy@untie.co";
-const SUPPORT_EMAIL = "hello@untie.app";
+const PRIVACY_EMAIL = "privacy@untie.lrare.co.uk";
+const LEGAL_EMAIL = "legal@untie.lrare.co.uk";
+const EFFECTIVE_DATE = "February 26, 2026";
 const LAST_UPDATED = "February 26, 2026";
 
 export type LegalDocument = {
@@ -21,7 +22,7 @@ export const LEGAL_DOCUMENTS: Record<LegalDocKey, LegalDocument> = {
   privacy: {
     tabLabel: "Privacy Policy",
     title: "Privacy Policy",
-    effectiveDate: <span data-legal-insert>[INSERT DATE]</span>,
+    effectiveDate: EFFECTIVE_DATE,
     lastUpdated: LAST_UPDATED,
     content: (
       <>
@@ -103,10 +104,7 @@ export const LEGAL_DOCUMENTS: Record<LegalDocKey, LegalDocument> = {
           <li>IP anonymisation is enabled</li>
           <li>User-ID tracking is disabled</li>
           <li>Data sharing with Google advertising products is disabled</li>
-          <li>
-            Data retention is set to the minimum available period (
-            <span data-legal-insert>[INSERT: 2 or 14 months]</span>)
-          </li>
+          <li>Data retention is set to 2 months</li>
           <li>Granular location and demographic reporting is disabled</li>
         </ul>
         <p>
@@ -167,7 +165,8 @@ export const LEGAL_DOCUMENTS: Record<LegalDocKey, LegalDocument> = {
         <p>
           Supabase provides our authentication infrastructure and database hosting. Data is stored on
           Amazon Web Services (AWS) infrastructure. Supabase acts as a data processor under a Data
-          Processing Agreement. <span data-legal-insert>[INSERT: Confirm Supabase DPA is signed and specify AWS region, e.g. eu-west-2 London.]</span>
+          Processing Agreement. Our database is hosted in the AWS Frankfurt region
+          (eu-central-1).
         </p>
 
         <h3>6.2 Stripe (payment processing)</h3>
@@ -200,7 +199,7 @@ export const LEGAL_DOCUMENTS: Record<LegalDocKey, LegalDocument> = {
 
         <h2>7. Data Storage and Security</h2>
         <p>
-          Your data is stored on AWS infrastructure via Supabase. <span data-legal-insert>[INSERT: Confirm data residency — specify whether data is stored in the UK or EU, e.g. AWS eu-west-2 London region.]</span>
+          Your data is stored on AWS infrastructure via Supabase in Frankfurt (eu-central-1).
         </p>
         <p>We implement the following security measures:</p>
         <ul>
@@ -243,8 +242,8 @@ export const LEGAL_DOCUMENTS: Record<LegalDocKey, LegalDocument> = {
           data.
         </p>
         <p>
-          <strong>Analytics data:</strong> Retained by Google Analytics for <span data-legal-insert>[INSERT: 2 or 14 months]</span>{" "}
-          from the date of collection.
+          <strong>Analytics data:</strong> Retained by Google Analytics for 2 months from the date
+          of collection.
         </p>
         <p>
           <strong>Inactive accounts:</strong> Accounts inactive for 12 months receive an email
@@ -306,7 +305,9 @@ export const LEGAL_DOCUMENTS: Record<LegalDocKey, LegalDocument> = {
 
         <h2>11. International Data Transfers</h2>
         <p>
-          <span data-legal-insert>[INSERT: This section depends on Supabase/AWS region and Google Analytics configuration. If data is stored and processed entirely within the UK, state that. If data is transferred to the US (e.g. via Google Analytics or Stripe), identify the transfer mechanism — likely the UK International Data Transfer Agreement (UK IDTA) or the UK Addendum to EU Standard Contractual Clauses. Confirm with your solicitor.]</span>
+          Core account and modelling data is hosted in AWS Frankfurt (eu-central-1) via Supabase.
+          Some processors we use, including Stripe and Google Analytics, may process limited data
+          in other jurisdictions under their applicable cross-border transfer safeguards.
         </p>
 
         <h2>12. Children</h2>
@@ -355,7 +356,7 @@ export const LEGAL_DOCUMENTS: Record<LegalDocKey, LegalDocument> = {
   terms: {
     tabLabel: "Terms of Service",
     title: "Terms of Service",
-    effectiveDate: <span data-legal-insert>[INSERT DATE]</span>,
+    effectiveDate: EFFECTIVE_DATE,
     lastUpdated: LAST_UPDATED,
     content: (
       <>
@@ -443,7 +444,7 @@ export const LEGAL_DOCUMENTS: Record<LegalDocKey, LegalDocument> = {
           content.
         </p>
         <p>
-          To request a refund, contact us at <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
+          To request a refund, contact us at <a href={`mailto:${LEGAL_EMAIL}`}>{LEGAL_EMAIL}</a>.
           Refunds will be processed to the original payment method within 10 business days.
         </p>
 
@@ -692,7 +693,7 @@ export const LEGAL_DOCUMENTS: Record<LegalDocKey, LegalDocument> = {
           <br />
           {COMPANY_ADDRESS}
           <br />
-          <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+          <a href={`mailto:${LEGAL_EMAIL}`}>{LEGAL_EMAIL}</a>
           <br />
           <span data-legal-insert>[INSERT: Companies House registration number]</span>
         </p>

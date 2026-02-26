@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { deserializeSignupFirstName, SIGNUP_STATE_COOKIE } from "@/lib/auth/signup-state";
 import { resolveAccessRedirect } from "@/lib/server/access-guard";
+import { ensureAndFetchUserProfile } from "@/lib/server/user-profile";
 
 const PUBLIC_PATHS = new Set(["/", "/legal", "/login", "/login/reset", "/signup", "/signup/email"]);
 
@@ -22,7 +23,8 @@ function isAuthOnlyPath(pathname: string) {
     pathname.startsWith("/settings") ||
     pathname.startsWith("/signup/payment") ||
     pathname.startsWith("/onboarding") ||
-    pathname.startsWith("/dashboard")
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/recovery-key")
   );
 }
 
@@ -110,6 +112,8 @@ export async function proxy(req: NextRequest) {
       isAuthenticated: false,
       paid: false,
       onboardingDone: false,
+      accountState: "active",
+      recoveryKeyRequired: false,
       hasSignupName,
     });
 
@@ -122,34 +126,22 @@ export async function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const metadataFirstName =
-    typeof user.user_metadata?.first_name === "string" && user.user_metadata.first_name.trim()
-      ? user.user_metadata.first_name.trim()
-      : null;
-
-  await supabase.from("users").upsert(
-    {
-      id: user.id,
-      email: user.email ?? "",
-      ...(metadataFirstName ? { first_name: metadataFirstName } : {}),
-    },
-    { onConflict: "id", ignoreDuplicates: false }
-  );
-
-  const { data: profile } = await supabase
-    .from("users")
-    .select("paid,onboarding_done")
-    .eq("id", user.id)
-    .single<{ paid: boolean; onboarding_done: boolean }>();
-
-  const paid = profile?.paid ?? false;
-  const onboardingDone = profile?.onboarding_done ?? false;
+  const profile = await ensureAndFetchUserProfile(supabase, user);
+  if (!profile) {
+    return redirectTo(req, "/login");
+  }
+  const paid = profile.paid;
+  const onboardingDone = profile.onboarding_done;
+  const accountState = profile.account_state;
+  const recoveryKeyRequired = profile.recovery_key_required;
 
   const redirectPath = resolveAccessRedirect({
     pathname,
     isAuthenticated: true,
     paid,
     onboardingDone,
+    accountState,
+    recoveryKeyRequired,
     hasSignupName,
   });
 

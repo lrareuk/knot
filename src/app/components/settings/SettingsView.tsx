@@ -38,6 +38,10 @@ export default function SettingsView({ firstName, email, jurisdiction }: Props) 
   const [exportLoading, setExportLoading] = useState(false);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
 
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [recoveryStatus, setRecoveryStatus] = useState<string | null>(null);
+  const [recoveryKey, setRecoveryKey] = useState<string | null>(null);
+
   const saveProfile = async () => {
     setProfileSaving(true);
     setProfileStatus(null);
@@ -118,6 +122,53 @@ export default function SettingsView({ firstName, email, jurisdiction }: Props) 
     setExportStatus("Export downloaded.");
   };
 
+  const generateRecoveryKey = async () => {
+    setRecoveryLoading(true);
+    setRecoveryStatus(null);
+
+    const response = await fetch("/api/account/recovery-key", { method: "POST" });
+    const payload = (await response.json().catch(() => ({}))) as { error?: string; recovery_key?: string };
+    setRecoveryLoading(false);
+
+    if (!response.ok || !payload.recovery_key) {
+      setRecoveryStatus(payload.error ?? "Unable to generate recovery key.");
+      return;
+    }
+
+    setRecoveryKey(payload.recovery_key);
+    setRecoveryStatus("Recovery key rotated.");
+  };
+
+  const copyRecoveryKey = async () => {
+    if (!recoveryKey) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(recoveryKey);
+      setRecoveryStatus("Recovery key copied.");
+    } catch {
+      setRecoveryStatus("Unable to copy recovery key.");
+    }
+  };
+
+  const downloadRecoveryKey = () => {
+    if (!recoveryKey) {
+      return;
+    }
+
+    const blob = new Blob([`${recoveryKey}\n`], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "notes.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    setRecoveryStatus("Recovery key downloaded.");
+  };
+
   return (
     <div className="dashboard-page dashboard-settings">
       <header className="dashboard-page-header">
@@ -194,6 +245,30 @@ export default function SettingsView({ firstName, email, jurisdiction }: Props) 
           </button>
         </div>
         {exportStatus ? <p className="dashboard-status">{exportStatus}</p> : null}
+      </section>
+
+      <section className="dashboard-settings-section">
+        <h2 className="dashboard-scenario-name">Recovery key</h2>
+        <p className="dashboard-help">
+          Keep this key offline. Support will require it with your account email if you need reinstatement after panic mode.
+        </p>
+        <div className="dashboard-inline-actions">
+          <button type="button" className="dashboard-btn-ghost" onClick={generateRecoveryKey} disabled={recoveryLoading}>
+            {recoveryLoading ? "Generating..." : "Regenerate recovery key"}
+          </button>
+          {recoveryKey ? (
+            <>
+              <button type="button" className="dashboard-btn-ghost" onClick={copyRecoveryKey}>
+                Copy key
+              </button>
+              <button type="button" className="dashboard-btn-ghost" onClick={downloadRecoveryKey}>
+                Download key
+              </button>
+            </>
+          ) : null}
+        </div>
+        {recoveryKey ? <input className="dashboard-input" value={recoveryKey} readOnly /> : null}
+        {recoveryStatus ? <p className="dashboard-status">{recoveryStatus}</p> : null}
       </section>
 
       <section className="dashboard-settings-section dashboard-danger-zone">

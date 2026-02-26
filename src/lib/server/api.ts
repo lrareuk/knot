@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
+import { ensureAndFetchUserProfile } from "@/lib/server/user-profile";
 
 export async function requireApiUser() {
   const supabase = await supabaseServer();
@@ -11,27 +12,25 @@ export async function requireApiUser() {
     return {
       supabase,
       user: null,
+      profile: null,
       response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
     };
   }
 
-  const metadataFirstName =
-    typeof user.user_metadata?.first_name === "string" && user.user_metadata.first_name.trim()
-      ? user.user_metadata.first_name.trim()
-      : null;
-
-  await supabase.from("users").upsert(
-    {
-      id: user.id,
-      email: user.email ?? "",
-      ...(metadataFirstName ? { first_name: metadataFirstName } : {}),
-    },
-    { onConflict: "id", ignoreDuplicates: false }
-  );
+  const profile = await ensureAndFetchUserProfile(supabase, user);
+  if (!profile || profile.account_state !== "active") {
+    return {
+      supabase,
+      user: null,
+      profile: null,
+      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+    };
+  }
 
   return {
     supabase,
     user,
+    profile,
     response: null,
   };
 }

@@ -52,3 +52,9 @@ This app uses Stripe Checkout Sessions with `ui_mode=custom` on `/signup/payment
 - Use HTTPS in both test and live environments.
 - Register your domain in Stripe Payment Method Domains for both test and live mode.
 - Keep webhook delivery enabled to `/api/webhooks/stripe` (or `/api/stripe/webhook`) because paid access is granted from webhook events.
+
+## Account recovery env vars
+
+- `RECOVERY_KEY_PEPPER`
+- `SUPPORT_RECOVERY_API_KEY`
+- `RECOVERY_SNAPSHOT_RETENTION_DAYS` (defaults to `30`)

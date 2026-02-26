@@ -3,14 +3,18 @@ export type AccessInput = {
   isAuthenticated: boolean;
   paid: boolean;
   onboardingDone: boolean;
+  accountState: "active" | "panic_hidden";
+  recoveryKeyRequired: boolean;
   hasSignupName: boolean;
 };
 
 export function resolveAccessRedirect(input: AccessInput): string | null {
-  const { pathname, isAuthenticated, paid, onboardingDone, hasSignupName } = input;
+  const { pathname, isAuthenticated, paid, onboardingDone, accountState, recoveryKeyRequired, hasSignupName } = input;
   const isSignupPaymentPath = pathname === "/signup/payment" || pathname.startsWith("/signup/payment/");
   const isSignupPaymentSuccessPath = pathname === "/signup/payment/success";
   const isAuthEntryPath = pathname === "/signup" || pathname === "/signup/email" || pathname === "/login" || pathname === "/login/reset";
+  const isRecoveryKeyPath = pathname === "/recovery-key" || pathname.startsWith("/recovery-key/");
+  const isSettingsPath = pathname.startsWith("/settings");
 
   if (!isAuthenticated) {
     if (pathname === "/signup/email" && !hasSignupName) {
@@ -24,16 +28,32 @@ export function resolveAccessRedirect(input: AccessInput): string | null {
     if (
       pathname.startsWith("/onboarding") ||
       pathname.startsWith("/dashboard") ||
-      pathname.startsWith("/settings")
+      isSettingsPath ||
+      isRecoveryKeyPath
     ) {
       return "/login";
     }
     return null;
   }
 
+  if (accountState === "panic_hidden") {
+    if (pathname === "/login" || pathname === "/login/reset") {
+      return null;
+    }
+    return "/login";
+  }
+
+  if (isRecoveryKeyPath) {
+    if (!paid) return "/signup/payment";
+    if (!onboardingDone) return "/onboarding";
+    if (!recoveryKeyRequired) return "/dashboard";
+    return null;
+  }
+
   if (isAuthEntryPath) {
     if (!paid) return "/signup/payment";
     if (!onboardingDone) return "/onboarding";
+    if (recoveryKeyRequired) return "/recovery-key";
     return "/dashboard";
   }
 
@@ -44,11 +64,13 @@ export function resolveAccessRedirect(input: AccessInput): string | null {
 
     if (!paid) return null;
     if (!onboardingDone) return "/onboarding";
+    if (recoveryKeyRequired) return "/recovery-key";
     return "/dashboard";
   }
 
   if (pathname.startsWith("/onboarding")) {
     if (!paid) return "/signup/payment";
+    if (onboardingDone && recoveryKeyRequired) return "/recovery-key";
     if (onboardingDone) return "/dashboard";
     return null;
   }
@@ -56,6 +78,14 @@ export function resolveAccessRedirect(input: AccessInput): string | null {
   if (pathname.startsWith("/dashboard")) {
     if (!paid) return "/signup/payment";
     if (!onboardingDone) return "/onboarding";
+    if (recoveryKeyRequired) return "/recovery-key";
+    return null;
+  }
+
+  if (isSettingsPath) {
+    if (!paid) return "/signup/payment";
+    if (!onboardingDone) return "/onboarding";
+    if (recoveryKeyRequired) return "/recovery-key";
     return null;
   }
 

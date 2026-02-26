@@ -1,32 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 
-const REQUIRED_TEXT = "DELETE MY ACCOUNT";
+const HOLD_TO_CONFIRM_MS = 1200;
 
 export default function AccountDeletionForm() {
   const router = useRouter();
-  const [confirmation, setConfirmation] = useState("");
+  const holdTimeoutRef = useRef<number | null>(null);
+  const [armed, setArmed] = useState(false);
+  const [holding, setHolding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
 
-  const deleteAccount = async () => {
+  useEffect(() => {
+    return () => {
+      if (holdTimeoutRef.current) {
+        window.clearTimeout(holdTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const triggerPanicMode = async () => {
     setLoading(true);
+    setHolding(false);
     setStatus(null);
 
-    const response = await fetch("/api/account/delete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ confirmation }),
-    });
+    const response = await fetch("/api/account/panic", { method: "POST" });
 
-    const payload = (await response.json()) as { ok?: boolean; error?: string };
+    const payload = (await response.json().catch(() => ({}))) as { ok?: boolean; error?: string };
 
     if (!response.ok || !payload.ok) {
       setLoading(false);
-      setStatus(payload.error ?? "Unable to delete account");
+      setArmed(false);
+      setStatus(payload.error ?? "Unable to hide account");
       return;
     }
 
@@ -35,21 +43,60 @@ export default function AccountDeletionForm() {
     router.refresh();
   };
 
+  const startHold = () => {
+    if (!armed || loading || holdTimeoutRef.current) {
+      return;
+    }
+
+    setHolding(true);
+    holdTimeoutRef.current = window.setTimeout(() => {
+      holdTimeoutRef.current = null;
+      triggerPanicMode();
+    }, HOLD_TO_CONFIRM_MS);
+  };
+
+  const cancelHold = () => {
+    setHolding(false);
+    if (!holdTimeoutRef.current) {
+      return;
+    }
+
+    window.clearTimeout(holdTimeoutRef.current);
+    holdTimeoutRef.current = null;
+  };
+
   return (
     <div style={{ display: "grid", gap: 14 }}>
-      <h2 className="dashboard-scenario-name">Delete account</h2>
+      <h2 className="dashboard-scenario-name">Panic mode</h2>
       <p className="dashboard-help">
-        This is permanent and irreversible. Type <strong>{REQUIRED_TEXT}</strong> to confirm.
+        Hides this account immediately, removes stored account data, and blocks sign-in. Recovery requires support and your
+        recovery key.
       </p>
-      <input className="dashboard-input" value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />
-      <button
-        type="button"
-        className="dashboard-btn-danger"
-        disabled={loading || confirmation !== REQUIRED_TEXT}
-        onClick={deleteAccount}
-      >
-        {loading ? "Deleting..." : "Delete my account permanently"}
-      </button>
+
+      {!armed ? (
+        <button type="button" className="dashboard-btn-danger" disabled={loading} onClick={() => setArmed(true)}>
+          Arm panic mode
+        </button>
+      ) : (
+        <>
+          <p className="dashboard-help">Hold to confirm.</p>
+          <button
+            type="button"
+            className="dashboard-btn-danger"
+            disabled={loading}
+            onPointerDown={startHold}
+            onPointerUp={cancelHold}
+            onPointerLeave={cancelHold}
+            onPointerCancel={cancelHold}
+          >
+            {loading ? "Hiding..." : holding ? "Keep holding..." : "Hold to hide account"}
+          </button>
+          <button type="button" className="dashboard-btn-ghost" disabled={loading} onClick={() => setArmed(false)}>
+            Cancel
+          </button>
+        </>
+      )}
+
       {status ? <p className="dashboard-status">{status}</p> : null}
     </div>
   );

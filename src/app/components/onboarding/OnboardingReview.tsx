@@ -26,7 +26,7 @@ export default function OnboardingReview({ position }: Props) {
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/recovery-key");
     router.refresh();
   };
 

@@ -9,6 +9,8 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: false,
         paid: false,
         onboardingDone: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
         hasSignupName: false,
       })
     ).toBe("/login");
@@ -21,6 +23,8 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: false,
         paid: false,
         onboardingDone: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
         hasSignupName: false,
       })
     ).toBe("/signup");
@@ -33,6 +37,8 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: false,
         paid: false,
         onboardingDone: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
         hasSignupName: false,
       })
     ).toBe("/signup");
@@ -45,6 +51,8 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: false,
         onboardingDone: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
         hasSignupName: false,
       })
     ).toBe("/signup/payment");
@@ -57,6 +65,8 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
         hasSignupName: false,
       })
     ).toBe("/onboarding");
@@ -69,6 +79,8 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
         hasSignupName: false,
       })
     ).toBeNull();
@@ -81,8 +93,38 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: true,
+        accountState: "active",
+        recoveryKeyRequired: false,
         hasSignupName: false,
       })
     ).toBeNull();
+  });
+
+  it("redirects authenticated hidden users to login", () => {
+    expect(
+      resolveAccessRedirect({
+        pathname: "/dashboard",
+        isAuthenticated: true,
+        paid: true,
+        onboardingDone: true,
+        accountState: "panic_hidden",
+        recoveryKeyRequired: false,
+        hasSignupName: false,
+      })
+    ).toBe("/login");
+  });
+
+  it("redirects ready users with required recovery key to recovery-key page", () => {
+    expect(
+      resolveAccessRedirect({
+        pathname: "/dashboard",
+        isAuthenticated: true,
+        paid: true,
+        onboardingDone: true,
+        accountState: "active",
+        recoveryKeyRequired: true,
+        hasSignupName: false,
+      })
+    ).toBe("/recovery-key");
   });
 });
