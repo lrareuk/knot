@@ -6,23 +6,47 @@ import {
 } from "@/lib/server/stripe-checkout";
 
 describe("buildStripeCheckoutSessionParams", () => {
-  it("builds a custom checkout session payload for card payments", () => {
+  it("builds a custom checkout session payload with a configured Stripe price id", () => {
     const params = buildStripeCheckoutSessionParams({
       siteUrl: "https://untie.example",
       userId: "user_123",
       email: "client@example.com",
+      priceId: "price_123",
     });
 
     expect(params.ui_mode).toBe("custom");
     expect(params.mode).toBe("payment");
     expect(params.allow_promotion_codes).toBe(true);
     expect(params.payment_method_types).toEqual(["card"]);
+    expect(params.line_items).toEqual([{ price: "price_123", quantity: 1 }]);
     expect(params.return_url).toBe("https://untie.example/signup/payment/success?session_id={CHECKOUT_SESSION_ID}");
     expect(params.client_reference_id).toBe("user_123");
     expect(params.metadata).toEqual({
       supabase_user_id: "user_123",
       user_id: "user_123",
     });
+  });
+
+  it("falls back to inline price_data when no Stripe price id is configured", () => {
+    const params = buildStripeCheckoutSessionParams({
+      siteUrl: "https://untie.example",
+      userId: "user_123",
+      email: "client@example.com",
+    });
+
+    expect(params.line_items).toEqual([
+      {
+        price_data: {
+          currency: "gbp",
+          product_data: {
+            name: "Untie Clarity",
+            description: "Financial scenario platform - 12 months access",
+          },
+          unit_amount: 44_900,
+        },
+        quantity: 1,
+      },
+    ]);
   });
 });
 

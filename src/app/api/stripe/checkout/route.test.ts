@@ -65,6 +65,7 @@ describe("POST /api/stripe/checkout", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.NEXT_PUBLIC_SITE_URL = "http://localhost:3000";
+    process.env.STRIPE_PRICE_ID = "price_test_123";
   });
 
   it("returns 401 when the user is not authenticated", async () => {
@@ -126,6 +127,7 @@ describe("POST /api/stripe/checkout", () => {
         ui_mode: "custom",
         mode: "payment",
         allow_promotion_codes: true,
+        line_items: [{ price: "price_test_123", quantity: 1 }],
         payment_method_types: ["card"],
         return_url: "http://localhost:3000/signup/payment/success?session_id={CHECKOUT_SESSION_ID}",
         client_reference_id: "user_123",

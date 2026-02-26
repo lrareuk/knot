@@ -43,6 +43,7 @@ export async function POST() {
         siteUrl,
         userId: user.id,
         email: user.email,
+        priceId: process.env.STRIPE_PRICE_ID,
       })
     );
 

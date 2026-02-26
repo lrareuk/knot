@@ -187,7 +187,7 @@ function CheckoutExperience() {
       setPromotionBusy(false);
       setPromotionError(
         applyResult.error.code === "invalidCode"
-          ? "That coupon code is invalid."
+          ? "That code is invalid or does not apply to this checkout price."
           : applyResult.error.message ?? "Unable to apply coupon code right now."
       );
       return;

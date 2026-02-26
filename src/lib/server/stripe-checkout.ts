@@ -8,6 +8,7 @@ export type BuildStripeCheckoutSessionParamsInput = {
   siteUrl: string;
   userId: string;
   email?: string | null;
+  priceId?: string | null;
 };
 
 export function buildStripeCheckoutSessionParams(
@@ -19,19 +20,7 @@ export function buildStripeCheckoutSessionParams(
     allow_promotion_codes: true,
     payment_method_types: ["card"],
     customer_email: input.email ?? undefined,
-    line_items: [
-      {
-        price_data: {
-          currency: "gbp",
-          product_data: {
-            name: PRODUCT_NAME,
-            description: PRODUCT_DESCRIPTION,
-          },
-          unit_amount: ONE_TIME_PRICE_PENCE,
-        },
-        quantity: 1,
-      },
-    ],
+    line_items: buildCheckoutLineItems(input.priceId),
     return_url: buildCheckoutReturnUrl(input.siteUrl),
     payment_intent_data: {
       statement_descriptor: "LRARE",
@@ -43,6 +32,31 @@ export function buildStripeCheckoutSessionParams(
       user_id: input.userId,
     },
   };
+}
+
+function buildCheckoutLineItems(priceId?: string | null): Stripe.Checkout.SessionCreateParams.LineItem[] {
+  if (priceId) {
+    return [
+      {
+        price: priceId,
+        quantity: 1,
+      },
+    ];
+  }
+
+  return [
+    {
+      price_data: {
+        currency: "gbp",
+        product_data: {
+          name: PRODUCT_NAME,
+          description: PRODUCT_DESCRIPTION,
+        },
+        unit_amount: ONE_TIME_PRICE_PENCE,
+      },
+      quantity: 1,
+    },
+  ];
 }
 
 function buildCheckoutReturnUrl(siteUrl: string) {

@@ -45,6 +45,7 @@ This app uses Stripe Checkout Sessions with `ui_mode=custom` on `/signup/payment
 - `STRIPE_SECRET_KEY`
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
 - `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_PRICE_ID`
 - `NEXT_PUBLIC_SITE_URL`
 
 ### Wallet prerequisites (Apple Pay / Google Pay)
