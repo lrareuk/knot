@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirm your Untie signup</title>
+  </head>
+  <body style="margin: 0; padding: 0; background-color: #121212;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #121212;">
+      <tr>
+        <td align="center" style="padding: 24px 12px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 560px; background-color: #1e1e1e; border: 1px solid #2a2a2a;">
+            <tr>
+              <td style="padding: 28px 28px 8px;">
+                <a href="{{ .SiteURL }}" style="text-decoration: none; display: inline-block;">
+                  <img
+                    src="{{ .SiteURL }}/untie-logo.svg"
+                    width="160"
+                    alt="Untie"
+                    style="display: block; border: 0; outline: none; text-decoration: none; width: 160px; max-width: 100%; height: auto;"
+                  />
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 28px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 28px; line-height: 1.2; font-weight: 700; color: #f4f1ea;">
+                Confirm your signup
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 14px 28px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 16px; line-height: 1.65; color: #9a9590;">
+                You are one step away from your Untie account. Confirm your email address to continue.
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 24px 28px 0;">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td align="center" bgcolor="#c2185b">
+                      <a
+                        href="{{ .ConfirmationURL }}"
+                        style="display: inline-block; padding: 14px 24px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; color: #f4f1ea;"
+                      >
+                        Confirm email
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 22px 28px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.6; color: #9a9590;">
+                If the button does not work, copy and paste this link into your browser:
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 28px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13px; line-height: 1.6; word-break: break-all;">
+                <a href="{{ .ConfirmationURL }}" style="color: #f4f1ea; text-decoration: underline; text-underline-offset: 2px;">
+                  {{ .ConfirmationURL }}
+                </a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 24px 28px 28px; border-top: 1px solid #2a2a2a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 12px; line-height: 1.6; color: #9a9590;">
+                If you did not create an account, you can safely ignore this email.
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

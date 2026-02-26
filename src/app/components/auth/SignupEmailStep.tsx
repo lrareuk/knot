@@ -63,6 +63,10 @@ export default function SignupEmailStep({ firstName }: Props) {
         setGeneralError("Too many signup attempts. Please wait a minute and try again.");
         return;
       }
+      if (error.code === "unexpected_failure" && message.includes("confirmation email")) {
+        setGeneralError("We couldn't send the confirmation email right now. Please try again in a minute.");
+        return;
+      }
       if (message.includes("already registered") || message.includes("already exists")) {
         setEmailError("An account with this email already exists. Sign in instead?");
         return;
