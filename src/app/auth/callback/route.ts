@@ -1,5 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
+import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
+
+const OTP_TYPES: EmailOtpType[] = ["signup", "invite", "magiclink", "recovery", "email_change", "email"];
+
+function isOtpType(value: string | null): value is EmailOtpType {
+  return Boolean(value && OTP_TYPES.includes(value as EmailOtpType));
+}
 
 function normalizeNextPath(value: string | null, fallback: string) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
@@ -17,13 +24,15 @@ function loginErrorRedirect(req: NextRequest, code: string) {
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
+  const tokenHash = req.nextUrl.searchParams.get("token_hash") ?? req.nextUrl.searchParams.get("token");
+  const typeParam = req.nextUrl.searchParams.get("type");
 
-  if (!code) {
+  if (!code && (!tokenHash || !isOtpType(typeParam))) {
     return loginErrorRedirect(req, "invalid_link");
   }
 
-  const typeParam = req.nextUrl.searchParams.get("type");
-  const fallbackNext = typeParam === "recovery" ? "/login/reset?mode=update" : "/start";
+  const resolvedType = isOtpType(typeParam) ? typeParam : null;
+  const fallbackNext = resolvedType === "recovery" ? "/login/reset?mode=update" : "/start";
   const nextPath = normalizeNextPath(req.nextUrl.searchParams.get("next"), fallbackNext);
   const destination = new URL(nextPath, req.nextUrl.origin);
   const response = NextResponse.redirect(destination);
@@ -39,7 +48,18 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      return loginErrorRedirect(req, "invalid_or_expired_link");
+    }
+    return response;
+  }
+
+  const { error } = await supabase.auth.verifyOtp({
+    token_hash: tokenHash!,
+    type: resolvedType!,
+  });
 
   if (error) {
     return loginErrorRedirect(req, "invalid_or_expired_link");

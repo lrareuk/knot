@@ -22,16 +22,27 @@ function loginErrorRedirect(req: NextRequest, code: string) {
   return NextResponse.redirect(destination);
 }
 
-export async function GET(req: NextRequest) {
-  const tokenHash = req.nextUrl.searchParams.get("token_hash");
-  const typeParam = req.nextUrl.searchParams.get("type");
-
-  if (!tokenHash || !isOtpType(typeParam)) {
-    return loginErrorRedirect(req, "invalid_link");
+function inferOtpType(typeParam: string | null, nextPath: string | null): EmailOtpType | null {
+  if (isOtpType(typeParam)) {
+    return typeParam;
   }
 
-  const fallbackNext = typeParam === "recovery" ? "/login/reset?mode=update" : "/start";
-  const nextPath = normalizeNextPath(req.nextUrl.searchParams.get("next"), fallbackNext);
+  if (nextPath?.startsWith("/login/reset")) {
+    return "recovery";
+  }
+
+  return "email";
+}
+
+export async function GET(req: NextRequest) {
+  const code = req.nextUrl.searchParams.get("code");
+  const tokenHash = req.nextUrl.searchParams.get("token_hash") ?? req.nextUrl.searchParams.get("token");
+  const typeParam = req.nextUrl.searchParams.get("type") ?? req.nextUrl.searchParams.get("otp_type");
+  const requestedNext = req.nextUrl.searchParams.get("next");
+  const normalizedRequestedNext = requestedNext ? normalizeNextPath(requestedNext, "/start") : null;
+  const resolvedOtpType = inferOtpType(typeParam, normalizedRequestedNext);
+  const fallbackNext = resolvedOtpType === "recovery" ? "/login/reset?mode=update" : "/start";
+  const nextPath = normalizeNextPath(requestedNext, fallbackNext);
   const destination = new URL(nextPath, req.nextUrl.origin);
   const response = NextResponse.redirect(destination);
 
@@ -46,14 +57,26 @@ export async function GET(req: NextRequest) {
     },
   });
 
-  const { error } = await supabase.auth.verifyOtp({
-    type: typeParam,
-    token_hash: tokenHash,
-  });
-
-  if (error) {
-    return loginErrorRedirect(req, "invalid_or_expired_link");
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      return loginErrorRedirect(req, "invalid_or_expired_link");
+    }
+    return response;
   }
 
-  return response;
+  if (tokenHash && resolvedOtpType) {
+    const { error } = await supabase.auth.verifyOtp({
+      type: resolvedOtpType,
+      token_hash: tokenHash,
+    });
+
+    if (error) {
+      return loginErrorRedirect(req, "invalid_or_expired_link");
+    }
+
+    return response;
+  }
+
+  return loginErrorRedirect(req, "invalid_link");
 }
