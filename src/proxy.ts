@@ -44,6 +44,7 @@ function redirectToLegalDoc(req: NextRequest, doc: "privacy" | "terms") {
 export async function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   const hasCodeParam = req.nextUrl.searchParams.has("code");
+  const isPasswordRecoveryUpdatePath = pathname === "/login/reset" && req.nextUrl.searchParams.get("mode") === "update";
 
   if (isStaticPath(pathname)) {
     return NextResponse.next();
@@ -55,6 +56,12 @@ export async function proxy(req: NextRequest) {
     const url = req.nextUrl.clone();
     url.pathname = "/auth/callback";
     return NextResponse.redirect(url);
+  }
+
+  // Password recovery links intentionally sign the user in temporarily.
+  // Skip normal onboarding/paywall routing so they can set a new password.
+  if (isPasswordRecoveryUpdatePath) {
+    return NextResponse.next();
   }
 
   if (pathname === "/sign-in") {
