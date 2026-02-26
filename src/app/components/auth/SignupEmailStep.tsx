@@ -50,6 +50,7 @@ export default function SignupEmailStep({ firstName }: Props) {
       email: normalizedEmail,
       password,
       options: {
+        emailRedirectTo: `${window.location.origin}/auth/confirm?next=%2Fstart`,
         data: {
           first_name: firstName,
         },

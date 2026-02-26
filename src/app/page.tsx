@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Reveal from "@/app/components/Reveal";
 import SiteFooter from "@/app/components/SiteFooter";
 import SiteHeader, { HOME_NAV_ITEMS } from "@/app/components/SiteHeader";
@@ -30,7 +31,18 @@ const scenarioData: Record<ScenarioKey, ScenarioRow[]> = {
 };
 
 export default function Home() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [scenario, setScenario] = useState<ScenarioKey>("A");
+
+  useEffect(() => {
+    if (!searchParams.get("code")) {
+      return;
+    }
+
+    const query = searchParams.toString();
+    router.replace(query ? `/auth/callback?${query}` : "/auth/callback");
+  }, [router, searchParams]);
 
   return (
     <>

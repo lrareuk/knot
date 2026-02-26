@@ -17,11 +17,22 @@ export default function LoginStep() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialEmail = searchParams.get("email")?.trim() ?? "";
+  const resetSucceeded = searchParams.get("reset") === "success";
+  const callbackError = searchParams.get("error");
+  const callbackErrorMessage =
+    callbackError === "invalid_or_expired_link"
+      ? "This email link is invalid or has expired. Request a new one."
+      : callbackError === "invalid_link"
+        ? "This email link is invalid."
+        : null;
   const emailRef = useRef<HTMLInputElement | null>(null);
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showResendConfirmation, setShowResendConfirmation] = useState(false);
+  const [resendingConfirmation, setResendingConfirmation] = useState(false);
+  const [resendStatus, setResendStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -35,6 +46,8 @@ export default function LoginStep() {
     event.preventDefault();
     setLoading(true);
     setError(null);
+    setShowResendConfirmation(false);
+    setResendStatus(null);
 
     const supabase = supabaseBrowser();
     const { error: authError } = await supabase.auth.signInWithPassword({
@@ -44,7 +57,17 @@ export default function LoginStep() {
 
     setLoading(false);
     if (authError) {
-      setError("Email or password is incorrect.");
+      const message = authError.message.toLowerCase();
+      if (authError.code === "email_not_confirmed" || message.includes("email not confirmed")) {
+        setError("Please confirm your email before signing in.");
+        setShowResendConfirmation(true);
+        return;
+      }
+      if (authError.code === "invalid_credentials") {
+        setError("Email or password is incorrect.");
+        return;
+      }
+      setError("Unable to sign in right now. Please try again.");
       return;
     }
 
@@ -53,10 +76,45 @@ export default function LoginStep() {
     router.refresh();
   };
 
+  const resendConfirmationEmail = async () => {
+    const targetEmail = email.trim();
+    if (!targetEmail) {
+      setResendStatus("Enter your email address first.");
+      return;
+    }
+
+    setResendingConfirmation(true);
+    setResendStatus(null);
+
+    const { error: resendError } = await supabaseBrowser().auth.resend({
+      type: "signup",
+      email: targetEmail,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/confirm?next=%2Fstart`,
+      },
+    });
+
+    setResendingConfirmation(false);
+
+    if (resendError) {
+      const message = resendError.message.toLowerCase();
+      if (resendError.code === "over_email_send_rate_limit" || message.includes("rate limit")) {
+        setResendStatus("Please wait a minute before requesting another confirmation email.");
+        return;
+      }
+      setResendStatus("Unable to resend confirmation email right now.");
+      return;
+    }
+
+    setResendStatus("Confirmation email sent. Please check your inbox.");
+  };
+
   return (
     <div className={styles.screen}>
       <h1 className={styles.heading}>Welcome back.</h1>
       <p className={styles.supporting}>Sign in to your account.</p>
+      {resetSucceeded ? <p className={styles.statusMessage}>Password updated. Sign in with your new password.</p> : null}
+      {callbackErrorMessage ? <p className={styles.inlineError}>{callbackErrorMessage}</p> : null}
 
       <form onSubmit={submit}>
         <div className={styles.fieldGroup}>
@@ -123,6 +181,17 @@ export default function LoginStep() {
           Sign in
         </button>
         {error ? <p className={styles.inlineError}>{error}</p> : null}
+        {showResendConfirmation ? (
+          <button
+            type="button"
+            className={`${styles.primaryButton} ${resendingConfirmation ? styles.loading : ""}`.trim()}
+            onClick={resendConfirmationEmail}
+            disabled={loading || resendingConfirmation}
+          >
+            {resendingConfirmation ? "Resending confirmation..." : "Resend confirmation email"}
+          </button>
+        ) : null}
+        {resendStatus ? <p className={styles.statusMessage}>{resendStatus}</p> : null}
       </form>
 
       <p className={styles.secondaryLink}>
