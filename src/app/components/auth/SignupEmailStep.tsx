@@ -21,6 +21,7 @@ export default function SignupEmailStep({ firstName }: Props) {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [exiting, setExiting] = useState(false);
 
@@ -58,12 +59,20 @@ export default function SignupEmailStep({ firstName }: Props) {
     if (error) {
       setLoading(false);
       const message = error.message.toLowerCase();
+      if (error.code === "over_email_send_rate_limit" || message.includes("rate limit")) {
+        setGeneralError("Too many signup attempts. Please wait a minute and try again.");
+        return;
+      }
       if (message.includes("already registered") || message.includes("already exists")) {
         setEmailError("An account with this email already exists. Sign in instead?");
         return;
       }
+      if (error.code === "weak_password" || message.includes("weak")) {
+        setPasswordError("Use a stronger password with uppercase, lowercase, a number, and a symbol.");
+        return;
+      }
       if (message.includes("password")) {
-        setPasswordError("Password must be at least 8 characters.");
+        setPasswordError("Please check your password and try again.");
         return;
       }
       setGeneralError("Something went wrong. Please try again.");
@@ -74,6 +83,14 @@ export default function SignupEmailStep({ firstName }: Props) {
     if (!user) {
       setLoading(false);
       setGeneralError("Something went wrong. Please try again.");
+      return;
+    }
+
+    // Email confirmation mode returns no session; avoid auth-only writes in that state.
+    if (!data.session) {
+      setLoading(false);
+      await fetch("/api/signup/state", { method: "DELETE" });
+      setConfirmationEmail(normalizedEmail);
       return;
     }
 
@@ -90,9 +107,7 @@ export default function SignupEmailStep({ firstName }: Props) {
     );
 
     if (upsertError) {
-      setLoading(false);
-      setGeneralError("Something went wrong. Please try again.");
-      return;
+      console.error("Profile upsert failed after signup", upsertError);
     }
 
     await fetch("/api/signup/state", { method: "DELETE" });
@@ -102,6 +117,25 @@ export default function SignupEmailStep({ firstName }: Props) {
       router.push("/signup/payment");
     }, EXIT_ANIMATION_MS);
   };
+
+  if (confirmationEmail) {
+    return (
+      <div className={styles.screen}>
+        <h1 className={styles.heading}>Check your email to continue.</h1>
+        <p className={styles.supporting}>
+          We sent a confirmation link to {confirmationEmail}. Confirm your email, then sign in to continue setup.
+        </p>
+        <button
+          type="button"
+          className={styles.primaryButton}
+          onClick={() => router.push(`/login?email=${encodeURIComponent(confirmationEmail)}`)}
+        >
+          Go to sign in
+        </button>
+        <p className={styles.secondaryLink}>If you did not get an email, wait a minute and try again.</p>
+      </div>
+    );
+  }
 
   return (
     <div className={`${styles.screen} ${exiting ? styles.screenExiting : ""}`.trim()}>

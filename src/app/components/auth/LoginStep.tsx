@@ -16,8 +16,9 @@ function normalizeNextPath(next: string | null) {
 export default function LoginStep() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const initialEmail = searchParams.get("email")?.trim() ?? "";
   const emailRef = useRef<HTMLInputElement | null>(null);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,4 +136,3 @@ export default function LoginStep() {
     </div>
   );
 }
-
