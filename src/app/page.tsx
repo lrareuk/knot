@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Reveal from "@/app/components/Reveal";
 import SiteFooter from "@/app/components/SiteFooter";
@@ -30,7 +30,7 @@ const scenarioData: Record<ScenarioKey, ScenarioRow[]> = {
   ],
 };
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [scenario, setScenario] = useState<ScenarioKey>("A");
@@ -263,5 +263,13 @@ export default function Home() {
       <div className="divider" />
       <SiteFooter />
     </>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   );
 }
