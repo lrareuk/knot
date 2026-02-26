@@ -4,21 +4,34 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export async function POST() {
   const supabase = await supabaseServer();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL!;
-  const priceId = process.env.STRIPE_PRICE_ID; // add this env var
+  await supabase.from("users").upsert(
+    {
+      id: user.id,
+      email: user.email ?? "",
+    },
+    { onConflict: "id", ignoreDuplicates: false }
+  );
 
-  if (!priceId) return NextResponse.json({ error: "Missing STRIPE_PRICE_ID" }, { status: 500 });
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const priceId = process.env.STRIPE_PRICE_ID;
 
-  // Create/reuse Stripe customer
+  if (!siteUrl || !priceId) {
+    return NextResponse.json({ error: "Missing Stripe configuration" }, { status: 500 });
+  }
+
   const { data: billing } = await supabase
     .from("user_billing")
     .select("stripe_customer_id")
     .eq("user_id", user.id)
-    .maybeSingle();
+    .maybeSingle<{ stripe_customer_id: string | null }>();
 
   let customerId = billing?.stripe_customer_id ?? null;
 
@@ -29,21 +42,29 @@ export async function POST() {
     });
     customerId = customer.id;
 
-    await supabase.from("user_billing").upsert({
-      user_id: user.id,
-      stripe_customer_id: customerId,
-      status: "inactive",
-    });
+    await supabase.from("user_billing").upsert(
+      {
+        user_id: user.id,
+        stripe_customer_id: customerId,
+        status: "inactive",
+      },
+      { onConflict: "user_id", ignoreDuplicates: false }
+    );
   }
 
   const session = await stripe.checkout.sessions.create({
-    mode: "payment", // use "subscription" if subscription
+    mode: "payment",
     customer: customerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${siteUrl}/app?checkout=success`,
-    cancel_url: `${siteUrl}/pricing?checkout=cancel`,
+    success_url: `${siteUrl}/dashboard?checkout=success`,
+    cancel_url: `${siteUrl}/payment?checkout=cancel`,
     metadata: { supabase_user_id: user.id },
   });
+
+  await supabase
+    .from("users")
+    .update({ stripe_session: session.id })
+    .eq("id", user.id);
 
   return NextResponse.json({ url: session.url });
 }

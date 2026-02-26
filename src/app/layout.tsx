@@ -1,18 +1,20 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Space_Grotesk } from "next/font/google";
+import Analytics from "@/app/components/layout/Analytics";
+import CookieConsent from "@/app/components/layout/CookieConsent";
 import "./globals.css";
 
 const manrope = Manrope({
   variable: "--font-manrope",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+  weight: ["400", "500", "600"],
   display: "swap",
 });
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["600", "700"],
   display: "swap",
 });
 
@@ -26,18 +28,6 @@ const metadataBase = (() => {
     return new URL(fallbackUrl);
   }
 })();
-
-const themeScript = `
-(() => {
-  try {
-    document.documentElement.classList.add("js");
-    const stored = localStorage.getItem("untie-theme");
-    const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    const theme = stored === "light" || stored === "dark" ? stored : systemTheme;
-    document.documentElement.setAttribute("data-theme", theme);
-  } catch {}
-})();
-`;
 
 export const metadata: Metadata = {
   metadataBase,
@@ -53,10 +43,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f4f0e8" },
-    { media: "(prefers-color-scheme: dark)", color: "#151316" },
-  ],
+  themeColor: "#121212",
 };
 
 export default function RootLayout({
@@ -65,12 +52,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-theme="light" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
+    <html lang="en">
       <body className={`${manrope.className} ${manrope.variable} ${spaceGrotesk.variable} antialiased`}>
         {children}
+        <CookieConsent />
+        <Analytics />
       </body>
     </html>
   );

@@ -1,3 +1,5 @@
-export default function SignUpPage() {
-  return null;
+import { redirect } from "next/navigation";
+
+export default function LegacySignUpRedirect() {
+  redirect("/signup");
 }
