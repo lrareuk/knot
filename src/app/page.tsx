@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import Reveal from "@/app/components/Reveal";
+import SiteFooter from "@/app/components/SiteFooter";
+import SiteHeader, { HOME_NAV_ITEMS } from "@/app/components/SiteHeader";
 
 type ScenarioKey = "A" | "B";
 
@@ -27,75 +29,12 @@ const scenarioData: Record<ScenarioKey, ScenarioRow[]> = {
   ],
 };
 
-function Reveal({ children, className = "" }: { children: ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-
-    return typeof IntersectionObserver === "undefined";
-  });
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-
-    if (typeof IntersectionObserver === "undefined") {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setVisible(true);
-          }
-        });
-      },
-      { threshold: 0.15 }
-    );
-
-    observer.observe(node);
-
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={ref} className={`reveal ${visible ? "visible" : ""} ${className}`.trim()}>
-      {children}
-    </div>
-  );
-}
-
 export default function Home() {
   const [scenario, setScenario] = useState<ScenarioKey>("A");
 
   return (
     <>
-      <nav>
-        <Link href="/" className="nav-logo-link" aria-label="Untie home">
-          <span className="logo-wordmark nav-logo-image" aria-hidden="true" />
-          <span className="sr-only">Untie</span>
-        </Link>
-        <ul className="nav-links">
-          <li>
-            <a href="#how">How it works</a>
-          </li>
-          <li>
-            <a href="#clarity">Clarity</a>
-          </li>
-          <li>
-            <a href="#trust">Trust</a>
-          </li>
-          <li>
-            <a href="#pricing">Pricing</a>
-          </li>
-        </ul>
-        <a href="#pricing" className="nav-cta">
-          Get started
-        </a>
-      </nav>
+      <SiteHeader navItems={HOME_NAV_ITEMS} ctaHref="#pricing" ctaLabel="Get started" />
 
       <section className="hero">
         <div className="hero-eyebrow">Financial scenario platform</div>
@@ -310,24 +249,7 @@ export default function Home() {
       </section>
 
       <div className="divider" />
-
-      <footer>
-        <div>
-          <div className="footer-logo">Untie</div>
-          <div className="footer-tagline">Clarity before change.</div>
-        </div>
-        <ul className="footer-links">
-          <li>
-            <Link href="/privacy">Privacy</Link>
-          </li>
-          <li>
-            <Link href="/terms">Terms</Link>
-          </li>
-          <li>
-            <a href="mailto:hello@untie.app">Contact</a>
-          </li>
-        </ul>
-      </footer>
+      <SiteFooter />
     </>
   );
 }

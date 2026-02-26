@@ -41,7 +41,7 @@ export default function SiteHeader({
   const ctaIsAnchor = ctaHref.startsWith("#");
 
   return (
-    <nav>
+    <nav className="site-nav">
       <Link href="/" className="nav-logo-link" aria-label="Untie home">
         <span className="logo-wordmark nav-logo-image" aria-hidden="true" />
         <span className="sr-only">Untie</span>

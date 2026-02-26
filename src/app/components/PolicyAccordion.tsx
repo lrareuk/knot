@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useId, useMemo, useState } from "react";
+import { Children, ReactNode, useId, useMemo, useState } from "react";
 
 export type AccordionItem = {
   id: string;
@@ -33,16 +33,7 @@ export default function PolicyAccordion({
   const firstItemId = useMemo(() => getDefaultOpenId(items, defaultOpenId), [defaultOpenId, items]);
   const [openId, setOpenId] = useState<string | null>(firstItemId);
   const groupId = useId().replace(/:/g, "");
-
-  useEffect(() => {
-    setOpenId((current) => {
-      if (current && items.some((item) => item.id === current)) {
-        return current;
-      }
-
-      return firstItemId;
-    });
-  }, [firstItemId, items]);
+  const resolvedOpenId = openId && items.some((item) => item.id === openId) ? openId : firstItemId;
 
   const levelClass = `policy-accordion-level-${level}`;
 
@@ -50,14 +41,19 @@ export default function PolicyAccordion({
     <div className={`policy-accordion ${levelClass} ${className}`.trim()}>
       {items.map((item, index) => {
         const safeKey = item.id || `${level}-${index}`;
+        const renderKey = `${level}-${safeKey}-${index}`;
         const headingId = `${groupId}-${safeKey}-heading`;
         const panelId = `${groupId}-${safeKey}-panel`;
-        const isOpen = openId === item.id;
+        const isOpen = resolvedOpenId === item.id;
         const hasChildren = Boolean(item.children && item.children.length > 0);
         const HeadingTag = level === 1 ? "h2" : "h3";
 
         return (
-          <section key={safeKey} id={item.id} className={`policy-accordion-item ${isOpen ? "is-open" : ""}`}>
+          <section
+            key={renderKey}
+            id={item.id}
+            className={`policy-accordion-item ${isOpen ? "is-open" : ""}`}
+          >
             <HeadingTag className="policy-accordion-heading">
               <button
                 type="button"
@@ -65,7 +61,7 @@ export default function PolicyAccordion({
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 className="policy-accordion-trigger"
-                onClick={() => setOpenId((current) => (current === item.id ? null : item.id))}
+                onClick={() => setOpenId(item.id)}
               >
                 <span className="policy-accordion-title">{item.title}</span>
                 <span className="policy-accordion-icon" aria-hidden="true">
@@ -76,13 +72,12 @@ export default function PolicyAccordion({
 
             <div id={panelId} role="region" aria-labelledby={headingId} className="policy-accordion-panel" hidden={!isOpen}>
               <div className="policy-accordion-panel-inner">
-                {item.content}
+                {Children.toArray(item.content)}
                 {hasChildren ? (
                   <PolicyAccordion
                     items={item.children as AccordionItem[]}
                     defaultOpenId={item.children?.[0]?.id}
                     level={2}
-                    className="policy-sub-accordion"
                   />
                 ) : null}
               </div>
