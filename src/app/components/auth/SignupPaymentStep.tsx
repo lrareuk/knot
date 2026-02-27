@@ -22,35 +22,44 @@ const INCLUDED_ITEMS = [
 const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
 
+const AUTH_THEME = {
+  primary: "#c2185b",
+  panel: "#1e1e1e",
+  text: "#f4f1ea",
+  danger: "#c46a5e",
+  muted: "#9a9590",
+  divider: "#2a2a2a",
+} as const;
+
 const checkoutAppearance: Appearance = {
   theme: "night",
   variables: {
-    colorPrimary: "#c2185b",
-    colorBackground: "#1e1e1e",
-    colorText: "#f4f1ea",
-    colorDanger: "#c46a5e",
-    colorTextSecondary: "#9a9590",
+    colorPrimary: AUTH_THEME.primary,
+    colorBackground: AUTH_THEME.panel,
+    colorText: AUTH_THEME.text,
+    colorDanger: AUTH_THEME.danger,
+    colorTextSecondary: AUTH_THEME.muted,
     borderRadius: "0px",
     fontFamily: "Manrope, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
     spacingUnit: "4px",
   },
   rules: {
     ".Input": {
-      backgroundColor: "#1e1e1e",
-      borderColor: "#2a2a2a",
-      color: "#f4f1ea",
+      backgroundColor: AUTH_THEME.panel,
+      borderColor: AUTH_THEME.divider,
+      color: AUTH_THEME.text,
       boxShadow: "none",
     },
     ".Input:focus": {
-      borderColor: "#c2185b",
-      boxShadow: "0 0 0 1px #c2185b",
+      borderColor: AUTH_THEME.primary,
+      boxShadow: `0 0 0 1px ${AUTH_THEME.primary}`,
     },
     ".Tab, .Block": {
-      backgroundColor: "#1e1e1e",
-      borderColor: "#2a2a2a",
+      backgroundColor: AUTH_THEME.panel,
+      borderColor: AUTH_THEME.divider,
     },
     ".Label": {
-      color: "#9a9590",
+      color: AUTH_THEME.muted,
     },
   },
 };

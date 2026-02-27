@@ -142,7 +142,7 @@ export default function OnboardingModuleEditor({ module, initialPosition }: Prop
               </Link>
             ))}
           </nav>
-          <Link href="/onboarding/review" className="btn-secondary">
+          <Link href="/onboarding/review" className="ui-btn-secondary">
             Review all modules
           </Link>
           <p className="muted">{saveText}</p>
@@ -208,7 +208,7 @@ export default function OnboardingModuleEditor({ module, initialPosition }: Prop
               ))}
               <button
                 type="button"
-                className="btn-secondary"
+                className="ui-btn-secondary"
                 onClick={() => updatePosition({ ...position, properties: [...position.properties, createEmptyProperty()] })}
               >
                 Add another property
@@ -332,7 +332,7 @@ export default function OnboardingModuleEditor({ module, initialPosition }: Prop
               ))}
               <button
                 type="button"
-                className="btn-secondary"
+                className="ui-btn-secondary"
                 onClick={() => updatePosition({ ...position, pensions: [...position.pensions, createEmptyPension()] })}
               >
                 Add another pension
@@ -364,7 +364,7 @@ export default function OnboardingModuleEditor({ module, initialPosition }: Prop
               ))}
               <button
                 type="button"
-                className="btn-secondary"
+                className="ui-btn-secondary"
                 onClick={() => updatePosition({ ...position, savings: [...position.savings, createEmptySavings()] })}
               >
                 Add another savings item
@@ -396,7 +396,7 @@ export default function OnboardingModuleEditor({ module, initialPosition }: Prop
               ))}
               <button
                 type="button"
-                className="btn-secondary"
+                className="ui-btn-secondary"
                 onClick={() => updatePosition({ ...position, debts: [...position.debts, createEmptyDebt()] })}
               >
                 Add another debt
@@ -428,7 +428,7 @@ export default function OnboardingModuleEditor({ module, initialPosition }: Prop
               ))}
               <button
                 type="button"
-                className="btn-secondary"
+                className="ui-btn-secondary"
                 onClick={() => updatePosition({ ...position, dependants: [...position.dependants, createEmptyDependant()] })}
               >
                 Add dependant
@@ -661,7 +661,7 @@ function PropertyEditor({
         Acquired during the marriage period
       </label>
 
-      <button type="button" className="btn-danger" onClick={onRemove}>
+      <button type="button" className="ui-btn-danger" onClick={onRemove}>
         Remove property
       </button>
     </article>
@@ -719,7 +719,7 @@ function PensionEditor({
         <input type="checkbox" checked={item.is_matrimonial} onChange={(event) => onChange({ ...item, is_matrimonial: event.target.checked })} />
         Acquired during the marriage period
       </label>
-      <button type="button" className="btn-danger" onClick={onRemove}>
+      <button type="button" className="ui-btn-danger" onClick={onRemove}>
         Remove pension
       </button>
     </article>
@@ -770,7 +770,7 @@ function SavingsEditor({
         <input type="checkbox" checked={item.is_matrimonial} onChange={(event) => onChange({ ...item, is_matrimonial: event.target.checked })} />
         Acquired during the marriage period
       </label>
-      <button type="button" className="btn-danger" onClick={onRemove}>
+      <button type="button" className="ui-btn-danger" onClick={onRemove}>
         Remove savings item
       </button>
     </article>
@@ -818,7 +818,7 @@ function DebtEditor({
         <input type="checkbox" checked={item.is_matrimonial} onChange={(event) => onChange({ ...item, is_matrimonial: event.target.checked })} />
         Debt falls within the marriage period
       </label>
-      <button type="button" className="btn-danger" onClick={onRemove}>
+      <button type="button" className="ui-btn-danger" onClick={onRemove}>
         Remove debt
       </button>
     </article>
@@ -851,7 +851,7 @@ function DependantEditor({
           <option value="partner">Partner</option>
         </select>
       </label>
-      <button type="button" className="btn-danger" onClick={onRemove}>
+      <button type="button" className="ui-btn-danger" onClick={onRemove}>
         Remove dependant
       </button>
     </article>

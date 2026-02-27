@@ -90,11 +90,15 @@ export default function RecoveryKeySetupStep({ firstName }: Props) {
           </label>
           <input id="recovery-key" className={styles.input} value={recoveryKey} readOnly />
 
-          <div style={{ display: "flex", gap: 10, marginTop: 12 }}>
-            <button type="button" className={styles.primaryButton} onClick={copyRecoveryKey} style={{ height: 44 }}>
+          <div className={styles.actionsRow}>
+            <button type="button" className={`${styles.primaryButton} ${styles.primaryButtonCompact}`} onClick={copyRecoveryKey}>
               Copy key
             </button>
-            <button type="button" className={styles.primaryButton} onClick={downloadRecoveryKey} style={{ height: 44 }}>
+            <button
+              type="button"
+              className={`${styles.primaryButton} ${styles.primaryButtonCompact}`}
+              onClick={downloadRecoveryKey}
+            >
               Download key
             </button>
           </div>
@@ -103,8 +107,7 @@ export default function RecoveryKeySetupStep({ firstName }: Props) {
 
       <button
         type="button"
-        className={styles.primaryButton}
-        style={{ marginTop: 12 }}
+        className={`${styles.primaryButton} ${styles.continueButton}`}
         onClick={() => {
           router.push("/dashboard");
           router.refresh();

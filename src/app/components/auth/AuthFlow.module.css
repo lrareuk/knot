@@ -1,7 +1,7 @@
 .page {
   min-height: 100vh;
-  background: #121212;
-  color: #f4f1ea;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   position: relative;
   overflow: hidden;
 }
@@ -32,7 +32,7 @@
   left: 50%;
   width: 1px;
   height: 100vh;
-  background: linear-gradient(to bottom, #2a2a2a 0%, transparent 30%, transparent 70%, #2a2a2a 100%);
+  background: linear-gradient(to bottom, var(--bg-divider) 0%, transparent 30%, transparent 70%, var(--bg-divider) 100%);
   opacity: 0.4;
   pointer-events: none;
   z-index: 0;
@@ -89,7 +89,7 @@
   font-size: 16px;
   font-weight: 400;
   line-height: 1.65;
-  color: #9a9590;
+  color: var(--text-muted);
   margin-bottom: 32px;
 }
 
@@ -103,7 +103,7 @@
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: #9a9590;
+  color: var(--text-muted);
 }
 
 .inputWrap {
@@ -113,10 +113,10 @@
 .input {
   width: 100%;
   height: 48px;
-  border: 1px solid #2a2a2a;
+  border: 1px solid var(--bg-divider);
   border-radius: 0;
-  background: #1e1e1e;
-  color: #f4f1ea;
+  background: var(--bg-panel);
+  color: var(--text-primary);
   padding: 0 14px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 16px;
@@ -124,12 +124,12 @@
 }
 
 .input::placeholder {
-  color: #555555;
+  color: var(--text-subtle);
 }
 
 .input:focus-visible {
   outline: none;
-  border-color: #c2185b;
+  border-color: var(--accent-raspberry);
 }
 
 .primaryButton {
@@ -137,8 +137,8 @@
   height: 52px;
   border: none;
   border-radius: 0;
-  background: #c2185b;
-  color: #f4f1ea;
+  background: var(--accent-raspberry);
+  color: var(--text-primary);
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 14px;
   font-weight: 600;
@@ -149,18 +149,37 @@
   overflow: hidden;
 }
 
+.primaryButton:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 .primaryButton:hover:not(:disabled) {
-  background: #d81b60;
+  background: var(--accent-raspberry-strong);
 }
 
 .primaryButton:disabled {
-  background: #2a2a2a;
-  color: #555555;
+  background: var(--bg-divider);
+  color: var(--text-subtle);
   cursor: not-allowed;
 }
 
 .loading {
   animation: buttonPulse 1s ease-in-out infinite;
+}
+
+.actionsRow {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.primaryButtonCompact {
+  height: 44px;
+}
+
+.continueButton {
+  margin-top: 12px;
 }
 
 @keyframes buttonPulse {
@@ -179,17 +198,22 @@
   text-align: center;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
-  color: #555555;
+  color: var(--text-subtle);
 }
 
 .secondaryLink a {
-  color: #9a9590;
+  color: var(--text-muted);
   text-decoration: none;
   font-weight: 500;
 }
 
 .secondaryLink a:hover {
-  color: #f4f1ea;
+  color: var(--text-primary);
+}
+
+.secondaryLink a:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .tertiaryText {
@@ -197,7 +221,7 @@
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.6;
-  color: #555555;
+  color: var(--text-subtle);
 }
 
 .inlineError {
@@ -205,7 +229,7 @@
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   font-weight: 400;
-  color: #c46a5e;
+  color: var(--accent-clay);
   opacity: 0;
   transform: translateY(-4px);
   animation: errorIn 0.15s ease forwards;
@@ -219,7 +243,7 @@
 }
 
 .inlineError a {
-  color: #9a9590;
+  color: var(--text-muted);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -231,7 +255,7 @@
   transform: translateY(-50%);
   border: none;
   background: transparent;
-  color: #9a9590;
+  color: var(--text-muted);
   padding: 0;
   width: 24px;
   height: 24px;
@@ -241,7 +265,12 @@
 }
 
 .passwordToggle:hover {
-  color: #f4f1ea;
+  color: var(--text-primary);
+}
+
+.passwordToggle:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .passwordToggle svg {
@@ -254,7 +283,7 @@
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.6;
-  color: #555555;
+  color: var(--text-subtle);
 }
 
 .priceBlock {
@@ -274,12 +303,12 @@
   margin-top: 8px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 14px;
-  color: #9a9590;
+  color: var(--text-muted);
 }
 
 .includesPanel {
-  border: 1px solid #2a2a2a;
-  background: #1e1e1e;
+  border: 1px solid var(--bg-divider);
+  background: var(--bg-panel);
   padding: 20px;
   margin-bottom: 24px;
 }
@@ -289,7 +318,7 @@
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   font-weight: 600;
-  color: #9a9590;
+  color: var(--text-muted);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -306,7 +335,7 @@
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #9a9590;
+  color: var(--text-muted);
 }
 
 .includesList li::before {
@@ -316,7 +345,7 @@
   top: 9px;
   width: 8px;
   height: 1px;
-  background: #c2185b;
+  background: var(--accent-raspberry);
 }
 
 .checkoutPanel {
@@ -325,8 +354,8 @@
 }
 
 .walletPanel {
-  border: 1px solid #2a2a2a;
-  background: #1e1e1e;
+  border: 1px solid var(--bg-divider);
+  background: var(--bg-panel);
   padding: 16px;
   display: grid;
   gap: 12px;
@@ -338,7 +367,7 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #9a9590;
+  color: var(--text-muted);
 }
 
 .checkoutDivider {
@@ -353,19 +382,19 @@
   right: 0;
   top: 50%;
   height: 1px;
-  background: #2a2a2a;
+  background: var(--bg-divider);
 }
 
 .checkoutDivider span {
   position: relative;
   display: inline-block;
   padding: 0 10px;
-  background: #121212;
+  background: var(--bg-primary);
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #555555;
+  color: var(--text-subtle);
 }
 
 .cardForm {
@@ -394,9 +423,9 @@
 .promoButton {
   min-width: 96px;
   height: 44px;
-  border: 1px solid #2a2a2a;
-  background: #1e1e1e;
-  color: #f4f1ea;
+  border: 1px solid var(--bg-divider);
+  background: var(--bg-panel);
+  color: var(--text-primary);
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 12px;
   font-weight: 600;
@@ -407,20 +436,27 @@
 }
 
 .promoButton:hover:not(:disabled) {
-  border-color: #c2185b;
-  color: #c2185b;
+  border-color: var(--accent-raspberry);
+  color: var(--accent-raspberry);
+}
+
+.promoButton:focus-visible,
+.promoLinkButton:focus-visible,
+.backLink:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .promoButton:disabled {
-  border-color: #2a2a2a;
-  color: #555555;
+  border-color: var(--bg-divider);
+  color: var(--text-subtle);
   cursor: not-allowed;
 }
 
 .promoStatus {
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
-  color: #9a9590;
+  color: var(--text-muted);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -428,7 +464,7 @@
 }
 
 .promoCode {
-  color: #f4f1ea;
+  color: var(--text-primary);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -436,7 +472,7 @@
 .promoLinkButton {
   border: none;
   background: transparent;
-  color: #9a9590;
+  color: var(--text-muted);
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   text-decoration: underline;
@@ -446,18 +482,18 @@
 }
 
 .promoLinkButton:hover:not(:disabled) {
-  color: #f4f1ea;
+  color: var(--text-primary);
 }
 
 .promoLinkButton:disabled {
-  color: #555555;
+  color: var(--text-subtle);
   cursor: not-allowed;
   text-decoration: none;
 }
 
 .cardElementPanel {
-  border: 1px solid #2a2a2a;
-  background: #1e1e1e;
+  border: 1px solid var(--bg-divider);
+  background: var(--bg-panel);
   padding: 14px;
 }
 
@@ -471,7 +507,7 @@
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.6;
-  color: #555555;
+  color: var(--text-subtle);
 }
 
 .securityNote {
@@ -484,7 +520,7 @@
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.6;
-  color: #555555;
+  color: var(--text-subtle);
 }
 
 .securityNote svg {
@@ -507,7 +543,7 @@
 }
 
 .successLineTwo {
-  color: #c2185b;
+  color: var(--accent-raspberry);
   margin-bottom: 12px;
   opacity: 0;
   animation: successIn 0.3s ease-out 0.3s forwards;
@@ -529,7 +565,7 @@
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 16px;
   line-height: 1.65;
-  color: #9a9590;
+  color: var(--text-muted);
   margin-bottom: 24px;
 }
 
@@ -538,18 +574,18 @@
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.6;
-  color: #9a9590;
+  color: var(--text-muted);
 }
 
 .backLink {
-  color: #9a9590;
+  color: var(--text-muted);
   text-decoration: none;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
 }
 
 .backLink:hover {
-  color: #f4f1ea;
+  color: var(--text-primary);
 }
 
 @media (max-width: 520px) {

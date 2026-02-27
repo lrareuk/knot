@@ -66,7 +66,7 @@ export default function AccountDeletionForm() {
   };
 
   return (
-    <div style={{ display: "grid", gap: 14 }}>
+    <div className="dashboard-stack-tight">
       <h2 className="dashboard-scenario-name">Panic mode</h2>
       <p className="dashboard-help">
         Hides this account immediately, removes stored account data, and blocks sign-in. Recovery requires support and your

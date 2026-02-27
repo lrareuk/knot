@@ -64,7 +64,7 @@ export default function OnboardingReview({ position }: Props) {
       </section>
 
       <section className="panel stack-sm">
-        <button type="button" className="btn-primary" onClick={completeOnboarding} disabled={loading}>
+        <button type="button" className="ui-btn-primary" onClick={completeOnboarding} disabled={loading}>
           {loading ? "Completing..." : "Complete onboarding and continue"}
         </button>
         {error ? <p className="muted">{error}</p> : null}

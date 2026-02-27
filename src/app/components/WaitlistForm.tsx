@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useId, useMemo, useState } from "react";
+import styles from "./WaitlistForm.module.css";
 
 const REGION_OPTIONS = [
   { value: "UK", label: "United Kingdom" },
@@ -81,13 +82,13 @@ export default function WaitlistForm() {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="card card-soft card-hover relative p-5 md:p-6"
+      className={`card card-soft ${styles.form}`.trim()}
     >
-      <p className="mb-4 text-sm text-muted">Share your email and we&apos;ll send early access updates.</p>
+      <p className={styles.intro}>Share your email and we&apos;ll send early access updates.</p>
 
-      <div className="space-y-4">
+      <div className={styles.fields}>
         <div>
-          <label htmlFor={emailId} className="text-[11px] font-semibold tracking-[0.12em] text-muted">
+          <label htmlFor={emailId} className={styles.label}>
             Email
           </label>
           <input
@@ -100,12 +101,12 @@ export default function WaitlistForm() {
             onChange={(event) => setEmail(event.target.value)}
             aria-invalid={emailInvalid}
             placeholder="you@example.com"
-            className="mt-2 w-full rounded-md border border-divider bg-background px-3 py-2.5 text-base text-text placeholder:text-faint transition-colors focus:border-accent focus:outline-none"
+            className={styles.control}
           />
         </div>
 
         <div>
-          <label htmlFor={regionId} className="text-[11px] font-semibold tracking-[0.12em] text-muted">
+          <label htmlFor={regionId} className={styles.label}>
             Where are you based?
           </label>
           <select
@@ -115,7 +116,7 @@ export default function WaitlistForm() {
             onChange={(event) =>
               setRegion(event.target.value as (typeof REGION_OPTIONS)[number]["value"])
             }
-            className="mt-2 w-full rounded-md border border-divider bg-background px-3 py-2.5 text-base text-text transition-colors focus:border-accent focus:outline-none"
+            className={styles.control}
           >
             {REGION_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>
@@ -126,7 +127,7 @@ export default function WaitlistForm() {
         </div>
 
         <div>
-          <label htmlFor={stageId} className="text-[11px] font-semibold tracking-[0.12em] text-muted">
+          <label htmlFor={stageId} className={styles.label}>
             Stage
           </label>
           <select
@@ -134,7 +135,7 @@ export default function WaitlistForm() {
             name="stage"
             value={stage}
             onChange={(event) => setStage(event.target.value as (typeof STAGE_OPTIONS)[number])}
-            className="mt-2 w-full rounded-md border border-divider bg-background px-3 py-2.5 text-base text-text transition-colors focus:border-accent focus:outline-none"
+            className={styles.control}
           >
             {STAGE_OPTIONS.map((option) => (
               <option key={option} value={option}>
@@ -146,7 +147,7 @@ export default function WaitlistForm() {
 
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -left-[9999px] top-auto h-px w-px overflow-hidden opacity-0"
+          className={styles.honeypot}
         >
           <label htmlFor={honeyId}>Company</label>
           <input
@@ -164,7 +165,7 @@ export default function WaitlistForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="mt-5 inline-flex items-center rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-button-text transition-all hover:-translate-y-0.5 hover:bg-accent-strong disabled:cursor-not-allowed disabled:opacity-60"
+        className={`ui-btn-primary ${styles.submitButton}`.trim()}
       >
         {submitting ? "Submitting..." : "Request early access"}
       </button>
@@ -172,7 +173,7 @@ export default function WaitlistForm() {
       {message ? (
         <p
           aria-live="polite"
-          className={`mt-4 text-sm ${status === "success" ? "text-success" : "text-danger"}`}
+          className={`${styles.message} ${status === "success" ? styles.success : styles.error}`.trim()}
         >
           {message}
         </p>

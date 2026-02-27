@@ -46,7 +46,7 @@ const TEMPLATE_OPTIONS: TemplateOption[] = [
 export default function CreateScenarioButton({
   disabled,
   label = "Create scenario",
-  className = "btn-primary",
+  className = "ui-btn-primary",
   redirectToEditor = true,
   title,
   defaultTemplate = "balanced",

@@ -7,7 +7,7 @@ export default function CheckoutButton() {
 
   return (
     <div className="stack-sm">
-      <button type="button" onClick={() => router.push("/signup/payment")} className="btn-primary">
+      <button type="button" onClick={() => router.push("/signup/payment")} className="ui-btn-primary">
         Continue to secure payment
       </button>
     </div>
