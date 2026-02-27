@@ -1,18 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const CONSENT_KEY = "untie-cookie-consent";
 
 export default function CookieConsent() {
-  const [visible, setVisible] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
+  const [visible, setVisible] = useState(false);
 
+  useEffect(() => {
     const current = localStorage.getItem(CONSENT_KEY);
-    return current !== "accepted" && current !== "rejected";
-  });
+    if (current !== "accepted" && current !== "rejected") {
+      setVisible(true);
+    }
+  }, []);
 
   const choose = (value: "accepted" | "rejected") => {
     localStorage.setItem(CONSENT_KEY, value);
