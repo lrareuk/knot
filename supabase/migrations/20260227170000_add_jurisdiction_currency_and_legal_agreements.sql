@@ -1,3 +1,11 @@
+do $$
+begin
+  if to_regclass('public.users') is null then
+    raise exception 'Missing prerequisite migration: public.users does not exist. Apply base schema migrations first (starting with 20260226161000_untie_core_engine.sql).';
+  end if;
+end
+$$;
+
 alter table if exists public.users
 add column if not exists currency_code text not null default 'GBP';
 
