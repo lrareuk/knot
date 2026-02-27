@@ -700,6 +700,12 @@ section {
   text-transform: uppercase;
 }
 
+.footer-logo-image {
+  width: 90px;
+  height: 26px;
+  margin-bottom: 8px;
+}
+
 .footer-tagline {
   font-family: var(--font-body);
   font-size: 13px;
