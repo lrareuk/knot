@@ -9,6 +9,12 @@ export function readCredentials(emailEnvKey: string, passwordEnvKey: string): Cr
   const email = process.env[emailEnvKey];
   const password = process.env[passwordEnvKey];
 
+  if ((!email || !password) && process.env.CI) {
+    throw new Error(
+      `Missing required e2e credentials: ${emailEnvKey} and ${passwordEnvKey}. Set both in CI to avoid skipped smoke coverage.`,
+    );
+  }
+
   if (!email || !password) {
     return null;
   }
