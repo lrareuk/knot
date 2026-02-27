@@ -1,9 +1,10 @@
 .page {
   min-height: 100vh;
+  min-height: 100svh;
   background: var(--bg-primary);
   color: var(--text-primary);
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .headerBar {
@@ -32,6 +33,7 @@
   left: 50%;
   width: 1px;
   height: 100vh;
+  height: 100svh;
   background: linear-gradient(to bottom, var(--bg-divider) 0%, transparent 30%, transparent 70%, var(--bg-divider) 100%);
   opacity: 0.4;
   pointer-events: none;
@@ -40,6 +42,7 @@
 
 .viewport {
   min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -608,5 +611,24 @@
 
   .priceAmount {
     font-size: 44px;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 521px) {
+  .headerBar {
+    padding: 18px 24px;
+  }
+
+  .viewport {
+    align-items: flex-start;
+    padding: 104px 20px 36px;
+  }
+}
+
+@media (max-height: 820px) {
+  .viewport {
+    align-items: flex-start;
+    padding-top: 96px;
+    padding-bottom: 32px;
   }
 }

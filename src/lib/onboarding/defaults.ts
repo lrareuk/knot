@@ -8,6 +8,13 @@ import type {
   SavingsItem,
 } from "@/types/financial";
 
+function createItemId() {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 export const defaultIncome: IncomeData = {
   user_gross_annual: null,
   user_net_monthly: null,
@@ -32,6 +39,7 @@ export const defaultExpenditure: ExpenditureData = {
 
 export function createDefaultProperty(index: number): PropertyItem {
   return {
+    id: createItemId(),
     label: `Property ${index}`,
     current_value: null,
     mortgage_outstanding: null,
@@ -45,6 +53,7 @@ export function createDefaultProperty(index: number): PropertyItem {
 
 export function createDefaultPension(index: number): PensionItem {
   return {
+    id: createItemId(),
     label: `Pension ${index}`,
     holder: "user",
     pension_type: "defined_contribution",
@@ -57,6 +66,7 @@ export function createDefaultPension(index: number): PensionItem {
 
 export function createDefaultSavings(index: number): SavingsItem {
   return {
+    id: createItemId(),
     label: `Account ${index}`,
     type: "cash",
     holder: "user",
@@ -68,6 +78,7 @@ export function createDefaultSavings(index: number): SavingsItem {
 
 export function createDefaultDebt(index: number): DebtItem {
   return {
+    id: createItemId(),
     label: `Debt ${index}`,
     holder: "user",
     outstanding: null,
@@ -78,6 +89,7 @@ export function createDefaultDebt(index: number): DebtItem {
 
 export function createDefaultDependant(): DependantItem {
   return {
+    id: createItemId(),
     age: null,
     lives_with: "shared",
   };

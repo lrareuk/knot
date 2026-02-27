@@ -10,6 +10,7 @@ export default function AccountDeletionForm() {
   const router = useRouter();
   const holdTimeoutRef = useRef<number | null>(null);
   const [armed, setArmed] = useState(false);
+  const [accessibleConfirmArmed, setAccessibleConfirmArmed] = useState(false);
   const [holding, setHolding] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -74,12 +75,20 @@ export default function AccountDeletionForm() {
       </p>
 
       {!armed ? (
-        <button type="button" className="dashboard-btn-danger" disabled={loading} onClick={() => setArmed(true)}>
+        <button
+          type="button"
+          className="dashboard-btn-danger"
+          disabled={loading}
+          onClick={() => {
+            setAccessibleConfirmArmed(false);
+            setArmed(true);
+          }}
+        >
           Arm panic mode
         </button>
       ) : (
         <>
-          <p className="dashboard-help">Hold to confirm.</p>
+          <p className="dashboard-help">Hold to confirm, or use accessible confirmation below.</p>
           <button
             type="button"
             className="dashboard-btn-danger"
@@ -91,7 +100,28 @@ export default function AccountDeletionForm() {
           >
             {loading ? "Hiding..." : holding ? "Keep holding..." : "Hold to hide account"}
           </button>
-          <button type="button" className="dashboard-btn-ghost" disabled={loading} onClick={() => setArmed(false)}>
+          {!accessibleConfirmArmed ? (
+            <button type="button" className="dashboard-btn-ghost" disabled={loading} onClick={() => setAccessibleConfirmArmed(true)}>
+              Use keyboard/screen reader confirmation
+            </button>
+          ) : (
+            <>
+              <p className="dashboard-help">Press confirm to hide this account immediately.</p>
+              <button type="button" className="dashboard-btn-danger" disabled={loading} onClick={triggerPanicMode}>
+                {loading ? "Hiding..." : "Confirm hide account"}
+              </button>
+            </>
+          )}
+          <button
+            type="button"
+            className="dashboard-btn-ghost"
+            disabled={loading}
+            onClick={() => {
+              cancelHold();
+              setAccessibleConfirmArmed(false);
+              setArmed(false);
+            }}
+          >
             Cancel
           </button>
         </>

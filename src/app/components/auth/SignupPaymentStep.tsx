@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent } from "react";
 import type { Appearance, StripeExpressCheckoutElementConfirmEvent } from "@stripe/stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { CheckoutProvider, ExpressCheckoutElement, PaymentElement, useCheckout } from "@stripe/react-stripe-js/checkout";
@@ -9,6 +9,23 @@ import styles from "./AuthFlow.module.css";
 
 type Props = {
   firstName: string;
+};
+
+type CheckoutDisplayAmount = {
+  amount: number;
+  currency: string;
+  formatted_total: string;
+};
+
+type CheckoutSessionPayload = {
+  clientSecret: string;
+  sessionId: string;
+  display: CheckoutDisplayAmount;
+};
+
+type PricingUpdate = {
+  totalLabel: string;
+  hasDiscount: boolean;
 };
 
 const INCLUDED_ITEMS = [
@@ -21,6 +38,11 @@ const INCLUDED_ITEMS = [
 
 const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 const stripePromise = STRIPE_PUBLISHABLE_KEY ? loadStripe(STRIPE_PUBLISHABLE_KEY) : null;
+const FALLBACK_DISPLAY: CheckoutDisplayAmount = {
+  amount: 44_900,
+  currency: "GBP",
+  formatted_total: "£449",
+};
 
 const AUTH_THEME = {
   primary: "#c2185b",
@@ -64,23 +86,64 @@ const checkoutAppearance: Appearance = {
   },
 };
 
-async function createCheckoutClientSecret() {
+async function createCheckoutSession() {
   const response = await fetch("/api/stripe/checkout", {
     method: "POST",
   });
 
-  const payload = (await response.json()) as { clientSecret?: string; error?: string };
+  const payload = (await response.json()) as {
+    clientSecret?: string;
+    sessionId?: string;
+    display?: CheckoutDisplayAmount;
+    error?: string;
+  };
   if (!response.ok || !payload.clientSecret) {
     throw new Error(payload.error ?? "Could not connect to payment provider. Please try again.");
   }
 
-  return payload.clientSecret;
+  return {
+    clientSecret: payload.clientSecret,
+    sessionId: payload.sessionId ?? "",
+    display: payload.display ?? FALLBACK_DISPLAY,
+  } satisfies CheckoutSessionPayload;
 }
 
 export default function SignupPaymentStep({ firstName }: Props) {
-  const clientSecret = useMemo(() => createCheckoutClientSecret(), []);
-
   const missingPublishableKey = !STRIPE_PUBLISHABLE_KEY || !stripePromise;
+  const [checkoutSessionPromise] = useState<Promise<CheckoutSessionPayload> | null>(() =>
+    missingPublishableKey ? null : createCheckoutSession()
+  );
+  const [displayTotal, setDisplayTotal] = useState<string>(FALLBACK_DISPLAY.formatted_total);
+  const [discountApplied, setDiscountApplied] = useState(false);
+  const checkoutClientSecret = checkoutSessionPromise?.then((session) => session.clientSecret);
+
+  useEffect(() => {
+    if (!checkoutSessionPromise) {
+      return;
+    }
+
+    let active = true;
+    void checkoutSessionPromise
+      .then((session) => {
+        if (active) {
+          setDisplayTotal(session.display.formatted_total);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setDisplayTotal(FALLBACK_DISPLAY.formatted_total);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [checkoutSessionPromise]);
+
+  const onPricingChange = useCallback((update: PricingUpdate) => {
+    setDisplayTotal((current) => (current === update.totalLabel ? current : update.totalLabel));
+    setDiscountApplied(update.hasDiscount);
+  }, []);
 
   return (
     <div className={styles.screen}>
@@ -90,8 +153,12 @@ export default function SignupPaymentStep({ firstName }: Props) {
       </p>
 
       <div className={styles.priceBlock}>
-        <p className={styles.priceAmount}>£449</p>
-        <p className={styles.priceSubtext}>One-time payment · Full access</p>
+        <p className={styles.priceAmount} data-testid="checkout-display-total">
+          {displayTotal}
+        </p>
+        <p className={styles.priceSubtext}>
+          {discountApplied ? "Discount applied · One-time payment · Full access" : "One-time payment · Full access"}
+        </p>
       </div>
 
       <section className={styles.includesPanel}>
@@ -103,19 +170,22 @@ export default function SignupPaymentStep({ firstName }: Props) {
         </ul>
       </section>
 
-      {missingPublishableKey ? (
+      {missingPublishableKey || !checkoutClientSecret ? (
         <p className={styles.inlineError}>Payment is unavailable due to missing Stripe publishable key.</p>
       ) : (
         <CheckoutProvider
           stripe={stripePromise}
           options={{
-            clientSecret,
+            clientSecret: checkoutClientSecret,
             elementsOptions: {
               appearance: checkoutAppearance,
             },
           }}
         >
-          <CheckoutExperience />
+          <CheckoutExperience
+            initialDisplay={{ ...FALLBACK_DISPLAY, formatted_total: displayTotal }}
+            onPricingChange={onPricingChange}
+          />
         </CheckoutProvider>
       )}
 
@@ -131,7 +201,13 @@ export default function SignupPaymentStep({ firstName }: Props) {
   );
 }
 
-function CheckoutExperience() {
+function CheckoutExperience({
+  initialDisplay,
+  onPricingChange,
+}: {
+  initialDisplay: CheckoutDisplayAmount;
+  onPricingChange: (update: PricingUpdate) => void;
+}) {
   const router = useRouter();
   const checkoutState = useCheckout();
   const [submitting, setSubmitting] = useState(false);
@@ -145,6 +221,18 @@ function CheckoutExperience() {
     checkoutState.type === "success"
       ? checkoutState.checkout.discountAmounts?.find((discountAmount) => discountAmount.promotionCode)?.promotionCode ?? null
       : null;
+  const totalLabel = checkoutState.type === "success" ? checkoutState.checkout.total.total.amount : initialDisplay.formatted_total;
+  const hasDiscount = checkoutState.type === "success" ? checkoutState.checkout.total.discount.minorUnitsAmount > 0 : false;
+
+  useEffect(() => {
+    if (checkoutState.type !== "success") {
+      return;
+    }
+    onPricingChange({
+      totalLabel: checkoutState.checkout.total.total.amount,
+      hasDiscount: checkoutState.checkout.total.discount.minorUnitsAmount > 0,
+    });
+  }, [checkoutState, onPricingChange]);
 
   const confirmCheckout = async (expressEvent?: StripeExpressCheckoutElementConfirmEvent) => {
     if (checkoutState.type !== "success" || submitting) {
@@ -323,11 +411,13 @@ function CheckoutExperience() {
           type="submit"
           className={`${styles.primaryButton} ${submitting ? styles.loading : ""}`.trim()}
           disabled={submitting || promotionBusy}
+          data-testid="checkout-submit-button"
         >
-          {submitting ? "Finalizing payment..." : "Pay £449"}
+          {submitting ? "Finalizing payment..." : `Pay ${totalLabel}`}
         </button>
       </form>
 
+      {hasDiscount ? <p className={styles.statusMessage}>Discount applied. Total due: {totalLabel}</p> : null}
       {error ? <p className={styles.inlineError}>{error}</p> : null}
     </div>
   );

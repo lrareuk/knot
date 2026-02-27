@@ -18,11 +18,22 @@ function normalizeNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function normalizeItemId(record: Record<string, unknown>, prefix: string, index: number): string {
+  if (typeof record.id === "string" && record.id.trim()) {
+    return record.id;
+  }
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  return `${prefix}-${index + 1}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
 function normalizePropertyItem(item: unknown, index: number): PropertyItem {
   const record = isRecord(item) ? item : {};
   const estimated = isRecord(record.is_estimated) ? record.is_estimated : {};
 
   return {
+    id: normalizeItemId(record, "property", index),
     label: typeof record.label === "string" ? record.label : `Property ${index + 1}`,
     current_value: normalizeNumber(record.current_value),
     mortgage_outstanding: normalizeNumber(record.mortgage_outstanding),
@@ -47,6 +58,7 @@ function normalizePensionItem(item: unknown, index: number): PensionItem {
   const estimated = isRecord(record.is_estimated) ? record.is_estimated : {};
 
   return {
+    id: normalizeItemId(record, "pension", index),
     label: typeof record.label === "string" ? record.label : `Pension ${index + 1}`,
     holder: record.holder === "partner" || record.holder === "user" ? record.holder : "user",
     pension_type:
@@ -70,6 +82,7 @@ function normalizeSavingsItem(item: unknown, index: number): SavingsItem {
   const estimated = isRecord(record.is_estimated) ? record.is_estimated : {};
 
   return {
+    id: normalizeItemId(record, "savings", index),
     label: typeof record.label === "string" ? record.label : `Account ${index + 1}`,
     type:
       record.type === "cash" ||
@@ -92,6 +105,7 @@ function normalizeDebtItem(item: unknown, index: number): DebtItem {
   const record = isRecord(item) ? item : {};
 
   return {
+    id: normalizeItemId(record, "debt", index),
     label: typeof record.label === "string" ? record.label : `Debt ${index + 1}`,
     holder: record.holder === "partner" || record.holder === "joint" || record.holder === "user" ? record.holder : "user",
     outstanding: normalizeNumber(record.outstanding),
@@ -100,10 +114,11 @@ function normalizeDebtItem(item: unknown, index: number): DebtItem {
   };
 }
 
-function normalizeDependantItem(item: unknown): DependantItem {
+function normalizeDependantItem(item: unknown, index: number): DependantItem {
   const record = isRecord(item) ? item : {};
 
   return {
+    id: normalizeItemId(record, "dependant", index),
     age: normalizeNumber(record.age),
     lives_with:
       record.lives_with === "user" || record.lives_with === "partner" || record.lives_with === "shared"

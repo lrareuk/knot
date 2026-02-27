@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { buildStripeCheckoutSessionParams, mapStripeCheckoutRouteError } from "@/lib/server/stripe-checkout";
+import { buildStripeCheckoutSessionParams, getStripeCheckoutDisplayAmount, mapStripeCheckoutRouteError } from "@/lib/server/stripe-checkout";
 import { supabaseServer } from "@/lib/supabase/server";
 
 export async function POST() {
@@ -59,6 +59,7 @@ export async function POST() {
     return NextResponse.json({
       clientSecret: session.client_secret,
       sessionId: session.id,
+      display: getStripeCheckoutDisplayAmount(session),
     });
   } catch (error) {
     const mappedError = mapStripeCheckoutRouteError(error);

@@ -3,6 +3,30 @@ import type Stripe from "stripe";
 const ONE_TIME_PRICE_PENCE = 44_900;
 const PRODUCT_NAME = "Untie Clarity";
 const PRODUCT_DESCRIPTION = "Financial scenario platform - 12 months access";
+const ZERO_DECIMAL_CURRENCIES = new Set([
+  "BIF",
+  "CLP",
+  "DJF",
+  "GNF",
+  "JPY",
+  "KMF",
+  "KRW",
+  "MGA",
+  "PYG",
+  "RWF",
+  "UGX",
+  "VND",
+  "VUV",
+  "XAF",
+  "XOF",
+  "XPF",
+]);
+
+export type StripeCheckoutDisplayAmount = {
+  amount: number;
+  currency: string;
+  formatted_total: string;
+};
 
 export type BuildStripeCheckoutSessionParamsInput = {
   siteUrl: string;
@@ -111,4 +135,33 @@ export function mapStripeCheckoutRouteError(error: unknown) {
 
 export function isPaidCheckoutSession(session: Stripe.Checkout.Session) {
   return session.mode === "payment" && session.status === "complete" && session.payment_status === "paid";
+}
+
+function minorUnitDivisor(currencyCode: string) {
+  return ZERO_DECIMAL_CURRENCIES.has(currencyCode.toUpperCase()) ? 1 : 100;
+}
+
+function formatCheckoutAmount(amount: number, currencyCode: string) {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: currencyCode,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount / minorUnitDivisor(currencyCode));
+  } catch {
+    return `${(amount / minorUnitDivisor(currencyCode)).toFixed(2)} ${currencyCode}`;
+  }
+}
+
+export function getStripeCheckoutDisplayAmount(
+  session: Pick<Stripe.Checkout.Session, "amount_total" | "currency">
+): StripeCheckoutDisplayAmount {
+  const amount = typeof session.amount_total === "number" ? session.amount_total : ONE_TIME_PRICE_PENCE;
+  const currency = (session.currency ?? "gbp").toUpperCase();
+  return {
+    amount,
+    currency,
+    formatted_total: formatCheckoutAmount(amount, currency),
+  };
 }

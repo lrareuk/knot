@@ -58,16 +58,16 @@ export default function OnboardingShell({ userId, firstName, currencyCode, juris
     return MODULES.find((module) => module.name === currentModuleName)?.guidance ?? "";
   }, [currentModuleName]);
 
+  if (isLoading || !position) {
+    return <LoadingShell firstName={firstName} />;
+  }
+
   if (isReviewPage) {
     return (
       <OnboardingUIProvider value={{ openGuidance: () => setGuidanceOpen(true), currencyCode, jurisdiction }}>
-        <div className="onboarding-theme min-h-screen">{children}</div>
+        <div className="onboarding-theme onboarding-shell">{children}</div>
       </OnboardingUIProvider>
     );
-  }
-
-  if (isLoading || !position) {
-    return <LoadingShell firstName={firstName} />;
   }
 
   return (

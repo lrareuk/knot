@@ -109,18 +109,30 @@ describe("POST /api/stripe/checkout", () => {
     mockCreateSession.mockResolvedValue({
       id: "cs_test_123",
       client_secret: "cs_test_secret_123",
+      amount_total: 44900,
+      currency: "gbp",
     });
 
     const response = await POST();
     const payload = (await response.json()) as {
       clientSecret?: string;
       sessionId?: string;
+      display?: {
+        amount: number;
+        currency: string;
+        formatted_total: string;
+      };
     };
 
     expect(response.status).toBe(200);
     expect(payload).toEqual({
       clientSecret: "cs_test_secret_123",
       sessionId: "cs_test_123",
+      display: {
+        amount: 44900,
+        currency: "GBP",
+        formatted_total: expect.stringContaining("449"),
+      },
     });
     expect(mockCreateSession).toHaveBeenCalledWith(
       expect.objectContaining({

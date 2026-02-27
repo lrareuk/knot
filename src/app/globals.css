@@ -1603,13 +1603,17 @@ tbody tr:nth-child(even) {
   margin-bottom: 40px;
 }
 
+.onboarding-sidebar-logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
 .onboarding-sidebar-logo {
-  font-family: var(--font-headline);
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: var(--text-primary);
+  display: block;
+  width: 90px;
+  height: 26px;
+  background: var(--logo-ink);
 }
 
 .onboarding-sidebar-greeting {
@@ -1706,8 +1710,10 @@ tbody tr:nth-child(even) {
 
 .onboarding-main {
   grid-column: 2;
-  margin-left: 280px;
   max-width: 740px;
+  width: 100%;
+  min-width: 0;
+  justify-self: start;
   min-height: 100vh;
   padding: 48px 56px 80px;
 }
@@ -2750,7 +2756,6 @@ tbody tr:nth-child(even) {
   }
 
   .onboarding-main {
-    margin-left: 0;
     max-width: none;
     padding: 24px 20px 32px;
   }

@@ -1,4 +1,5 @@
 export interface PropertyItem {
+  id: string;
   label: string;
   current_value: number | null;
   mortgage_outstanding: number | null;
@@ -14,6 +15,7 @@ export interface PropertyItem {
 }
 
 export interface PensionItem {
+  id: string;
   label: string;
   holder: "user" | "partner";
   pension_type: "defined_contribution" | "defined_benefit" | "state";
@@ -27,6 +29,7 @@ export interface PensionItem {
 }
 
 export interface SavingsItem {
+  id: string;
   label: string;
   type: "cash" | "isa" | "investment" | "crypto" | "other";
   holder: "user" | "partner" | "joint";
@@ -38,6 +41,7 @@ export interface SavingsItem {
 }
 
 export interface DebtItem {
+  id: string;
   label: string;
   holder: "user" | "partner" | "joint";
   outstanding: number | null;
@@ -59,6 +63,7 @@ export interface IncomeData {
 }
 
 export interface DependantItem {
+  id: string;
   age: number | null;
   lives_with: "user" | "partner" | "shared";
 }

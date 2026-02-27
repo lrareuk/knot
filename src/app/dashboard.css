@@ -58,25 +58,26 @@
 .dashboard-brand-link {
   color: inherit;
   text-decoration: none;
+  display: inline-flex;
+  align-items: center;
 }
 
 .dashboard-wordmark {
   display: block;
-  font-family: var(--font-headline);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 4px;
-  text-transform: uppercase;
-  color: var(--text-primary);
+  width: 90px;
+  height: 26px;
+  background: var(--logo-ink);
+  -webkit-mask: url("/untie-logo.svg") no-repeat center / contain;
+  mask: url("/untie-logo.svg") no-repeat center / contain;
 }
 
 .dashboard-wordmark-compact {
   display: none;
-  font-family: var(--font-headline);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  width: 24px;
+  height: 24px;
+  background: var(--logo-ink);
+  -webkit-mask: url("/untie-logo.svg") no-repeat center / contain;
+  mask: url("/untie-logo.svg") no-repeat center / contain;
 }
 
 .dashboard-greeting {
@@ -1450,7 +1451,7 @@
     border-top: 1px solid var(--bg-divider);
     background: var(--bg-panel);
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     z-index: 100;
   }
 

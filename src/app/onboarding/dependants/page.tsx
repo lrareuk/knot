@@ -57,10 +57,8 @@ export default function OnboardingDependantsPage() {
     council_tax: jurisdiction.startsWith("US-") || jurisdiction.startsWith("CA-") ? "Property tax" : "Council tax",
   };
 
-  const updateDependantAt = (index: number, updates: Partial<DependantItem>) => {
-    const next = [...dependants];
-    next[index] = { ...next[index], ...updates };
-    setDependants(next);
+  const updateDependant = (dependantId: string, updates: Partial<DependantItem>) => {
+    setDependants(dependants.map((entry) => (entry.id === dependantId ? { ...entry, ...updates } : entry)));
   };
 
   const monthlyExpenditureTotal = EXPENDITURE_FIELDS.reduce((total, field) => total + toNumber(expenditure[field]), 0);
@@ -88,7 +86,7 @@ export default function OnboardingDependantsPage() {
 
               return (
                 <ItemCard
-                  key={`dependant-${index}`}
+                  key={dependant.id}
                   title="Child"
                   index={index}
                   canDelete={canDelete}
@@ -96,7 +94,7 @@ export default function OnboardingDependantsPage() {
                     if (!canDelete) {
                       return;
                     }
-                    setDependants(dependants.filter((_, dependantIndex) => dependantIndex !== index));
+                    setDependants(dependants.filter((entry) => entry.id !== dependant.id));
                   }}
                 >
                   <div className="onboarding-field">
@@ -109,12 +107,12 @@ export default function OnboardingDependantsPage() {
                       onChange={(event) => {
                         const raw = event.target.value;
                         if (!raw.trim()) {
-                          updateDependantAt(index, { age: null });
+                          updateDependant(dependant.id, { age: null });
                           return;
                         }
                         const parsed = Number(raw);
                         const safeAge = Number.isFinite(parsed) ? Math.max(0, Math.min(17, Math.trunc(parsed))) : null;
-                        updateDependantAt(index, { age: safeAge });
+                        updateDependant(dependant.id, { age: safeAge });
                       }}
                       className="onboarding-field-input"
                     />
@@ -123,7 +121,7 @@ export default function OnboardingDependantsPage() {
                   <SelectInput
                     label="Lives with"
                     value={dependant.lives_with}
-                    onChange={(value) => updateDependantAt(index, { lives_with: value as DependantItem["lives_with"] })}
+                    onChange={(value) => updateDependant(dependant.id, { lives_with: value as DependantItem["lives_with"] })}
                     options={[
                       { value: "shared", label: "Shared" },
                       { value: "user", label: "You" },

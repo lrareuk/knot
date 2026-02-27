@@ -22,6 +22,7 @@ type SavePayload = {
   column: string;
   value: unknown;
   attempt: number;
+  version: number;
 };
 
 interface FinancialStore {
@@ -45,6 +46,39 @@ interface FinancialStore {
 const saveTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const retryTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const pendingSaves = new Map<string, SavePayload>();
+const inFlightSaves = new Set<string>();
+const saveVersions = new Map<string, number>();
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function arrayHasMissingItemIds(value: unknown): boolean {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+
+  return value.some((entry) => {
+    if (!isRecord(entry)) {
+      return true;
+    }
+    return typeof entry.id !== "string" || entry.id.trim().length === 0;
+  });
+}
+
+function needsStableItemIdRepair(value: unknown): boolean {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  return (
+    arrayHasMissingItemIds(value.properties) ||
+    arrayHasMissingItemIds(value.pensions) ||
+    arrayHasMissingItemIds(value.savings) ||
+    arrayHasMissingItemIds(value.debts) ||
+    arrayHasMissingItemIds(value.dependants)
+  );
+}
 
 function createInsertPayload(userId: string) {
   return {
@@ -81,12 +115,17 @@ async function persistPending(
   key: string,
   set: (partial: Partial<FinancialStore> | ((state: FinancialStore) => Partial<FinancialStore>)) => void
 ) {
+  if (inFlightSaves.has(key)) {
+    return;
+  }
+
   const pending = pendingSaves.get(key);
   if (!pending) {
     return;
   }
 
   clearTimer(saveTimers, key);
+  inFlightSaves.add(key);
   set({ saveStatus: "saving", lastError: null });
 
   const supabase = createClient();
@@ -95,10 +134,25 @@ async function persistPending(
     .update({ [pending.column]: pending.value, updated_at: new Date().toISOString() })
     .eq("user_id", pending.userId);
 
+  inFlightSaves.delete(key);
+  const latestPending = pendingSaves.get(key);
+  const hasNewerPending = latestPending ? latestPending.version !== pending.version : false;
+
   if (!error) {
-    pendingSaves.delete(key);
     clearTimer(retryTimers, key);
+
+    if (hasNewerPending) {
+      void persistPending(key, set);
+      return;
+    }
+
+    pendingSaves.delete(key);
     markSaved(set);
+    return;
+  }
+
+  if (hasNewerPending) {
+    void persistPending(key, set);
     return;
   }
 
@@ -123,11 +177,15 @@ function debouncedSave(
   set: (partial: Partial<FinancialStore> | ((state: FinancialStore) => Partial<FinancialStore>)) => void
 ) {
   const key = `${userId}:${column}`;
+  const nextVersion = (saveVersions.get(key) ?? 0) + 1;
+  saveVersions.set(key, nextVersion);
+
   pendingSaves.set(key, {
     userId,
     column,
     value,
     attempt: 0,
+    version: nextVersion,
   });
 
   clearTimer(saveTimers, key);
@@ -164,7 +222,22 @@ export const useFinancialStore = create<FinancialStore>((set, get) => ({
     }
 
     if (data) {
-      set({ position: normalizeFinancialPosition(data, userId), isLoading: false, lastError: null });
+      const normalized = normalizeFinancialPosition(data, userId);
+      set({ position: normalized, isLoading: false, lastError: null });
+
+      if (needsStableItemIdRepair(data)) {
+        void supabase
+          .from("financial_position")
+          .update({
+            properties: normalized.properties,
+            pensions: normalized.pensions,
+            savings: normalized.savings,
+            debts: normalized.debts,
+            dependants: normalized.dependants,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", userId);
+      }
       return;
     }
 

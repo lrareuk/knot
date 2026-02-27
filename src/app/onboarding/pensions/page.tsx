@@ -34,10 +34,8 @@ export default function OnboardingPensionsPage() {
 
   const pensions = position.pensions;
 
-  const updatePensionAt = (index: number, updates: Partial<PensionItem>) => {
-    const next = [...pensions];
-    next[index] = { ...next[index], ...updates };
-    setPensions(next);
+  const updatePension = (pensionId: string, updates: Partial<PensionItem>) => {
+    setPensions(pensions.map((entry) => (entry.id === pensionId ? { ...entry, ...updates } : entry)));
   };
 
   return (
@@ -52,7 +50,7 @@ export default function OnboardingPensionsPage() {
 
           return (
             <ItemCard
-              key={`pension-${index}`}
+              key={pension.id}
               title="Pension"
               index={index}
               canDelete={canDelete}
@@ -60,20 +58,20 @@ export default function OnboardingPensionsPage() {
                 if (!canDelete) {
                   return;
                 }
-                setPensions(pensions.filter((_, pensionIndex) => pensionIndex !== index));
+                setPensions(pensions.filter((entry) => entry.id !== pension.id));
               }}
             >
               <TextInput
                 label="What would you call this pension?"
                 value={pension.label}
-                onChange={(value) => updatePensionAt(index, { label: value })}
+                onChange={(value) => updatePension(pension.id, { label: value })}
               />
 
               <div className="onboarding-two-col-grid">
                 <SelectInput
                   label="Whose pension?"
                   value={pension.holder}
-                  onChange={(value) => updatePensionAt(index, { holder: value as PensionItem["holder"] })}
+                  onChange={(value) => updatePension(pension.id, { holder: value as PensionItem["holder"] })}
                   options={[
                     { value: "user", label: "Yours" },
                     { value: "partner", label: "Your partner's" },
@@ -84,7 +82,7 @@ export default function OnboardingPensionsPage() {
                   value={pension.pension_type}
                   onChange={(value) => {
                     const nextType = value as PensionItem["pension_type"];
-                    updatePensionAt(index, {
+                    updatePension(pension.id, {
                       pension_type: nextType,
                       current_value: nextType === "defined_contribution" ? pension.current_value : null,
                       annual_amount: nextType === "defined_contribution" ? null : pension.annual_amount,
@@ -102,11 +100,11 @@ export default function OnboardingPensionsPage() {
                 <CurrencyInput
                   label="Current value"
                   value={pension.current_value}
-                  onChange={(value) => updatePensionAt(index, { current_value: value })}
+                  onChange={(value) => updatePension(pension.id, { current_value: value })}
                   showEstimate
                   isEstimated={pension.is_estimated.current_value}
                   onEstimateToggle={() =>
-                    updatePensionAt(index, {
+                    updatePension(pension.id, {
                       is_estimated: {
                         ...pension.is_estimated,
                         current_value: !pension.is_estimated.current_value,
@@ -120,11 +118,11 @@ export default function OnboardingPensionsPage() {
                 <CurrencyInput
                   label="Annual amount"
                   value={pension.annual_amount}
-                  onChange={(value) => updatePensionAt(index, { annual_amount: value })}
+                  onChange={(value) => updatePension(pension.id, { annual_amount: value })}
                   showEstimate
                   isEstimated={pension.is_estimated.annual_amount}
                   onEstimateToggle={() =>
-                    updatePensionAt(index, {
+                    updatePension(pension.id, {
                       is_estimated: {
                         ...pension.is_estimated,
                         annual_amount: !pension.is_estimated.annual_amount,
@@ -150,7 +148,7 @@ export default function OnboardingPensionsPage() {
               <Toggle
                 label="Matrimonial?"
                 value={pension.is_matrimonial}
-                onChange={(value) => updatePensionAt(index, { is_matrimonial: value })}
+                onChange={(value) => updatePension(pension.id, { is_matrimonial: value })}
               />
             </ItemCard>
           );

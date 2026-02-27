@@ -42,6 +42,9 @@ export default function OnboardingPropertyPage() {
   }
 
   const properties = position.properties;
+  const updateProperty = (propertyId: string, updates: Partial<PropertyItem>) => {
+    setProperties(properties.map((current) => (current.id === propertyId ? nextProperty(current, updates) : current)));
+  };
 
   return (
     <div className="onboarding-module-body">
@@ -53,7 +56,7 @@ export default function OnboardingPropertyPage() {
 
           return (
             <ItemCard
-              key={`property-${index}`}
+              key={property.id}
               title="Property"
               index={index}
               canDelete={canDelete}
@@ -61,17 +64,13 @@ export default function OnboardingPropertyPage() {
                 if (!canDelete) {
                   return;
                 }
-                setProperties(properties.filter((_, propertyIndex) => propertyIndex !== index));
+                setProperties(properties.filter((entry) => entry.id !== property.id));
               }}
             >
               <TextInput
                 label="What would you call this property?"
                 value={property.label}
-                onChange={(value) => {
-                  const next = [...properties];
-                  next[index] = nextProperty(property, { label: value });
-                  setProperties(next);
-                }}
+                onChange={(value) => updateProperty(property.id, { label: value })}
                 placeholder="e.g. Family home"
               />
 
@@ -79,48 +78,36 @@ export default function OnboardingPropertyPage() {
                 <CurrencyInput
                   label="What is it worth today?"
                   value={property.current_value}
-                  onChange={(value) => {
-                    const next = [...properties];
-                    next[index] = nextProperty(property, { current_value: value });
-                    setProperties(next);
-                  }}
+                  onChange={(value) => updateProperty(property.id, { current_value: value })}
                   placeholder="e.g. 350,000"
                   showEstimate
                   isEstimated={property.is_estimated.current_value}
-                  onEstimateToggle={() => {
-                    const next = [...properties];
-                    next[index] = nextProperty(property, {
+                  onEstimateToggle={() =>
+                    updateProperty(property.id, {
                       is_estimated: {
                         ...property.is_estimated,
                         current_value: !property.is_estimated.current_value,
                       },
-                    });
-                    setProperties(next);
-                  }}
+                    })
+                  }
                 />
 
                 <CurrencyInput
                   label="Outstanding mortgage?"
                   value={property.mortgage_outstanding}
-                  onChange={(value) => {
-                    const next = [...properties];
-                    next[index] = nextProperty(property, { mortgage_outstanding: value });
-                    setProperties(next);
-                  }}
+                  onChange={(value) => updateProperty(property.id, { mortgage_outstanding: value })}
                   placeholder="e.g. 180,000"
                   help="The remaining balance."
                   showEstimate
                   isEstimated={property.is_estimated.mortgage_outstanding}
-                  onEstimateToggle={() => {
-                    const next = [...properties];
-                    next[index] = nextProperty(property, {
+                  onEstimateToggle={() =>
+                    updateProperty(property.id, {
                       is_estimated: {
                         ...property.is_estimated,
                         mortgage_outstanding: !property.is_estimated.mortgage_outstanding,
                       },
-                    });
-                    setProperties(next);
-                  }}
+                    })
+                  }
                 />
               </div>
 
@@ -135,13 +122,11 @@ export default function OnboardingPropertyPage() {
                 <SelectInput
                   label="Who owns this property?"
                   value={property.ownership}
-                  onChange={(value) => {
-                    const next = [...properties];
-                    next[index] = nextProperty(property, {
+                  onChange={(value) =>
+                    updateProperty(property.id, {
                       ownership: value as PropertyItem["ownership"],
-                    });
-                    setProperties(next);
-                  }}
+                    })
+                  }
                   options={[
                     { value: "joint", label: "Joint" },
                     { value: "sole_user", label: "Solely yours" },
@@ -152,35 +137,25 @@ export default function OnboardingPropertyPage() {
                 <Toggle
                   label="Was this acquired during the marriage?"
                   value={property.is_matrimonial}
-                  onChange={(value) => {
-                    const next = [...properties];
-                    next[index] = nextProperty(property, { is_matrimonial: value });
-                    setProperties(next);
-                  }}
+                  onChange={(value) => updateProperty(property.id, { is_matrimonial: value })}
                 />
               </div>
 
               <CurrencyInput
                 label="Monthly housing cost"
                 value={property.monthly_cost}
-                onChange={(value) => {
-                  const next = [...properties];
-                  next[index] = nextProperty(property, { monthly_cost: value });
-                  setProperties(next);
-                }}
+                onChange={(value) => updateProperty(property.id, { monthly_cost: value })}
                 help="Total monthly: mortgage, insurance, upkeep."
                 showEstimate
                 isEstimated={property.is_estimated.monthly_cost}
-                onEstimateToggle={() => {
-                  const next = [...properties];
-                  next[index] = nextProperty(property, {
+                onEstimateToggle={() =>
+                  updateProperty(property.id, {
                     is_estimated: {
                       ...property.is_estimated,
                       monthly_cost: !property.is_estimated.monthly_cost,
                     },
-                  });
-                  setProperties(next);
-                }}
+                  })
+                }
               />
             </ItemCard>
           );

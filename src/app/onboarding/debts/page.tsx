@@ -31,10 +31,8 @@ export default function OnboardingDebtsPage() {
 
   const debts = position.debts;
 
-  const updateDebtAt = (index: number, updates: Partial<DebtItem>) => {
-    const next = [...debts];
-    next[index] = { ...next[index], ...updates };
-    setDebts(next);
+  const updateDebt = (debtId: string, updates: Partial<DebtItem>) => {
+    setDebts(debts.map((entry) => (entry.id === debtId ? { ...entry, ...updates } : entry)));
   };
 
   return (
@@ -47,7 +45,7 @@ export default function OnboardingDebtsPage() {
 
           return (
             <ItemCard
-              key={`debt-${index}`}
+              key={debt.id}
               title="Debt"
               index={index}
               canDelete={canDelete}
@@ -55,15 +53,15 @@ export default function OnboardingDebtsPage() {
                 if (!canDelete) {
                   return;
                 }
-                setDebts(debts.filter((_, debtIndex) => debtIndex !== index));
+                setDebts(debts.filter((entry) => entry.id !== debt.id));
               }}
             >
-              <TextInput label="What would you call this debt?" value={debt.label} onChange={(value) => updateDebtAt(index, { label: value })} />
+              <TextInput label="What would you call this debt?" value={debt.label} onChange={(value) => updateDebt(debt.id, { label: value })} />
 
               <SelectInput
                 label="Whose?"
                 value={debt.holder}
-                onChange={(value) => updateDebtAt(index, { holder: value as DebtItem["holder"] })}
+                onChange={(value) => updateDebt(debt.id, { holder: value as DebtItem["holder"] })}
                 options={[
                   { value: "user", label: "Yours" },
                   { value: "partner", label: "Your partner's" },
@@ -75,19 +73,19 @@ export default function OnboardingDebtsPage() {
                 <CurrencyInput
                   label="Outstanding"
                   value={debt.outstanding}
-                  onChange={(value) => updateDebtAt(index, { outstanding: value })}
+                  onChange={(value) => updateDebt(debt.id, { outstanding: value })}
                 />
                 <CurrencyInput
                   label="Monthly payment"
                   value={debt.monthly_payment}
-                  onChange={(value) => updateDebtAt(index, { monthly_payment: value })}
+                  onChange={(value) => updateDebt(debt.id, { monthly_payment: value })}
                 />
               </div>
 
               <Toggle
                 label="Matrimonial?"
                 value={debt.is_matrimonial}
-                onChange={(value) => updateDebtAt(index, { is_matrimonial: value })}
+                onChange={(value) => updateDebt(debt.id, { is_matrimonial: value })}
               />
             </ItemCard>
           );

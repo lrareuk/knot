@@ -31,10 +31,8 @@ export default function OnboardingSavingsPage() {
 
   const savingsItems = position.savings;
 
-  const updateSavingsAt = (index: number, updates: Partial<SavingsItem>) => {
-    const next = [...savingsItems];
-    next[index] = { ...next[index], ...updates };
-    setSavings(next);
+  const updateSavings = (savingsId: string, updates: Partial<SavingsItem>) => {
+    setSavings(savingsItems.map((entry) => (entry.id === savingsId ? { ...entry, ...updates } : entry)));
   };
 
   return (
@@ -47,7 +45,7 @@ export default function OnboardingSavingsPage() {
 
           return (
             <ItemCard
-              key={`savings-${index}`}
+              key={savings.id}
               title="Account"
               index={index}
               canDelete={canDelete}
@@ -55,20 +53,20 @@ export default function OnboardingSavingsPage() {
                 if (!canDelete) {
                   return;
                 }
-                setSavings(savingsItems.filter((_, savingsIndex) => savingsIndex !== index));
+                setSavings(savingsItems.filter((entry) => entry.id !== savings.id));
               }}
             >
               <TextInput
                 label="What would you call this account?"
                 value={savings.label}
-                onChange={(value) => updateSavingsAt(index, { label: value })}
+                onChange={(value) => updateSavings(savings.id, { label: value })}
               />
 
               <div className="onboarding-two-col-grid">
                 <SelectInput
                   label="Type"
                   value={savings.type}
-                  onChange={(value) => updateSavingsAt(index, { type: value as SavingsItem["type"] })}
+                  onChange={(value) => updateSavings(savings.id, { type: value as SavingsItem["type"] })}
                   options={[
                     { value: "cash", label: "Cash" },
                     { value: "isa", label: "ISA" },
@@ -80,7 +78,7 @@ export default function OnboardingSavingsPage() {
                 <SelectInput
                   label="Whose?"
                   value={savings.holder}
-                  onChange={(value) => updateSavingsAt(index, { holder: value as SavingsItem["holder"] })}
+                  onChange={(value) => updateSavings(savings.id, { holder: value as SavingsItem["holder"] })}
                   options={[
                     { value: "user", label: "Yours" },
                     { value: "partner", label: "Your partner's" },
@@ -92,11 +90,11 @@ export default function OnboardingSavingsPage() {
               <CurrencyInput
                 label="Value"
                 value={savings.current_value}
-                onChange={(value) => updateSavingsAt(index, { current_value: value })}
+                onChange={(value) => updateSavings(savings.id, { current_value: value })}
                 showEstimate
                 isEstimated={savings.is_estimated.current_value}
                 onEstimateToggle={() =>
-                  updateSavingsAt(index, {
+                  updateSavings(savings.id, {
                     is_estimated: {
                       ...savings.is_estimated,
                       current_value: !savings.is_estimated.current_value,
@@ -108,7 +106,7 @@ export default function OnboardingSavingsPage() {
               <Toggle
                 label="Matrimonial?"
                 value={savings.is_matrimonial}
-                onChange={(value) => updateSavingsAt(index, { is_matrimonial: value })}
+                onChange={(value) => updateSavings(savings.id, { is_matrimonial: value })}
               />
             </ItemCard>
           );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/domain/currency";
@@ -190,6 +190,10 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
   });
 
   const dirtyRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queuedSaveRef = useRef<{ name: string; config: ScenarioConfig } | null>(null);
+  const saveInFlightRef = useRef(false);
 
   const results = useMemo(() => computeScenario(position, config), [config, position]);
   const agreementWarnings = useMemo(
@@ -207,32 +211,82 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
   const savingsById = useMemo(() => new Map(position.savings.map((item) => [item.id, item])), [position.savings]);
   const debtById = useMemo(() => new Map(position.debts.map((item) => [item.id, item])), [position.debts]);
 
+  const flushQueuedSave = useCallback(async () => {
+    if (saveInFlightRef.current) {
+      return;
+    }
+
+    const snapshot = queuedSaveRef.current;
+    if (!snapshot) {
+      return;
+    }
+
+    saveInFlightRef.current = true;
+    queuedSaveRef.current = null;
+
+    if (isMountedRef.current) {
+      setSaveState("saving");
+    }
+
+    try {
+      const response = await fetch(`/api/scenarios/${scenario.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: snapshot.name.trim().slice(0, 40) || "Scenario",
+          config: snapshot.config,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("save_failed");
+      }
+
+      if (isMountedRef.current) {
+        dirtyRef.current = false;
+        setSaveState("saved");
+      }
+    } catch {
+      queuedSaveRef.current = snapshot;
+      if (isMountedRef.current) {
+        setSaveState("error");
+      }
+    } finally {
+      saveInFlightRef.current = false;
+
+      if (queuedSaveRef.current) {
+        if (saveTimerRef.current) {
+          clearTimeout(saveTimerRef.current);
+        }
+        saveTimerRef.current = setTimeout(() => {
+          void flushQueuedSave();
+        }, 300);
+      }
+    }
+  }, [scenario.id]);
+
   useEffect(() => {
     if (!dirtyRef.current) {
       return;
     }
 
-    const timer = window.setTimeout(async () => {
-      setSaveState("saving");
-      const response = await fetch(`/api/scenarios/${scenario.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.trim().slice(0, 40) || "Scenario",
-          config,
-        }),
-      });
-
-      if (response.ok) {
-        dirtyRef.current = false;
-        setSaveState("saved");
-      } else {
-        setSaveState("error");
-      }
+    queuedSaveRef.current = { name, config };
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+    saveTimerRef.current = setTimeout(() => {
+      void flushQueuedSave();
     }, 500);
+  }, [config, flushQueuedSave, name]);
 
-    return () => window.clearTimeout(timer);
-  }, [config, name, scenario.id]);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, []);
 
   const saveStatusLabel =
     saveState === "saving"

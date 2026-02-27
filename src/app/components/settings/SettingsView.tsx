@@ -109,7 +109,34 @@ export default function SettingsView({
     }
 
     setPasswordSaving(true);
-    const { error } = await supabaseBrowser().auth.updateUser({ password: newPassword });
+    const supabase = supabaseBrowser();
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user?.email) {
+      setPasswordSaving(false);
+      setPasswordStatus("Unable to verify your current password right now.");
+      return;
+    }
+
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+
+    if (verifyError) {
+      setPasswordSaving(false);
+      if (verifyError.message.toLowerCase().includes("invalid login credentials")) {
+        setPasswordStatus("Current password is incorrect.");
+        return;
+      }
+      setPasswordStatus("Unable to verify your current password right now.");
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
     setPasswordSaving(false);
 
     if (error) {

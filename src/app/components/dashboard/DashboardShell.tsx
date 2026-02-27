@@ -71,7 +71,7 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-const MOBILE_ITEMS: NavItem[] = [NAV_ITEMS[0], NAV_ITEMS[1], NAV_ITEMS[2], NAV_ITEMS[4]].filter(Boolean) as NavItem[];
+const MOBILE_ITEMS: NavItem[] = [NAV_ITEMS[0], NAV_ITEMS[1], NAV_ITEMS[2], NAV_ITEMS[3], NAV_ITEMS[4]].filter(Boolean) as NavItem[];
 
 export default function DashboardShell({ firstName, hasRelevantAgreements, children }: Props) {
   const pathname = usePathname();
@@ -90,12 +90,9 @@ export default function DashboardShell({ firstName, hasRelevantAgreements, child
       <aside className="dashboard-sidebar" aria-label="Primary navigation">
         <div className="dashboard-sidebar-top">
           <Link href="/dashboard" className="dashboard-brand-link" aria-label="Untie home">
-            <span className="dashboard-wordmark" aria-hidden>
-              UNTIE
-            </span>
-            <span className="dashboard-wordmark-compact" aria-hidden>
-              U
-            </span>
+            <span className="dashboard-wordmark logo-wordmark" aria-hidden />
+            <span className="dashboard-wordmark-compact logo-wordmark" aria-hidden />
+            <span className="sr-only">Untie</span>
           </Link>
           <p className="dashboard-greeting">{greeting}</p>
         </div>

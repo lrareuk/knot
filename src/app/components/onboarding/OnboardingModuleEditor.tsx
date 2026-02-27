@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   createEmptyDebt,
   createEmptyDependant,
@@ -74,6 +74,10 @@ export default function OnboardingModuleEditor({ module, initialPosition }: Prop
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [lastSaved, setLastSaved] = useState<number | null>(null);
   const dirtyRef = useRef(false);
+  const isMountedRef = useRef(true);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queuedPositionRef = useRef<FinancialPosition | null>(null);
+  const saveInFlightRef = useRef(false);
 
   const moduleCompletion = useMemo(() => {
     return ONBOARDING_MODULE_META.map((entry) => ({
@@ -82,33 +86,82 @@ export default function OnboardingModuleEditor({ module, initialPosition }: Prop
     }));
   }, [position]);
 
-  useEffect(() => {
-    if (!dirtyRef.current) {
+  const flushQueuedSave = useCallback(async () => {
+    if (saveInFlightRef.current) {
       return;
     }
 
-    const timer = setTimeout(async () => {
+    const snapshot = queuedPositionRef.current;
+    if (!snapshot) {
+      return;
+    }
+
+    saveInFlightRef.current = true;
+    queuedPositionRef.current = null;
+
+    if (isMountedRef.current) {
       setSaveState("saving");
+    }
+
+    try {
       const response = await fetch("/api/financial-position", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(position),
+        body: JSON.stringify(snapshot),
       });
 
-      if (response.ok) {
+      if (!response.ok) {
+        throw new Error("save_failed");
+      }
+
+      if (isMountedRef.current) {
         dirtyRef.current = false;
         setSaveState("saved");
         setLastSaved(Date.now());
-        return;
       }
+    } catch {
+      queuedPositionRef.current = snapshot;
+      if (isMountedRef.current) {
+        setSaveState("error");
+      }
+    } finally {
+      saveInFlightRef.current = false;
 
-      setSaveState("error");
+      if (queuedPositionRef.current) {
+        if (saveTimerRef.current) {
+          clearTimeout(saveTimerRef.current);
+        }
+        saveTimerRef.current = setTimeout(() => {
+          void flushQueuedSave();
+        }, 300);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!dirtyRef.current) {
+      return;
+    }
+
+    queuedPositionRef.current = position;
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+    }
+    saveTimerRef.current = setTimeout(() => {
+      void flushQueuedSave();
     }, 500);
+  }, [flushQueuedSave, position]);
 
-    return () => clearTimeout(timer);
-  }, [position]);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+      }
+    };
+  }, []);
 
   const updatePosition = (next: FinancialPosition) => {
     dirtyRef.current = true;

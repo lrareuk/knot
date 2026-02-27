@@ -122,6 +122,19 @@ function statusPillClass(status: ModuleStatus): string {
   return "is-empty";
 }
 
+function ReviewLoadingState() {
+  return (
+    <main className="onboarding-review-page">
+      <div className="onboarding-loading" role="status" aria-live="polite" data-testid="onboarding-review-loading">
+        <div className="onboarding-loading-line onboarding-loading-line-title" />
+        <div className="onboarding-loading-line" />
+        <div className="onboarding-loading-line onboarding-loading-line-short" />
+        <div className="onboarding-loading-block" />
+      </div>
+    </main>
+  );
+}
+
 export default function OnboardingReviewPage() {
   const router = useRouter();
   const { currencyCode } = useOnboardingUI();
@@ -167,7 +180,7 @@ export default function OnboardingReviewPage() {
   }, [position]);
 
   if (!position || !totals) {
-    return null;
+    return <ReviewLoadingState />;
   }
 
   const hasEmptyModule = moduleStatuses.some((status) => status === "empty");
