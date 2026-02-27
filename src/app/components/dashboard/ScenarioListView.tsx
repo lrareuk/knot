@@ -13,17 +13,17 @@ type Props = {
 type BusyMap = Record<string, boolean>;
 
 function deltaClass(value: number) {
-  if (value > 0) return "is-positive";
-  if (value < 0) return "is-negative";
+  if (value > 0) return " is-positive";
+  if (value < 0) return " is-negative";
   return "";
 }
 
-function deltaText(value: number, suffix?: string) {
+function deltaText(value: number) {
   if (value === 0) {
-    return "—";
+    return "No change from baseline";
   }
-  const sign = value > 0 ? "↑ +" : "↓ −";
-  return `${sign}${formatCurrency(Math.abs(value))}${suffix ? ` ${suffix}` : ""}`;
+
+  return `${value > 0 ? "↑" : "↓"} ${formatCurrency(Math.abs(value))} from baseline`;
 }
 
 export default function ScenarioListView({ initialScenarios }: Props) {
@@ -33,22 +33,22 @@ export default function ScenarioListView({ initialScenarios }: Props) {
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [hidingId, setHidingId] = useState<string | null>(null);
   const [busyMap, setBusyMap] = useState<BusyMap>({});
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const close = (event: MouseEvent) => {
+    const closeMenu = (event: MouseEvent) => {
       if (!menuRef.current?.contains(event.target as Node)) {
         setOpenMenuId(null);
       }
     };
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
+
+    document.addEventListener("click", closeMenu);
+    return () => document.removeEventListener("click", closeMenu);
   }, []);
 
   const canCreate = scenarios.length < 5;
-  const busy = useMemo(() => Object.values(busyMap).some(Boolean), [busyMap]);
+  const anyBusy = useMemo(() => Object.values(busyMap).some(Boolean), [busyMap]);
 
   const updateScenario = (id: string, updater: (scenario: ScenarioRecord) => ScenarioRecord) => {
     setScenarios((current) => current.map((scenario) => (scenario.id === id ? updater(scenario) : scenario)));
@@ -58,20 +58,23 @@ export default function ScenarioListView({ initialScenarios }: Props) {
     const trimmed = name.trim().slice(0, 40);
     if (!trimmed) {
       setRenamingId(null);
+      setOpenMenuId(null);
       return;
     }
 
     setBusyMap((current) => ({ ...current, [id]: true }));
+
     const response = await fetch(`/api/scenarios/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: trimmed }),
     });
+
     const payload = (await response.json().catch(() => ({}))) as { scenario?: ScenarioRecord };
     setBusyMap((current) => ({ ...current, [id]: false }));
 
     if (response.ok && payload.scenario) {
-      updateScenario(id, () => payload.scenario!);
+      updateScenario(id, () => payload.scenario as ScenarioRecord);
     }
 
     setRenamingId(null);
@@ -80,175 +83,80 @@ export default function ScenarioListView({ initialScenarios }: Props) {
 
   const duplicateScenario = async (id: string) => {
     setBusyMap((current) => ({ ...current, [id]: true }));
+
     const response = await fetch(`/api/scenarios/${id}/duplicate`, { method: "POST" });
     const payload = (await response.json().catch(() => ({}))) as { scenario?: ScenarioRecord };
+
     setBusyMap((current) => ({ ...current, [id]: false }));
     setOpenMenuId(null);
-    if (!response.ok || !payload.scenario) {
-      return;
+
+    if (response.ok && payload.scenario) {
+      setScenarios((current) => [...current, payload.scenario as ScenarioRecord]);
     }
-    setScenarios((current) => [...current, payload.scenario!]);
   };
 
   const deleteScenario = async (id: string) => {
     setBusyMap((current) => ({ ...current, [id]: true }));
+
     const response = await fetch(`/api/scenarios/${id}`, { method: "DELETE" });
+
     setBusyMap((current) => ({ ...current, [id]: false }));
-    if (!response.ok) {
-      return;
-    }
-    setHidingId(id);
-    window.setTimeout(() => {
+
+    if (response.ok) {
       setScenarios((current) => current.filter((scenario) => scenario.id !== id));
       setConfirmDeleteId(null);
       setOpenMenuId(null);
-      setHidingId(null);
-    }, 220);
+    }
   };
 
   return (
     <div className="dashboard-page dashboard-scenarios-page">
-      <header className="dashboard-page-header dashboard-scenarios-header">
+      <header className="dashboard-page-header dashboard-page-header-split">
         <div>
           <h1 className="dashboard-page-title">Your scenarios</h1>
-          <p className="dashboard-page-subtitle">Model different outcomes and compare them side by side.</p>
+          <p className="dashboard-page-subtitle">
+            Each scenario models a different way to divide your finances. You can create up to 5.
+          </p>
         </div>
+
         <CreateScenarioButton
-          className="dashboard-btn"
-          label="+ Create scenario"
+          className="dashboard-btn dashboard-btn-sm"
+          label="+ New scenario"
           disabled={!canCreate}
-          redirectToEditor
           title={!canCreate ? "Maximum 5 scenarios. Delete one to create another." : undefined}
         />
       </header>
 
-      {!canCreate ? <p className="dashboard-help">Maximum 5 scenarios. Delete one to create another.</p> : null}
-
       {scenarios.length === 0 ? (
         <section className="dashboard-empty-state">
-          <p>No scenarios yet. Create your first to see what changes.</p>
-          <CreateScenarioButton className="dashboard-btn" label="Create first scenario" />
+          <p>No scenarios yet. Create one to start modelling.</p>
+          <CreateScenarioButton className="dashboard-btn" label="Create your first scenario" />
         </section>
       ) : (
-        <section className="dashboard-scenarios-grid dashboard-scenarios-grid-v2">
+        <section className="dashboard-scenarios-grid" aria-label="Scenario cards">
           {scenarios.map((scenario) => {
             const isRenaming = renamingId === scenario.id;
             const isConfirmingDelete = confirmDeleteId === scenario.id;
-            const isHiding = hidingId === scenario.id;
             const isBusy = busyMap[scenario.id] || false;
 
             return (
               <article
                 key={scenario.id}
-                className={`dashboard-scenario-card dashboard-scenario-card-v2 dashboard-remove${isHiding ? " is-hiding" : ""}`}
-                onClick={() => {
-                  if (isRenaming || isConfirmingDelete) {
-                    return;
-                  }
-                  router.push(`/dashboard/scenarios/${scenario.id}`);
-                }}
-                onKeyUp={(event) => {
-                  if (event.key === "Enter" && !isRenaming && !isConfirmingDelete) {
-                    router.push(`/dashboard/scenarios/${scenario.id}`);
-                  }
-                }}
-                tabIndex={0}
+                className="dashboard-scenario-card"
                 role="button"
+                tabIndex={0}
                 aria-label={`Open ${scenario.name}`}
+                onClick={() => {
+                  if (isRenaming || isConfirmingDelete) return;
+                  router.push(`/dashboard/scenario/${scenario.id}`);
+                }}
+                onKeyDown={(event) => {
+                  if ((event.key === "Enter" || event.key === " ") && !isRenaming && !isConfirmingDelete) {
+                    event.preventDefault();
+                    router.push(`/dashboard/scenario/${scenario.id}`);
+                  }
+                }}
               >
-                <div className="dashboard-scenario-header">
-                  {isRenaming ? (
-                    <input
-                      className="dashboard-editable-name-input"
-                      value={nameDraft}
-                      maxLength={40}
-                      autoFocus
-                      onClick={(event) => event.stopPropagation()}
-                      onChange={(event) => setNameDraft(event.target.value)}
-                      onBlur={() => renameScenario(scenario.id, nameDraft)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                          void renameScenario(scenario.id, nameDraft);
-                        }
-                        if (event.key === "Escape") {
-                          setRenamingId(null);
-                          setOpenMenuId(null);
-                        }
-                      }}
-                    />
-                  ) : (
-                    <h2 className="dashboard-scenario-name">{scenario.name}</h2>
-                  )}
-                  <div className="dashboard-scenario-menu-wrap" ref={openMenuId === scenario.id ? menuRef : null}>
-                    <button
-                      type="button"
-                      className="dashboard-scenario-menu-button"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        setOpenMenuId((current) => (current === scenario.id ? null : scenario.id));
-                      }}
-                      aria-label={`Open menu for ${scenario.name}`}
-                    >
-                      ...
-                    </button>
-
-                    {openMenuId === scenario.id ? (
-                      <div className="dashboard-scenario-menu" onClick={(event) => event.stopPropagation()}>
-                        <button
-                          type="button"
-                          disabled={isBusy || busy}
-                          onClick={() => {
-                            setRenamingId(scenario.id);
-                            setNameDraft(scenario.name);
-                          }}
-                        >
-                          Rename
-                        </button>
-                        <button type="button" disabled={isBusy || busy || !canCreate} onClick={() => duplicateScenario(scenario.id)}>
-                          Duplicate
-                        </button>
-                        <button
-                          type="button"
-                          className="is-danger"
-                          disabled={isBusy || busy}
-                          onClick={() => setConfirmDeleteId(scenario.id)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-
-                <div>
-                  <p className="dashboard-scenario-metric-label">Your net position</p>
-                  <p className="dashboard-scenario-metric-value">{formatCurrency(scenario.results.user_net_position)}</p>
-                  <p className={`dashboard-delta ${deltaClass(scenario.results.delta_user_net_position)}`}>
-                    {deltaText(scenario.results.delta_user_net_position, "from current")}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="dashboard-scenario-metric-label">Monthly surplus / deficit</p>
-                  <p className="dashboard-scenario-metric-value">{formatCurrency(scenario.results.user_monthly_surplus_deficit)}</p>
-                  <p className={`dashboard-delta ${deltaClass(scenario.results.delta_user_monthly)}`}>
-                    {deltaText(scenario.results.delta_user_monthly)}
-                  </p>
-                </div>
-
-                <div>
-                  <button
-                    type="button"
-                    className="dashboard-btn-text"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      router.push(`/dashboard/scenarios/${scenario.id}`);
-                    }}
-                  >
-                    Edit scenario
-                  </button>
-                </div>
-
                 {isConfirmingDelete ? (
                   <div className="dashboard-delete-inline" onClick={(event) => event.stopPropagation()}>
                     <p>Delete this scenario? This cannot be undone.</p>
@@ -256,12 +164,101 @@ export default function ScenarioListView({ initialScenarios }: Props) {
                       <button type="button" className="dashboard-btn-text" onClick={() => setConfirmDeleteId(null)}>
                         Cancel
                       </button>
-                      <button type="button" className="dashboard-btn-danger" onClick={() => deleteScenario(scenario.id)} disabled={isBusy}>
+                      <button type="button" className="dashboard-btn-text is-danger" onClick={() => deleteScenario(scenario.id)}>
                         Delete
                       </button>
                     </div>
                   </div>
-                ) : null}
+                ) : (
+                  <>
+                    <div className="dashboard-scenario-header">
+                      {isRenaming ? (
+                        <input
+                          className="dashboard-editable-name-input"
+                          value={nameDraft}
+                          maxLength={40}
+                          autoFocus
+                          onClick={(event) => event.stopPropagation()}
+                          onChange={(event) => setNameDraft(event.target.value)}
+                          onBlur={() => renameScenario(scenario.id, nameDraft)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              void renameScenario(scenario.id, nameDraft);
+                            }
+                            if (event.key === "Escape") {
+                              setRenamingId(null);
+                              setOpenMenuId(null);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <h2 className="dashboard-scenario-name">{scenario.name}</h2>
+                      )}
+
+                      <div className="dashboard-scenario-menu-wrap" ref={openMenuId === scenario.id ? menuRef : null}>
+                        <button
+                          type="button"
+                          className="dashboard-scenario-menu-button"
+                          aria-label={`Open menu for ${scenario.name}`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setOpenMenuId((current) => (current === scenario.id ? null : scenario.id));
+                          }}
+                        >
+                          ⋯
+                        </button>
+
+                        {openMenuId === scenario.id ? (
+                          <div className="dashboard-scenario-menu" onClick={(event) => event.stopPropagation()}>
+                            <button
+                              type="button"
+                              disabled={isBusy || anyBusy}
+                              onClick={() => {
+                                setRenamingId(scenario.id);
+                                setNameDraft(scenario.name);
+                              }}
+                            >
+                              Rename
+                            </button>
+                            <button type="button" disabled={isBusy || anyBusy || !canCreate} onClick={() => duplicateScenario(scenario.id)}>
+                              Duplicate
+                            </button>
+                            <button
+                              type="button"
+                              className="is-danger"
+                              disabled={isBusy || anyBusy}
+                              onClick={() => {
+                                setConfirmDeleteId(scenario.id);
+                                setOpenMenuId(null);
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="dashboard-scenario-metrics-row">
+                      <div>
+                        <p className="dashboard-scenario-metric-label">Net position</p>
+                        <p className="dashboard-scenario-metric-value">{formatCurrency(scenario.results.user_net_position)}</p>
+                      </div>
+                      <div>
+                        <p className="dashboard-scenario-metric-label">Monthly</p>
+                        <p className={`dashboard-scenario-metric-value${scenario.results.user_monthly_surplus_deficit < 0 ? " is-negative" : ""}`}>
+                          {formatCurrency(scenario.results.user_monthly_surplus_deficit)}/mo
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="dashboard-scenario-delta-row">
+                      <p className={`dashboard-scenario-delta${deltaClass(scenario.results.delta_user_net_position)}`}>
+                        {deltaText(scenario.results.delta_user_net_position)}
+                      </p>
+                    </div>
+                  </>
+                )}
               </article>
             );
           })}

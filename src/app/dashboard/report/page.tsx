@@ -19,11 +19,5 @@ export default async function ReportPage({
           .filter(Boolean)
       : [];
 
-  const { data: reports } = await supabase
-    .from("reports")
-    .select("id,scenario_ids,pdf_url,generated_at,expires_at")
-    .eq("user_id", user.id)
-    .order("generated_at", { ascending: false });
-
-  return <ReportGenerator scenarios={scenarios} initialReports={reports ?? []} preselectedScenarioIds={preselected} />;
+  return <ReportGenerator scenarios={scenarios} initialReports={[]} preselectedScenarioIds={preselected} />;
 }

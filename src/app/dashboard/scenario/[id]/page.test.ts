@@ -8,11 +8,11 @@ vi.mock("next/navigation", () => ({
   redirect: mockRedirect,
 }));
 
-import LegacyScenarioPage from "@/app/dashboard/scenario/[id]/page";
+import LegacyScenarioPage from "@/app/dashboard/scenarios/[id]/page";
 
 describe("Legacy scenario route redirect", () => {
-  it("redirects old scenario URL to new scenarios URL", async () => {
+  it("redirects plural scenario URL to canonical singular URL", async () => {
     await LegacyScenarioPage({ params: Promise.resolve({ id: "abc-123" }) });
-    expect(mockRedirect).toHaveBeenCalledWith("/dashboard/scenarios/abc-123");
+    expect(mockRedirect).toHaveBeenCalledWith("/dashboard/scenario/abc-123");
   });
 });

@@ -56,7 +56,7 @@ export async function POST(req: Request) {
   }
 
   const position = await getOrCreateFinancialPosition(context.supabase, context.user.id);
-  const config = buildScenarioConfigFromTemplate(position, parsed.data.template ?? "balanced");
+  const config = buildScenarioConfigFromTemplate(position, parsed.data.template ?? "clean_break_sale");
   const results = computeScenario(position, config);
 
   const nextName = (parsed.data.name?.trim() || `Scenario ${String.fromCharCode(65 + current.length)}`).slice(0, 40);

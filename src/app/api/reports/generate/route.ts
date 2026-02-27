@@ -93,5 +93,9 @@ export async function POST(req: Request) {
     return serverError("Failed to store report metadata");
   }
 
-  return NextResponse.json({ report });
+  return NextResponse.json({
+    report,
+    report_id: report.id,
+    download_url: report.pdf_url,
+  });
 }

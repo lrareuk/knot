@@ -225,7 +225,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
       return;
     }
 
-    router.push(`/dashboard/scenarios/${payload.scenario.id}`);
+    router.push(`/dashboard/scenario/${payload.scenario.id}`);
   };
 
   const deleteScenario = async () => {

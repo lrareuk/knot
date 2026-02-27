@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { formatCurrency } from "@/lib/domain/currency";
 import type { ScenarioRecord } from "@/lib/domain/types";
 
 type ReportItem = {
@@ -18,76 +19,93 @@ type Props = {
   preselectedScenarioIds?: string[];
 };
 
-function formatDate(value: string) {
-  return new Date(value).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
-}
+type GeneratedReport = {
+  reportId: string;
+  downloadUrl: string;
+};
 
-export default function ReportGenerator({ scenarios, initialReports, preselectedScenarioIds = [] }: Props) {
+export default function ReportGenerator({ scenarios, preselectedScenarioIds = [] }: Props) {
   const initialSelected = useMemo(() => {
     const valid = preselectedScenarioIds.filter((id) => scenarios.some((scenario) => scenario.id === id)).slice(0, 3);
     if (valid.length > 0) {
       return valid;
     }
+
     return scenarios.slice(0, 1).map((scenario) => scenario.id);
   }, [preselectedScenarioIds, scenarios]);
 
   const [selected, setSelected] = useState<string[]>(initialSelected);
-  const [reports, setReports] = useState<ReportItem[]>(initialReports);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [latestGenerated, setLatestGenerated] = useState<ReportItem | null>(null);
+  const [generated, setGenerated] = useState<GeneratedReport | null>(null);
 
-  const toggle = (id: string) => {
+  const toggleScenario = (id: string) => {
     setSelected((current) => {
       if (current.includes(id)) {
         if (current.length <= 1) {
           return current;
         }
+
         return current.filter((value) => value !== id);
       }
+
       if (current.length >= 3) {
         return current;
       }
+
       return [...current, id];
     });
   };
 
   const generate = async () => {
     if (selected.length === 0) {
-      setError("Create at least one scenario before generating a report.");
+      setError("Select at least one scenario.");
       return;
     }
 
     setLoading(true);
     setError(null);
-    setLatestGenerated(null);
+    setGenerated(null);
 
-    const response = await fetch("/api/reports/generate", {
+    const response = await fetch("/api/report/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ scenario_ids: selected }),
     });
 
-    const payload = (await response.json().catch(() => ({}))) as { report?: ReportItem; error?: string };
+    const payload = (await response.json().catch(() => ({}))) as {
+      report_id?: string;
+      download_url?: string;
+      report?: { id?: string; pdf_url?: string | null };
+      error?: string;
+    };
+
     setLoading(false);
 
-    if (!response.ok || !payload.report) {
-      setError(payload.error ?? "Unable to generate report.");
+    if (!response.ok) {
+      setError(payload.error ?? "Something went wrong. Please try again.");
       return;
     }
 
-    setLatestGenerated(payload.report);
-    setReports((current) => [payload.report!, ...current]);
+    const reportId = payload.report_id ?? payload.report?.id;
+    const downloadUrl = payload.download_url ?? payload.report?.pdf_url;
+
+    if (!reportId || !downloadUrl) {
+      setError("Something went wrong. Please try again.");
+      return;
+    }
+
+    setGenerated({ reportId, downloadUrl });
   };
 
   if (scenarios.length === 0) {
     return (
       <div className="dashboard-page">
-        <header className="dashboard-page-header">
-          <div>
-            <h1 className="dashboard-page-title">Generate your clarity report</h1>
-            <p className="dashboard-page-subtitle">Choose which scenarios to include in your downloadable report.</p>
-          </div>
+        <header className="dashboard-page-intro">
+          <h1 className="dashboard-page-title">Generate your clarity report</h1>
+          <p className="dashboard-page-subtitle">
+            Select which scenarios to include. The report summarises your financial position and the modelled outcomes.
+          </p>
         </header>
 
         <section className="dashboard-empty-state">
@@ -102,84 +120,69 @@ export default function ReportGenerator({ scenarios, initialReports, preselected
 
   return (
     <div className="dashboard-page">
-      <header className="dashboard-page-header">
-        <div>
-          <h1 className="dashboard-page-title">Generate your clarity report</h1>
-          <p className="dashboard-page-subtitle">Choose which scenarios to include in your downloadable report.</p>
-        </div>
+      <header className="dashboard-page-intro">
+        <h1 className="dashboard-page-title">Generate your clarity report</h1>
+        <p className="dashboard-page-subtitle">
+          Select which scenarios to include. The report summarises your financial position and the modelled outcomes.
+        </p>
       </header>
 
-      <section className="dashboard-chip-row" aria-label="Scenario selection">
+      <section className="dashboard-report-selection" aria-label="Scenario selection">
         {scenarios.map((scenario) => {
-          const active = selected.includes(scenario.id);
+          const checked = selected.includes(scenario.id);
+
           return (
             <button
               key={scenario.id}
               type="button"
-              className={`dashboard-chip${active ? " is-selected" : ""}`}
-              onClick={() => toggle(scenario.id)}
-              aria-pressed={active}
+              className={`dashboard-report-option${checked ? " is-selected" : ""}`}
+              onClick={() => toggleScenario(scenario.id)}
+              aria-pressed={checked}
             >
-              {scenario.name}
+              <span className={`dashboard-report-checkbox${checked ? " is-selected" : ""}`} aria-hidden>
+                {checked ? "✓" : ""}
+              </span>
+              <span className="dashboard-report-option-content">
+                <span className="dashboard-report-option-title">{scenario.name}</span>
+                <span className="dashboard-report-option-summary">
+                  Net: {formatCurrency(scenario.results.user_net_position)} · Monthly: {formatCurrency(scenario.results.user_monthly_surplus_deficit)}/mo
+                </span>
+              </span>
             </button>
           );
         })}
       </section>
 
-      <section className="dashboard-report-preview">
-        <div className="dashboard-report-preview-wordmark">
-          <span aria-hidden />
-        </div>
-        <p className="dashboard-report-preview-title">Clarity Report Preview</p>
-        <p className="dashboard-report-preview-subtitle">
-          Includes: Baseline + selected scenarios + comparison + observations
-        </p>
-      </section>
-
-      <div className="dashboard-report-generate-wrap">
-        <button type="button" className="dashboard-btn" onClick={generate} disabled={loading}>
-          {loading ? "Generating your report..." : "Generate report"}
+      <div className="dashboard-report-actions">
+        <button
+          type="button"
+          className={`dashboard-btn dashboard-btn-lg${loading ? " is-loading" : ""}`}
+          onClick={generate}
+          disabled={loading || selected.length === 0}
+        >
+          {loading ? "Generating..." : "Generate report"}
         </button>
-        {error ? <p className="dashboard-status dashboard-status-with-top-gap">{error}</p> : null}
+
+        {error ? (
+          <div className="dashboard-report-error-row">
+            <p className="dashboard-status is-error">{error}</p>
+            <button type="button" className="dashboard-btn-ghost" onClick={generate} disabled={loading}>
+              Retry
+            </button>
+          </div>
+        ) : null}
       </div>
 
-      {latestGenerated ? (
+      {generated ? (
         <section className="dashboard-report-result">
-          <h2 className="dashboard-scenario-name">Your report is ready</h2>
-          {latestGenerated.pdf_url ? (
-            <a href={latestGenerated.pdf_url} className="dashboard-btn" target="_blank" rel="noreferrer">
-              Download PDF
-            </a>
-          ) : (
-            <p className="dashboard-status">This report link has expired.</p>
-          )}
-          <p className="dashboard-status">This link expires in 24 hours. You can regenerate at any time.</p>
+          <h2 className="dashboard-report-ready-title">Your report is ready</h2>
+          <p className="dashboard-status">Report ID: {generated.reportId}</p>
+          <a href={generated.downloadUrl} className="dashboard-btn-ghost" target="_blank" rel="noreferrer">
+            Download PDF
+          </a>
+          <p className="dashboard-status">This download link expires in 24 hours. You can regenerate at any time.</p>
         </section>
       ) : null}
-
-      <section>
-        <h2 className="dashboard-scenario-name dashboard-report-history-title">Recent reports</h2>
-        {reports.length === 0 ? <p className="dashboard-status">No reports generated yet.</p> : null}
-        <div className="dashboard-report-history-list">
-          {reports.map((report) => (
-            <article key={report.id} className="dashboard-scenario-card dashboard-report-history-card">
-              <div className="dashboard-inline-actions dashboard-inline-actions-between dashboard-inline-actions-full">
-                <div>
-                  <p>Generated {formatDate(report.generated_at)}</p>
-                  <p className="dashboard-status">Expires {formatDate(report.expires_at)}</p>
-                </div>
-                {report.pdf_url ? (
-                  <a href={report.pdf_url} className="dashboard-btn-ghost" target="_blank" rel="noreferrer">
-                    Download PDF
-                  </a>
-                ) : (
-                  <span className="dashboard-status">Expired</span>
-                )}
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

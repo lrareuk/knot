@@ -93,7 +93,7 @@ describe("POST /api/scenarios", () => {
     mockComputeScenario.mockReturnValue({ label: "modelled_outcome" });
   });
 
-  it("creates a scenario with balanced template by default", async () => {
+  it("creates a scenario with equal split defaults by default", async () => {
     const { supabase, insert, createdScenario } = createSupabaseMock();
     mockRequireApiUser.mockResolvedValue({ response: null, user: { id: "user-1" }, supabase });
     mockListScenarios.mockResolvedValue([]);
@@ -110,7 +110,7 @@ describe("POST /api/scenarios", () => {
 
     expect(response.status).toBe(201);
     expect(payload.scenario).toEqual(expect.objectContaining({ id: createdScenario.id }));
-    expect(mockBuildScenarioConfigFromTemplate).toHaveBeenCalledWith(expect.any(Object), "balanced");
+    expect(mockBuildScenarioConfigFromTemplate).toHaveBeenCalledWith(expect.any(Object), "clean_break_sale");
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({
         user_id: "user-1",
