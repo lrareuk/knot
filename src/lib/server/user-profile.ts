@@ -56,7 +56,7 @@ export async function ensureAndFetchUserProfile(supabase: SupabaseClient, user: 
   }
 
   const initialFirstName = metadataFirstName(user);
-  const initialJurisdiction = metadataJurisdiction(user) ?? "GB-SCT";
+  const initialJurisdiction = metadataJurisdiction(user) ?? "GB-EAW";
   const initialCurrency = defaultCurrencyForJurisdiction(initialJurisdiction);
 
   await supabase.from("users").insert({

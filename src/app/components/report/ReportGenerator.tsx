@@ -209,7 +209,7 @@ export default function ReportGenerator({
           const scenario = scenarios.find((entry) => entry.id === scenarioId);
           if (!scenario) return null;
           const warnings = interpretScenarioAgreements({
-            jurisdictionCode: jurisdictionProfile?.code ?? "GB-SCT",
+            jurisdictionCode: jurisdictionProfile?.code ?? "GB-EAW",
             config: scenario.config,
             terms: agreementTerms,
           });

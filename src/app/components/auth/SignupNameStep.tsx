@@ -14,7 +14,7 @@ export default function SignupNameStep() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [firstName, setFirstName] = useState("");
   const [countryCode, setCountryCode] = useState<"GB" | "US" | "CA">("GB");
-  const [jurisdiction, setJurisdiction] = useState("GB-SCT");
+  const [jurisdiction, setJurisdiction] = useState("GB-EAW");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [exiting, setExiting] = useState(false);
@@ -107,7 +107,7 @@ export default function SignupNameStep() {
               const nextCountry = event.target.value as "GB" | "US" | "CA";
               const nextCountryConfig = countries.find((country) => country.code === nextCountry);
               setCountryCode(nextCountry);
-              setJurisdiction(nextCountryConfig?.subdivisions[0]?.code ?? "GB-SCT");
+              setJurisdiction(nextCountryConfig?.subdivisions[0]?.code ?? "GB-EAW");
             }}
             disabled={submitting}
           >

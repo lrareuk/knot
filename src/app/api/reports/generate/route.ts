@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       context.profile?.currency_code ?? "GBP"
     );
     agreementInterpretations[scenario.id] = interpretScenarioAgreements({
-      jurisdictionCode: context.profile?.jurisdiction ?? "GB-SCT",
+      jurisdictionCode: context.profile?.jurisdiction ?? "GB-EAW",
       config: scenario.config,
       terms: agreementTerms ?? [],
     });

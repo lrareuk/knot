@@ -262,7 +262,7 @@ export default function SettingsView({
         {profileStatus ? <p className="dashboard-status">{profileStatus}</p> : null}
       </section>
 
-      <AgreementManager initialDisclosure={hasRelevantAgreements} />
+      <AgreementManager initialDisclosure={hasRelevantAgreements} defaultJurisdiction={jurisdiction} />
 
       <section className="dashboard-settings-section">
         <h2 className="dashboard-scenario-name">Password</h2>

@@ -21,7 +21,8 @@ describe("GET /api/jurisdictions", () => {
     const us = payload.countries.find((country) => country.code === "US");
     const ca = payload.countries.find((country) => country.code === "CA");
 
-    expect(gb?.subdivisions).toHaveLength(1);
+    expect(gb?.subdivisions).toHaveLength(2);
+    expect(gb?.subdivisions.map((entry) => entry.code)).toEqual(expect.arrayContaining(["GB-EAW", "GB-SCT"]));
     expect(us?.subdivisions).toHaveLength(51);
     expect(ca?.subdivisions).toHaveLength(13);
   });

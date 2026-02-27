@@ -2,14 +2,15 @@ import { describe, expect, it } from "vitest";
 import { JURISDICTIONS, JURISDICTION_BY_CODE } from "@/lib/legal/jurisdictions";
 
 describe("jurisdictions matrix", () => {
-  it("covers US, Canada, and Scotland counts", () => {
+  it("covers US, Canada, and UK counts", () => {
     const us = JURISDICTIONS.filter((entry) => entry.country === "US");
     const ca = JURISDICTIONS.filter((entry) => entry.country === "CA");
     const gb = JURISDICTIONS.filter((entry) => entry.country === "GB");
 
     expect(us).toHaveLength(51);
     expect(ca).toHaveLength(13);
-    expect(gb).toHaveLength(1);
+    expect(gb).toHaveLength(2);
+    expect(gb.map((entry) => entry.code)).toEqual(expect.arrayContaining(["GB-EAW", "GB-SCT"]));
   });
 
   it("has unique codes", () => {

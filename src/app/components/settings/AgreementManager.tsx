@@ -6,6 +6,7 @@ import type { LegalAgreement, LegalAgreementDocument, LegalAgreementTerm } from 
 
 type Props = {
   initialDisclosure: boolean | null;
+  defaultJurisdiction: string;
 };
 
 type AgreementsPayload = {
@@ -41,7 +42,7 @@ function groupDocumentsByAgreement(documents: LegalAgreementDocument[]) {
   return map;
 }
 
-export default function AgreementManager({ initialDisclosure }: Props) {
+export default function AgreementManager({ initialDisclosure, defaultJurisdiction }: Props) {
   const [disclosure, setDisclosure] = useState<boolean | null>(initialDisclosure);
   const [status, setStatus] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -51,7 +52,7 @@ export default function AgreementManager({ initialDisclosure }: Props) {
 
   const [newAgreementType, setNewAgreementType] = useState<LegalAgreement["agreement_type"]>("prenup");
   const [newAgreementTitle, setNewAgreementTitle] = useState("");
-  const [newAgreementJurisdiction, setNewAgreementJurisdiction] = useState("GB-SCT");
+  const [newAgreementJurisdiction, setNewAgreementJurisdiction] = useState(defaultJurisdiction);
   const [newAgreementDate, setNewAgreementDate] = useState("");
   const [newAgreementSummary, setNewAgreementSummary] = useState("");
   const [busyAgreementId, setBusyAgreementId] = useState<string | null>(null);
@@ -364,7 +365,7 @@ export default function AgreementManager({ initialDisclosure }: Props) {
                     Governing jurisdiction
                     <select
                       className="dashboard-select"
-                      value={agreement.governing_jurisdiction ?? "GB-SCT"}
+                      value={agreement.governing_jurisdiction ?? defaultJurisdiction}
                       onChange={(event) =>
                         setAgreements((current) =>
                           current.map((entry) =>

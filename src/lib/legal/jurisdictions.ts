@@ -20,6 +20,25 @@ export type JurisdictionProfile = {
 
 const LAST_REVIEWED_AT = "2026-02-27";
 
+const ENGLAND_AND_WALES: JurisdictionProfile = {
+  code: "GB-EAW",
+  display_name: "England and Wales",
+  country: "GB",
+  region_type: "country_constituent",
+  default_currency: "GBP",
+  property_framework: "Discretionary fairness framework under the Matrimonial Causes Act 1973 with needs/sharing principles.",
+  maintenance_framework: "Needs-led spousal maintenance with broad judicial discretion on amount and duration.",
+  child_support_reference: {
+    label: "UK Child Maintenance Service",
+    url: "https://www.gov.uk/calculate-child-maintenance",
+  },
+  key_caveats: [
+    "Court outcomes are discretionary and fact-sensitive.",
+    "Needs, non-matrimonial property treatment, and child arrangements can materially change outcomes.",
+  ],
+  last_reviewed_at: LAST_REVIEWED_AT,
+};
+
 const SCOTLAND: JurisdictionProfile = {
   code: "GB-SCT",
   display_name: "Scotland",
@@ -189,7 +208,7 @@ const CANADA_JURISDICTIONS: JurisdictionProfile[] = CANADA_REGIONS.map((region) 
   last_reviewed_at: LAST_REVIEWED_AT,
 }));
 
-export const JURISDICTIONS: JurisdictionProfile[] = [SCOTLAND, ...US_JURISDICTIONS, ...CANADA_JURISDICTIONS];
+export const JURISDICTIONS: JurisdictionProfile[] = [ENGLAND_AND_WALES, SCOTLAND, ...US_JURISDICTIONS, ...CANADA_JURISDICTIONS];
 
 export const JURISDICTION_BY_CODE = new Map(JURISDICTIONS.map((entry) => [entry.code, entry]));
 

@@ -11,7 +11,7 @@ type OnboardingUIContextValue = {
 const OnboardingUIContext = createContext<OnboardingUIContextValue>({
   openGuidance: () => {},
   currencyCode: "GBP",
-  jurisdiction: "GB-SCT",
+  jurisdiction: "GB-EAW",
 });
 
 export const OnboardingUIProvider = OnboardingUIContext.Provider;

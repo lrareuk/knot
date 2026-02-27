@@ -31,7 +31,7 @@ export default async function ScenarioEditorPage({ params }: { params: Promise<{
       scenario={scenario}
       position={position}
       baseline={baseline}
-      jurisdictionCode={profile?.jurisdiction ?? "GB-SCT"}
+      jurisdictionCode={profile?.jurisdiction ?? "GB-EAW"}
       currencyCode={profile?.currency_code ?? "GBP"}
       agreementTerms={agreementTerms ?? []}
     />

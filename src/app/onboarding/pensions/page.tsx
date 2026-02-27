@@ -20,6 +20,7 @@ export default function OnboardingPensionsPage() {
   const { jurisdiction } = useOnboardingUI();
   const position = useFinancialStore((state) => state.position);
   const setPensions = useFinancialStore((state) => state.setPensions);
+  const isUnitedKingdomJurisdiction = jurisdiction.startsWith("GB-");
 
   useEffect(() => {
     if (position && position.pensions.length === 0) {
@@ -131,7 +132,7 @@ export default function OnboardingPensionsPage() {
                     })
                   }
                 />
-                {pension.pension_type === "state" && jurisdiction === "GB-SCT" ? (
+                {pension.pension_type === "state" && isUnitedKingdomJurisdiction ? (
                   <p className="onboarding-field-help">
                     Full new state pension is currently £221.20/week (£11,502/year). Check yours at{" "}
                     <a href="https://www.gov.uk/check-state-pension" target="_blank" rel="noreferrer" className="onboarding-inline-link">

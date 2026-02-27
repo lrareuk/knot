@@ -1,6 +1,6 @@
 export const SIGNUP_STATE_COOKIE = "untie_signup_first_name";
 const MAX_FIRST_NAME_LENGTH = 50;
-const DEFAULT_JURISDICTION = "GB-SCT";
+const DEFAULT_JURISDICTION = "GB-EAW";
 
 export type SignupState = {
   firstName: string;
