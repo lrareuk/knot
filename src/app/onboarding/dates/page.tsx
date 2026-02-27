@@ -17,17 +17,17 @@ export default function OnboardingDatesPage() {
   }
 
   return (
-    <div>
+    <div className="onboarding-module-body">
       <ModuleHeader title={DATES_MODULE.title} description={DATES_MODULE.description} />
-      <div className="space-y-6">
+      <div className="onboarding-stack-lg">
         <DateInput
-          label="Date of marriage"
+          label="When did you get married?"
           value={position.date_of_marriage}
           onChange={(value) => updateDates({ date_of_marriage: value })}
           help="This marks the start of the matrimonial property period."
         />
         <DateInput
-          label="Date of separation"
+          label="When did you separate?"
           value={position.date_of_separation}
           onChange={(value) => updateDates({ date_of_separation: value })}
           help="If not yet separated, leave blank or use today's date."

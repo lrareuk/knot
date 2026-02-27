@@ -38,10 +38,10 @@ export default function OnboardingPensionsPage() {
   };
 
   return (
-    <div>
+    <div className="onboarding-module-body">
       <ModuleHeader title={PENSIONS_MODULE.title} description={PENSIONS_MODULE.description} />
 
-      <div className="space-y-3">
+      <div className="onboarding-card-list">
         {pensions.map((pension, index) => {
           const canDelete = pensions.length > 1;
           const showCurrentValue = pension.pension_type === "defined_contribution";
@@ -61,12 +61,12 @@ export default function OnboardingPensionsPage() {
               }}
             >
               <TextInput
-                label="Label"
+                label="What would you call this pension?"
                 value={pension.label}
                 onChange={(value) => updatePensionAt(index, { label: value })}
               />
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="onboarding-two-col-grid">
                 <SelectInput
                   label="Whose pension?"
                   value={pension.holder}
@@ -95,7 +95,7 @@ export default function OnboardingPensionsPage() {
                 />
               </div>
 
-              <div className={`transition-opacity duration-200 ${showCurrentValue ? "opacity-100" : "pointer-events-none h-0 overflow-hidden opacity-0"}`}>
+              <div className={`onboarding-fade-field ${showCurrentValue ? "" : "is-hidden"}`}>
                 <CurrencyInput
                   label="Current value"
                   value={pension.current_value}
@@ -113,7 +113,7 @@ export default function OnboardingPensionsPage() {
                 />
               </div>
 
-              <div className={`transition-opacity duration-200 ${showAnnualAmount ? "opacity-100" : "pointer-events-none h-0 overflow-hidden opacity-0"}`}>
+              <div className={`onboarding-fade-field ${showAnnualAmount ? "" : "is-hidden"}`}>
                 <CurrencyInput
                   label="Annual amount"
                   value={pension.annual_amount}
@@ -130,14 +130,9 @@ export default function OnboardingPensionsPage() {
                   }
                 />
                 {pension.pension_type === "state" ? (
-                  <p className="mt-1.5 text-xs leading-relaxed text-[#555555]">
+                  <p className="onboarding-field-help">
                     Full new state pension is currently £221.20/week (£11,502/year). Check yours at{" "}
-                    <a
-                      href="https://www.gov.uk/check-state-pension"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[#9A9590] underline"
-                    >
+                    <a href="https://www.gov.uk/check-state-pension" target="_blank" rel="noreferrer" className="onboarding-inline-link">
                       gov.uk/check-state-pension
                     </a>
                     .
@@ -157,7 +152,7 @@ export default function OnboardingPensionsPage() {
 
       <button
         type="button"
-        className="mt-4 rounded-none border border-[#2A2A2A] bg-[#1E1E1E] px-5 py-3 text-sm font-medium text-[#9A9590] transition-colors hover:text-[#F4F1EA]"
+        className="onboarding-add-another"
         onClick={() => setPensions([...pensions, createDefaultPension(pensions.length + 1)])}
       >
         + Add another pension

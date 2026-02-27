@@ -52,28 +52,18 @@ export default function RunningTotals() {
   ].filter(Boolean) as Array<{ label: string; value: number }>;
 
   return (
-    <section className="mt-10">
-      <h3 className="mb-3 font-['Space_Grotesk'] text-xs font-semibold tracking-[2px] text-[#9A9590] uppercase">Running totals</h3>
-      {rows.length ? (
-        <div className="space-y-0">
-          {rows.map((row) => (
-            <div
-              key={row.label}
-              className="flex items-center justify-between border-b border-[#2A2A2A]/50 py-2.5 transition-opacity duration-200"
-            >
-              <span className="text-[13px] text-[#9A9590]">{row.label}</span>
-              <span className="font-['Space_Grotesk'] text-[15px] font-semibold text-[#F4F1EA]">{formatPounds(row.value)}</span>
-            </div>
-          ))}
-
-          <div className="mt-2 flex items-center justify-between border-t border-[#2A2A2A] pt-4 transition-opacity duration-200">
-            <span className="text-[13px] font-semibold text-[#F4F1EA]">Net position</span>
-            <span className="font-['Space_Grotesk'] text-lg font-semibold text-[#C2185B]">{formatPounds(totals.netPosition)}</span>
-          </div>
+    <section className="onboarding-totals-section" aria-label="Running totals">
+      <h3 className="onboarding-totals-title">Running totals</h3>
+      {rows.map((row) => (
+        <div key={row.label} className="onboarding-total-row">
+          <span className="onboarding-total-label">{row.label}</span>
+          <span className="onboarding-total-value">{formatPounds(row.value)}</span>
         </div>
-      ) : (
-        <p className="text-[13px] text-[#555555]">No totals yet.</p>
-      )}
+      ))}
+      <div className="onboarding-total-row is-net">
+        <span className="onboarding-total-label">Net position</span>
+        <span className="onboarding-total-value">{formatPounds(totals.netPosition)}</span>
+      </div>
     </section>
   );
 }

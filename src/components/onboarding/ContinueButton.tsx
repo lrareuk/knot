@@ -41,20 +41,17 @@ export default function ContinueButton({ className }: ContinueButtonProps) {
       return;
     }
 
+    setShowSoftWarning(false);
     router.push(nextRoute);
   };
 
   return (
-    <div className={`mt-12 ${className ?? ""}`}>
-      <button
-        type="button"
-        onClick={handleContinue}
-        className="h-[52px] w-full rounded-none bg-[#C2185B] px-4 text-sm font-semibold tracking-wider text-[#F4F1EA] uppercase transition-colors hover:bg-[#D81B60]"
-      >
+    <div className={`onboarding-continue-wrap ${className ?? ""}`.trim()}>
+      <button type="button" onClick={handleContinue} className="onboarding-continue-button">
         Continue
       </button>
       {showSoftWarning ? (
-        <p className="mt-3 text-sm text-[#9A9590]">
+        <p className="onboarding-continue-warning">
           This section is still empty. You can continue now and add details later.
         </p>
       ) : null}

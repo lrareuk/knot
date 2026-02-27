@@ -48,7 +48,7 @@ function formatForEdit(value: number | null): string {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "";
   }
-  return Number.isInteger(value) ? `${value}` : `${value}`;
+  return `${value}`;
 }
 
 function formatForDisplay(value: number | null): string {
@@ -80,14 +80,14 @@ export default function CurrencyInput({
   }, [displayValue]);
 
   return (
-    <div className="w-full">
-      <label className="mb-2 block text-[13px] font-medium tracking-[0.3px] text-[#9A9590]">{label}</label>
-      <div className="relative w-full">
-        <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-base font-medium text-[#555555]">£</span>
+    <div className="onboarding-field">
+      <label className="onboarding-field-label">{label}</label>
+      <div className="onboarding-currency-wrap">
+        <span className="onboarding-currency-prefix">£</span>
         <input
           type="text"
           inputMode="decimal"
-          className="h-12 w-full rounded-none border border-[#2A2A2A] bg-[#1E1E1E] py-0 pl-8 pr-4 font-['Manrope'] text-base text-[#F4F1EA] outline-none transition-colors duration-200 placeholder:text-[#555555] focus:border-[#C2185B]"
+          className="onboarding-field-input onboarding-field-input-with-prefix"
           value={inputValue}
           placeholder={placeholder}
           onFocus={() => {
@@ -105,13 +105,11 @@ export default function CurrencyInput({
           }}
         />
       </div>
-      {help ? <p className="mt-1.5 text-xs leading-relaxed text-[#555555]">{help}</p> : null}
+      {help ? <p className="onboarding-field-help">{help}</p> : null}
       {showEstimate && onEstimateToggle ? (
         <button
           type="button"
-          className={`mt-1.5 border-0 bg-transparent text-xs ${
-            isEstimated ? "italic text-[#9A9590]" : "text-[#555555] hover:text-[#9A9590]"
-          }`}
+          className={`onboarding-estimate-toggle ${isEstimated ? "is-active" : ""}`}
           onClick={onEstimateToggle}
         >
           {isEstimated ? "Marked as estimate" : "I'm not sure about this figure"}

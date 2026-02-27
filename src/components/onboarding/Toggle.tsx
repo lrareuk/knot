@@ -16,23 +16,19 @@ export default function Toggle({
   falseLabel = "No",
 }: ToggleProps) {
   return (
-    <div className="w-full">
-      <p className="mb-2 block text-[13px] font-medium tracking-[0.3px] text-[#9A9590]">{label}</p>
-      <div className="flex w-fit overflow-hidden rounded-none border border-[#2A2A2A]">
+    <div className="onboarding-field">
+      <p className="onboarding-field-label">{label}</p>
+      <div className="onboarding-toggle-group">
         <button
           type="button"
-          className={`border-r border-[#2A2A2A] px-6 py-2.5 text-sm font-medium transition-colors duration-200 ${
-            value ? "bg-[#C2185B] text-[#F4F1EA]" : "bg-[#1E1E1E] text-[#9A9590]"
-          }`}
+          className={`onboarding-toggle-option ${value ? "is-active" : ""}`}
           onClick={() => onChange(true)}
         >
           {trueLabel}
         </button>
         <button
           type="button"
-          className={`px-6 py-2.5 text-sm font-medium transition-colors duration-200 ${
-            value ? "bg-[#1E1E1E] text-[#9A9590]" : "bg-[#C2185B] text-[#F4F1EA]"
-          }`}
+          className={`onboarding-toggle-option ${!value ? "is-active" : ""}`}
           onClick={() => onChange(false)}
         >
           {falseLabel}

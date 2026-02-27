@@ -38,10 +38,10 @@ export default function OnboardingSavingsPage() {
   };
 
   return (
-    <div>
+    <div className="onboarding-module-body">
       <ModuleHeader title={SAVINGS_MODULE.title} description={SAVINGS_MODULE.description} />
 
-      <div className="space-y-3">
+      <div className="onboarding-card-list">
         {savingsItems.map((savings, index) => {
           const canDelete = savingsItems.length > 1;
 
@@ -58,9 +58,13 @@ export default function OnboardingSavingsPage() {
                 setSavings(savingsItems.filter((_, savingsIndex) => savingsIndex !== index));
               }}
             >
-              <TextInput label="Label" value={savings.label} onChange={(value) => updateSavingsAt(index, { label: value })} />
+              <TextInput
+                label="What would you call this account?"
+                value={savings.label}
+                onChange={(value) => updateSavingsAt(index, { label: value })}
+              />
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="onboarding-two-col-grid">
                 <SelectInput
                   label="Type"
                   value={savings.type}
@@ -113,7 +117,7 @@ export default function OnboardingSavingsPage() {
 
       <button
         type="button"
-        className="mt-4 rounded-none border border-[#2A2A2A] bg-[#1E1E1E] px-5 py-3 text-sm font-medium text-[#9A9590] transition-colors hover:text-[#F4F1EA]"
+        className="onboarding-add-another"
         onClick={() => setSavings([...savingsItems, createDefaultSavings(savingsItems.length + 1)])}
       >
         + Add another account

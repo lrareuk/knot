@@ -15,21 +15,21 @@ export default function MobileProgressBar() {
   }
 
   return (
-    <div className="sticky top-0 z-30 flex w-full gap-1 border-b border-[#2A2A2A] bg-[#121212] px-5 py-4 md:hidden">
+    <div className="onboarding-mobile-progress" aria-hidden>
       {MODULES.map((module) => {
         const status = getModuleStatus(module.name, position);
         const isActive = module.name === activeModule;
 
-        const color =
+        const colorClass =
           status === "complete"
-            ? "bg-[#7CAA8E]"
+            ? "is-complete"
             : status === "partial"
-              ? "bg-[#D4A843]"
+              ? "is-partial"
               : isActive
-                ? "bg-[#C2185B]"
-                : "bg-[#2A2A2A]";
+                ? "is-active"
+                : "is-empty";
 
-        return <span key={module.name} className={`h-1.5 flex-1 ${color}`} />;
+        return <span key={module.name} className={`onboarding-mobile-progress-segment ${colorClass}`} />;
       })}
     </div>
   );

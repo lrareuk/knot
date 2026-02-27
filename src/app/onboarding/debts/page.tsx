@@ -38,10 +38,10 @@ export default function OnboardingDebtsPage() {
   };
 
   return (
-    <div>
+    <div className="onboarding-module-body">
       <ModuleHeader title={DEBTS_MODULE.title} description={DEBTS_MODULE.description} />
 
-      <div className="space-y-3">
+      <div className="onboarding-card-list">
         {debts.map((debt, index) => {
           const canDelete = debts.length > 1;
 
@@ -58,7 +58,7 @@ export default function OnboardingDebtsPage() {
                 setDebts(debts.filter((_, debtIndex) => debtIndex !== index));
               }}
             >
-              <TextInput label="Label" value={debt.label} onChange={(value) => updateDebtAt(index, { label: value })} />
+              <TextInput label="What would you call this debt?" value={debt.label} onChange={(value) => updateDebtAt(index, { label: value })} />
 
               <SelectInput
                 label="Whose?"
@@ -71,7 +71,7 @@ export default function OnboardingDebtsPage() {
                 ]}
               />
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="onboarding-two-col-grid">
                 <CurrencyInput
                   label="Outstanding"
                   value={debt.outstanding}
@@ -96,7 +96,7 @@ export default function OnboardingDebtsPage() {
 
       <button
         type="button"
-        className="mt-4 rounded-none border border-[#2A2A2A] bg-[#1E1E1E] px-5 py-3 text-sm font-medium text-[#9A9590] transition-colors hover:text-[#F4F1EA]"
+        className="onboarding-add-another"
         onClick={() => setDebts([...debts, createDefaultDebt(debts.length + 1)])}
       >
         + Add another debt

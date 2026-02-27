@@ -8,15 +8,15 @@ type ContextPanelProps = {
 
 export default function ContextPanel({ guidance }: ContextPanelProps) {
   return (
-    <aside className="hidden h-screen w-[300px] flex-col border-l border-[#2A2A2A] bg-[#1E1E1E] p-10 lg:sticky lg:top-0 lg:flex">
-      <section className="shrink-0">
-        <p className="font-['Space_Grotesk'] text-[13px] font-semibold tracking-[3px] text-[#9A9590] uppercase">Guidance</p>
-        <p className="mt-4 text-sm leading-relaxed text-[#9A9590]">{guidance}</p>
+    <aside className="onboarding-context" aria-label="Context panel">
+      <section className="onboarding-context-guidance-wrap">
+        <p className="onboarding-context-title">Guidance</p>
+        <p className="onboarding-context-guidance">{guidance}</p>
       </section>
 
       <RunningTotals />
 
-      <p className="mt-auto text-xs leading-relaxed text-[#555555]">
+      <p className="onboarding-context-reassurance">
         Everything you enter is private. Nothing is shared. You can change any figure at any time.
       </p>
     </aside>

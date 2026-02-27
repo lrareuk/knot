@@ -18,15 +18,15 @@ type OnboardingShellProps = {
 
 function LoadingShell({ firstName }: { firstName: string | null }) {
   return (
-    <div className="onboarding-theme min-h-screen bg-[#121212] text-[#F4F1EA]">
-      <div className="grid min-h-screen md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)_300px]">
+    <div className="onboarding-theme onboarding-shell">
+      <div className="onboarding-grid">
         <Sidebar firstName={firstName} />
-        <main className="min-w-0 px-5 py-6 md:px-12 md:py-10 xl:px-14 xl:py-12">
-          <div className="mx-auto w-full max-w-[740px] space-y-4 animate-pulse">
-            <div className="h-10 w-2/3 bg-[#1E1E1E]" />
-            <div className="h-5 w-full bg-[#1E1E1E]" />
-            <div className="h-5 w-4/5 bg-[#1E1E1E]" />
-            <div className="mt-10 h-64 w-full bg-[#1E1E1E]" />
+        <main className="onboarding-main">
+          <div className="onboarding-main-inner onboarding-loading" aria-hidden>
+            <div className="onboarding-loading-line onboarding-loading-line-title" />
+            <div className="onboarding-loading-line" />
+            <div className="onboarding-loading-line onboarding-loading-line-short" />
+            <div className="onboarding-loading-block" />
           </div>
         </main>
         <ContextPanel guidance="Loading guidance..." />
@@ -57,7 +57,7 @@ export default function OnboardingShell({ userId, firstName, children }: Onboard
   }, [currentModuleName]);
 
   if (isReviewPage) {
-    return <div className="onboarding-theme min-h-screen bg-[#121212] text-[#F4F1EA]">{children}</div>;
+    return <div className="onboarding-theme min-h-screen">{children}</div>;
   }
 
   if (isLoading || !position) {
@@ -66,41 +66,38 @@ export default function OnboardingShell({ userId, firstName, children }: Onboard
 
   return (
     <OnboardingUIProvider value={{ openGuidance: () => setGuidanceOpen(true) }}>
-      <div className="onboarding-theme min-h-screen bg-[#121212] text-[#F4F1EA]">
+      <div className="onboarding-theme onboarding-shell">
         <MobileProgressBar />
-        <div className="grid min-h-screen md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)_300px]">
+        <div className="onboarding-grid">
           <Sidebar firstName={firstName} />
 
-          <main className="min-w-0 px-5 py-6 md:px-12 md:py-10 xl:px-14 xl:py-12">
-            <div className="mx-auto w-full max-w-[740px]">{children}</div>
+          <main className="onboarding-main">
+            <div className="onboarding-main-inner onboarding-module">{children}</div>
           </main>
 
           <ContextPanel guidance={currentGuidance} />
         </div>
 
-        <div className={`fixed inset-0 z-40 transition-opacity lg:hidden ${isGuidanceOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
+        <div className={`onboarding-guidance-overlay ${isGuidanceOpen ? "is-open" : ""}`}>
           <button
             type="button"
-            className="absolute inset-0 bg-black/50"
+            className="onboarding-guidance-backdrop"
             aria-label="Close guidance"
             onClick={() => setGuidanceOpen(false)}
           />
-          <aside
-            className={`absolute top-0 right-0 h-full w-[300px] border-l border-[#2A2A2A] bg-[#1E1E1E] p-8 transition-transform duration-300 ${
-              isGuidanceOpen ? "translate-x-0" : "translate-x-full"
-            }`}
-          >
-            <div className="mb-5 flex items-center justify-between">
-              <p className="font-['Space_Grotesk'] text-[13px] font-semibold tracking-[3px] text-[#9A9590] uppercase">Guidance</p>
+          <aside className="onboarding-guidance-drawer" aria-label="Guidance panel">
+            <div className="onboarding-guidance-drawer-head">
+              <p className="onboarding-context-title">Guidance</p>
               <button
                 type="button"
-                className="h-7 w-7 border border-[#2A2A2A] bg-[#121212] text-sm text-[#9A9590]"
+                className="onboarding-guidance-close"
                 onClick={() => setGuidanceOpen(false)}
+                aria-label="Close guidance"
               >
                 ×
               </button>
             </div>
-            <p className="text-sm leading-relaxed text-[#9A9590]">{currentGuidance}</p>
+            <p className="onboarding-context-guidance">{currentGuidance}</p>
           </aside>
         </div>
       </div>

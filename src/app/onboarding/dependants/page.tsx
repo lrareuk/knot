@@ -60,10 +60,10 @@ export default function OnboardingDependantsPage() {
   const monthlyExpenditureTotal = EXPENDITURE_FIELDS.reduce((total, field) => total + toNumber(expenditure[field]), 0);
 
   return (
-    <div>
+    <div className="onboarding-module-body">
       <ModuleHeader title={DEPENDANTS_MODULE.title} description={DEPENDANTS_MODULE.description} />
 
-      <section className="space-y-4">
+      <section className="onboarding-stack-md">
         <Toggle
           label="Do you have dependant children?"
           value={hasDependantChildren}
@@ -76,7 +76,7 @@ export default function OnboardingDependantsPage() {
         />
 
         {hasDependantChildren ? (
-          <div className="space-y-3">
+          <div className="onboarding-card-list">
             {dependants.map((dependant, index) => {
               const canDelete = dependants.length > 1;
 
@@ -93,8 +93,8 @@ export default function OnboardingDependantsPage() {
                     setDependants(dependants.filter((_, dependantIndex) => dependantIndex !== index));
                   }}
                 >
-                  <div className="w-full">
-                    <label className="mb-2 block text-[13px] font-medium tracking-[0.3px] text-[#9A9590]">Age</label>
+                  <div className="onboarding-field">
+                    <label className="onboarding-field-label">Age</label>
                     <input
                       type="number"
                       min={0}
@@ -110,7 +110,7 @@ export default function OnboardingDependantsPage() {
                         const safeAge = Number.isFinite(parsed) ? Math.max(0, Math.min(17, Math.trunc(parsed))) : null;
                         updateDependantAt(index, { age: safeAge });
                       }}
-                      className="h-12 w-full rounded-none border border-[#2A2A2A] bg-[#1E1E1E] px-4 py-0 font-['Manrope'] text-base text-[#F4F1EA] outline-none transition-colors duration-200 placeholder:text-[#555555] focus:border-[#C2185B]"
+                      className="onboarding-field-input"
                     />
                   </div>
 
@@ -130,7 +130,7 @@ export default function OnboardingDependantsPage() {
 
             <button
               type="button"
-              className="rounded-none border border-[#2A2A2A] bg-[#1E1E1E] px-5 py-3 text-sm font-medium text-[#9A9590] transition-colors hover:text-[#F4F1EA]"
+              className="onboarding-add-another"
               onClick={() => setDependants([...dependants, createDefaultDependant()])}
             >
               + Add another child
@@ -139,9 +139,9 @@ export default function OnboardingDependantsPage() {
         ) : null}
       </section>
 
-      <section className="mt-10">
-        <h3 className="mb-4 font-['Space_Grotesk'] text-base font-semibold text-[#F4F1EA]">Monthly expenditure</h3>
-        <div className="grid gap-4 md:grid-cols-2">
+      <section className="onboarding-expenditure-section">
+        <h3 className="onboarding-expenditure-heading">Monthly expenditure</h3>
+        <div className="onboarding-two-col-grid">
           {EXPENDITURE_FIELDS.map((field) => (
             <CurrencyInput
               key={field}
@@ -157,9 +157,9 @@ export default function OnboardingDependantsPage() {
           ))}
         </div>
 
-        <div className="mt-6 flex items-center justify-between border-t border-[#2A2A2A] pt-4">
-          <span className="text-sm text-[#9A9590]">Total monthly expenditure</span>
-          <span className="font-['Space_Grotesk'] text-lg font-semibold text-[#F4F1EA]">{formatPounds(monthlyExpenditureTotal)}</span>
+        <div className="onboarding-expenditure-total">
+          <span>Total monthly expenditure</span>
+          <span>{formatPounds(monthlyExpenditureTotal)}</span>
         </div>
       </section>
 

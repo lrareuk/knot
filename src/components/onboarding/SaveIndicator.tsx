@@ -6,13 +6,13 @@ export default function SaveIndicator() {
   const saveStatus = useFinancialStore((state) => state.saveStatus);
 
   if (saveStatus === "idle") {
-    return <div className="pointer-events-none text-xs opacity-0">Saved</div>;
+    return <div className="onboarding-save-indicator" aria-hidden />;
   }
 
   if (saveStatus === "saving") {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-[#9A9590]">
-        <span className="inline-block h-1.5 w-1.5 animate-pulse bg-[#9A9590]" />
+      <div className="onboarding-save-indicator is-visible is-saving" role="status" aria-live="polite">
+        <span className="dot" />
         <span>Saving...</span>
       </div>
     );
@@ -20,12 +20,16 @@ export default function SaveIndicator() {
 
   if (saveStatus === "saved") {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-[#7CAA8E] transition-opacity duration-200">
+      <div className="onboarding-save-indicator is-visible is-saved" role="status" aria-live="polite">
         <span aria-hidden>✓</span>
         <span>Saved</span>
       </div>
     );
   }
 
-  return <div className="text-xs text-[#C46A5E]">Could not save - retrying</div>;
+  return (
+    <div className="onboarding-save-indicator is-visible is-error" role="status" aria-live="polite">
+      Could not save - retrying
+    </div>
+  );
 }

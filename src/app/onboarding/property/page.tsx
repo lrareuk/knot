@@ -42,10 +42,10 @@ export default function OnboardingPropertyPage() {
   const properties = position.properties;
 
   return (
-    <div>
+    <div className="onboarding-module-body">
       <ModuleHeader title={PROPERTY_MODULE.title} description={PROPERTY_MODULE.description} />
 
-      <div className="space-y-3">
+      <div className="onboarding-card-list">
         {properties.map((property, index) => {
           const canDelete = properties.length > 1;
 
@@ -63,7 +63,7 @@ export default function OnboardingPropertyPage() {
               }}
             >
               <TextInput
-                label="Label"
+                label="What would you call this property?"
                 value={property.label}
                 onChange={(value) => {
                   const next = [...properties];
@@ -73,15 +73,16 @@ export default function OnboardingPropertyPage() {
                 placeholder="e.g. Family home"
               />
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="onboarding-two-col-grid">
                 <CurrencyInput
-                  label="Current value"
+                  label="What is it worth today?"
                   value={property.current_value}
                   onChange={(value) => {
                     const next = [...properties];
                     next[index] = nextProperty(property, { current_value: value });
                     setProperties(next);
                   }}
+                  placeholder="e.g. 350,000"
                   showEstimate
                   isEstimated={property.is_estimated.current_value}
                   onEstimateToggle={() => {
@@ -97,13 +98,14 @@ export default function OnboardingPropertyPage() {
                 />
 
                 <CurrencyInput
-                  label="Mortgage"
+                  label="Outstanding mortgage?"
                   value={property.mortgage_outstanding}
                   onChange={(value) => {
                     const next = [...properties];
                     next[index] = nextProperty(property, { mortgage_outstanding: value });
                     setProperties(next);
                   }}
+                  placeholder="e.g. 180,000"
                   help="The remaining balance."
                   showEstimate
                   isEstimated={property.is_estimated.mortgage_outstanding}
@@ -120,20 +122,16 @@ export default function OnboardingPropertyPage() {
                 />
               </div>
 
-              <div className="flex items-center justify-between border border-[#2A2A2A] bg-[#121212] p-3.5">
-                <span className="text-[13px] text-[#9A9590]">Equity</span>
-                <span
-                  className={`font-['Space_Grotesk'] text-lg font-semibold ${
-                    toNumber(property.equity) < 0 ? "text-[#C46A5E]" : "text-[#F4F1EA]"
-                  }`}
-                >
+              <div className="onboarding-computed-field">
+                <span className="onboarding-computed-label">Equity</span>
+                <span className={`onboarding-computed-value ${toNumber(property.equity) < 0 ? "is-negative" : ""}`}>
                   {formatPounds(property.equity)}
                 </span>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="onboarding-two-col-grid">
                 <SelectInput
-                  label="Ownership"
+                  label="Who owns this property?"
                   value={property.ownership}
                   onChange={(value) => {
                     const next = [...properties];
@@ -150,7 +148,7 @@ export default function OnboardingPropertyPage() {
                 />
 
                 <Toggle
-                  label="Matrimonial?"
+                  label="Was this acquired during the marriage?"
                   value={property.is_matrimonial}
                   onChange={(value) => {
                     const next = [...properties];
@@ -161,7 +159,7 @@ export default function OnboardingPropertyPage() {
               </div>
 
               <CurrencyInput
-                label="Monthly cost"
+                label="Monthly housing cost"
                 value={property.monthly_cost}
                 onChange={(value) => {
                   const next = [...properties];
@@ -189,7 +187,7 @@ export default function OnboardingPropertyPage() {
 
       <button
         type="button"
-        className="mt-4 rounded-none border border-[#2A2A2A] bg-[#1E1E1E] px-5 py-3 text-sm font-medium text-[#9A9590] transition-colors hover:text-[#F4F1EA]"
+        className="onboarding-add-another"
         onClick={() => {
           setProperties([...properties, createDefaultProperty(properties.length + 1)]);
         }}
