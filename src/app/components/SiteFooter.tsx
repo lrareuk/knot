@@ -4,8 +4,7 @@ export default function SiteFooter() {
   return (
     <footer className="site-footer">
       <div>
-        <span className="logo-wordmark footer-logo-image" aria-hidden />
-        <span className="sr-only">Untie</span>
+        <div className="footer-logo">Untie</div>
         <div className="footer-tagline">Clarity before change.</div>
       </div>
       <ul className="footer-links">
