@@ -66,15 +66,15 @@ export default function CompareView({ baseline, scenarios }: Props) {
   const reportHref = `/dashboard/report?scenarios=${encodeURIComponent(selectedScenarioIds.join(","))}`;
 
   return (
-    <div className="dashboard-page">
-      <header className="dashboard-page-header">
+    <div className="dashboard-page dashboard-compare-page">
+      <header className="dashboard-page-header dashboard-compare-header">
         <div>
           <h1 className="dashboard-page-title">Compare scenarios</h1>
           <p className="dashboard-page-subtitle">Select scenarios to view side by side against your current position.</p>
         </div>
       </header>
 
-      <section className="dashboard-chip-row" aria-label="Scenario selection">
+      <section className="dashboard-chip-row dashboard-compare-chip-row" aria-label="Scenario selection">
         <span className="dashboard-chip is-baseline">Current position</span>
         {scenarios.map((scenario) => {
           const selected = selectedScenarioIds.includes(scenario.id);
@@ -92,7 +92,7 @@ export default function CompareView({ baseline, scenarios }: Props) {
         })}
       </section>
 
-      <section className="dashboard-compare-table-wrap">
+      <section className="dashboard-compare-table-wrap dashboard-compare-table-wrap-v2">
         <table className="dashboard-compare-table">
           <thead>
             <tr>
@@ -133,7 +133,7 @@ export default function CompareView({ baseline, scenarios }: Props) {
         </table>
       </section>
 
-      <div className="dashboard-compare-actions">
+      <div className="dashboard-compare-actions dashboard-compare-actions-v2">
         <Link href={reportHref} className="dashboard-btn">
           Include in report
         </Link>

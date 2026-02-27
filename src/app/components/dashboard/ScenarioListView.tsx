@@ -107,8 +107,8 @@ export default function ScenarioListView({ initialScenarios }: Props) {
   };
 
   return (
-    <div className="dashboard-page">
-      <header className="dashboard-page-header">
+    <div className="dashboard-page dashboard-scenarios-page">
+      <header className="dashboard-page-header dashboard-scenarios-header">
         <div>
           <h1 className="dashboard-page-title">Your scenarios</h1>
           <p className="dashboard-page-subtitle">Model different outcomes and compare them side by side.</p>
@@ -130,7 +130,7 @@ export default function ScenarioListView({ initialScenarios }: Props) {
           <CreateScenarioButton className="dashboard-btn" label="Create first scenario" />
         </section>
       ) : (
-        <section className="dashboard-scenarios-grid">
+        <section className="dashboard-scenarios-grid dashboard-scenarios-grid-v2">
           {scenarios.map((scenario) => {
             const isRenaming = renamingId === scenario.id;
             const isConfirmingDelete = confirmDeleteId === scenario.id;
@@ -140,7 +140,7 @@ export default function ScenarioListView({ initialScenarios }: Props) {
             return (
               <article
                 key={scenario.id}
-                className={`dashboard-scenario-card dashboard-remove${isHiding ? " is-hiding" : ""}`}
+                className={`dashboard-scenario-card dashboard-scenario-card-v2 dashboard-remove${isHiding ? " is-hiding" : ""}`}
                 onClick={() => {
                   if (isRenaming || isConfirmingDelete) {
                     return;

@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import CountUp from "@/app/components/dashboard/CountUp";
 import { formatCurrency } from "@/lib/domain/currency";
 import { computeScenario } from "@/lib/domain/compute-scenario";
 import type { FinancialPosition, ScenarioConfig, ScenarioRecord, ScenarioResults } from "@/lib/domain/types";
@@ -15,15 +14,14 @@ type Props = {
 };
 
 type SaveState = "idle" | "saving" | "saved" | "error";
+type SectionKey = "property" | "pension" | "savings" | "debts" | "maintenance" | "housing" | "income";
 
-type SectionKey =
-  | "property"
-  | "pension"
-  | "savings"
-  | "debts"
-  | "maintenance"
-  | "housing"
-  | "income";
+type SplitSliderProps = {
+  label: string;
+  total: number;
+  percent: number;
+  onChange: (value: number) => void;
+};
 
 const SECTION_ORDER: SectionKey[] = ["property", "pension", "savings", "debts", "maintenance", "housing", "income"];
 
@@ -40,6 +38,7 @@ function parseNullableNumber(value: string) {
   if (!trimmed) {
     return null;
   }
+
   const parsed = Number(trimmed);
   if (!Number.isFinite(parsed)) {
     return null;
@@ -47,45 +46,114 @@ function parseNullableNumber(value: string) {
   return parsed;
 }
 
-function deltaClass(value: number, invert = false) {
-  if (value === 0) return "";
-  const positive = invert ? value < 0 : value > 0;
-  return positive ? "is-positive" : "is-negative";
+function clampPercent(value: number) {
+  return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-function DeltaValue({ value, suffix, invert = false }: { value: number; suffix?: string; invert?: boolean }) {
-  const text = value === 0 ? "—" : `${value > 0 ? "↑ +" : "↓ −"}${formatCurrency(Math.abs(value))}${suffix ? ` ${suffix}` : ""}`;
+function formatCompactCurrency(value: number) {
+  if (!Number.isFinite(value) || value === 0) {
+    return "—";
+  }
+
+  const sign = value < 0 ? "-£" : "£";
+  const absolute = Math.abs(Math.round(value));
+  if (absolute >= 1000) {
+    const compact = (absolute / 1000).toFixed(absolute % 1000 === 0 ? 0 : 1);
+    return `${sign}${compact}k`;
+  }
+
+  return `${sign}${absolute.toLocaleString("en-GB")}`;
+}
+
+function DeltaPill({ value }: { value: number }) {
+  if (value === 0) {
+    return null;
+  }
+
+  const positive = value > 0;
   return (
-    <p key={value} className={`dashboard-delta ${deltaClass(value, invert)} is-pulse`}>
-      {text}
-    </p>
+    <span className={`dashboard-scenario-delta-pill ${positive ? "is-positive" : "is-negative"}`}>
+      {positive ? "↑" : "↓"} {formatCurrency(Math.abs(value))}
+    </span>
   );
 }
 
-function OutcomeRow({
-  label,
-  value,
-  delta,
-  invert,
+function Section({
+  title,
+  count,
+  expanded,
+  onToggle,
+  children,
 }: {
-  label: string;
-  value: number;
-  delta?: number;
-  invert?: boolean;
+  title: string;
+  count?: string;
+  expanded: boolean;
+  onToggle: () => void;
+  children: ReactNode;
 }) {
   return (
-    <div className="dashboard-outcome-row">
-      <p className="dashboard-outcome-row-label">{label}</p>
-      <div className="dashboard-outcome-row-right">
-        <p className="dashboard-outcome-row-value">{formatCurrency(value)}</p>
-        {typeof delta === "number" ? <DeltaValue value={delta} invert={invert} /> : null}
+    <section className="dashboard-scenario-section">
+      <button type="button" className="dashboard-scenario-section-header" onClick={onToggle} aria-expanded={expanded}>
+        <div className="dashboard-scenario-section-heading">
+          <span className="dashboard-scenario-section-title">{title}</span>
+          {count ? <span className="dashboard-scenario-section-count">{count}</span> : null}
+        </div>
+        <span className="dashboard-scenario-section-chevron">▾</span>
+      </button>
+
+      <div className="dashboard-scenario-section-body" data-open={expanded}>
+        <div className="dashboard-scenario-section-inner">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+function SplitSlider({ label, total, percent, onChange }: SplitSliderProps) {
+  const safePercent = clampPercent(percent);
+  const userShare = Math.round((total * safePercent) / 100);
+  const partnerShare = total - userShare;
+  const sliderStyle = { "--slider-fill": `${safePercent}%` } as CSSProperties;
+
+  return (
+    <div className="dashboard-scenario-split-row">
+      <div className="dashboard-scenario-row-head">
+        <p className="dashboard-scenario-row-label">{label}</p>
+        <p className="dashboard-scenario-row-value">{formatCurrency(total)}</p>
+      </div>
+
+      <div className="dashboard-scenario-slider-wrap">
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={safePercent}
+          className="dashboard-scenario-slider"
+          style={sliderStyle}
+          onChange={(event) => onChange(clampPercent(Number(event.target.value)))}
+          aria-label={`${label} split percentage`}
+        />
+      </div>
+
+      <div className="dashboard-scenario-slider-axis">
+        <span>You</span>
+        <span>Partner</span>
+      </div>
+
+      <div className="dashboard-scenario-slider-values">
+        <span>
+          {formatCurrency(userShare)} ({safePercent}%)
+        </span>
+        <span>
+          {formatCurrency(partnerShare)} ({100 - safePercent}%)
+        </span>
       </div>
     </div>
   );
 }
 
-export default function ScenarioEditor({ scenario, position, baseline }: Props) {
+export default function ScenarioEditor({ scenario, position }: Props) {
   const router = useRouter();
+
   const [name, setName] = useState(scenario.name);
   const [config, setConfig] = useState<ScenarioConfig>(scenario.config);
   const [saveState, setSaveState] = useState<SaveState>("idle");
@@ -95,10 +163,11 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
     pension: true,
     savings: true,
     debts: true,
-    maintenance: true,
-    housing: true,
-    income: true,
+    maintenance: false,
+    housing: false,
+    income: false,
   });
+
   const dirtyRef = useRef(false);
 
   const results = useMemo(() => computeScenario(position, config), [config, position]);
@@ -106,14 +175,6 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
   const pensionById = useMemo(() => new Map(position.pensions.map((item) => [item.id, item])), [position.pensions]);
   const savingsById = useMemo(() => new Map(position.savings.map((item) => [item.id, item])), [position.savings]);
   const debtById = useMemo(() => new Map(position.debts.map((item) => [item.id, item])), [position.debts]);
-
-  const userKeepsProperty = config.property_decisions.some((decision) => decision.action === "user_keeps");
-  const partnerKeepsProperty = config.property_decisions.some((decision) => decision.action === "partner_keeps");
-
-  const setConfigDirty = (next: ScenarioConfig) => {
-    dirtyRef.current = true;
-    setConfig(next);
-  };
 
   useEffect(() => {
     if (!dirtyRef.current) {
@@ -149,14 +210,21 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
         ? "Saved"
         : saveState === "error"
           ? "Save failed"
-          : "Auto-save enabled";
+          : "Auto-saved";
+
+  const setConfigDirty = (next: ScenarioConfig) => {
+    dirtyRef.current = true;
+    setConfig(next);
+  };
 
   const duplicateScenario = async () => {
     const response = await fetch(`/api/scenarios/${scenario.id}/duplicate`, { method: "POST" });
     const payload = (await response.json().catch(() => ({}))) as { scenario?: ScenarioRecord };
+
     if (!response.ok || !payload.scenario?.id) {
       return;
     }
+
     router.push(`/dashboard/scenarios/${payload.scenario.id}`);
   };
 
@@ -165,53 +233,115 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
     if (!response.ok) {
       return;
     }
+
     router.push("/dashboard/scenarios");
     router.refresh();
   };
 
   const maintenanceNet = results.user_maintenance_received - results.user_maintenance_paid;
 
-  return (
-    <div className="dashboard-page">
-      <div className="dashboard-editor-header">
-        <button type="button" className="dashboard-editor-back" onClick={() => router.push("/dashboard/scenarios")} aria-label="Back">
-          ←
-        </button>
-        <input
-          className="dashboard-editable-name-input"
-          value={name}
-          maxLength={40}
-          aria-label="Scenario name"
-          onChange={(event) => {
-            dirtyRef.current = true;
-            setName(event.target.value);
-          }}
-        />
-        <button type="button" className="dashboard-btn-text" onClick={duplicateScenario}>
-          Duplicate
-        </button>
-        <button type="button" className="dashboard-btn-text dashboard-sidebar-danger" onClick={() => setConfirmDelete((current) => !current)}>
-          Delete
-        </button>
-        <p className="dashboard-save-status">{saveStatusLabel}</p>
-      </div>
+  const breakdownItems = [
+    { label: "Property", value: results.user_property_equity },
+    { label: "Pensions", value: results.user_total_pensions },
+    { label: "Savings", value: results.user_total_savings },
+    { label: "Debts", value: -results.user_total_debts },
+    { label: "Maintenance", value: maintenanceNet },
+  ];
 
-      {confirmDelete ? (
-        <div className="dashboard-delete-inline">
-          <p>Delete this scenario? This cannot be undone.</p>
-          <div className="dashboard-inline-actions">
-            <button type="button" className="dashboard-btn-text" onClick={() => setConfirmDelete(false)}>
-              Cancel
+  return (
+    <div className="dashboard-scenario-editor">
+      <header className="dashboard-scenario-editor-header">
+        <div className="dashboard-scenario-content dashboard-scenario-editor-header-inner">
+          <button type="button" className="dashboard-editor-back" onClick={() => router.push("/dashboard/scenarios")} aria-label="Back">
+            ←
+          </button>
+
+          <input
+            className="dashboard-scenario-editor-name"
+            value={name}
+            maxLength={40}
+            aria-label="Scenario name"
+            onChange={(event) => {
+              dirtyRef.current = true;
+              setName(event.target.value);
+            }}
+          />
+
+          <div className="dashboard-scenario-editor-header-actions">
+            <button type="button" className="dashboard-scenario-header-action" onClick={duplicateScenario}>
+              Duplicate
             </button>
-            <button type="button" className="dashboard-btn-danger" onClick={deleteScenario}>
+            <button
+              type="button"
+              className="dashboard-scenario-header-action dashboard-scenario-header-action-danger"
+              onClick={() => setConfirmDelete((current) => !current)}
+            >
               Delete
             </button>
+            <p className="dashboard-scenario-save-status">{saveStatusLabel}</p>
+          </div>
+        </div>
+      </header>
+
+      {confirmDelete ? (
+        <div className="dashboard-scenario-delete-row">
+          <div className="dashboard-scenario-content">
+            <div className="dashboard-delete-inline">
+              <p>Delete this scenario? This cannot be undone.</p>
+              <div className="dashboard-inline-actions">
+                <button type="button" className="dashboard-btn-text" onClick={() => setConfirmDelete(false)}>
+                  Cancel
+                </button>
+                <button type="button" className="dashboard-btn-danger" onClick={deleteScenario}>
+                  Delete
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}
 
-      <div className="dashboard-editor">
-        <section className="dashboard-editor-left">
+      <section className="dashboard-scenario-outcome">
+        <div className="dashboard-scenario-content dashboard-scenario-outcome-inner">
+          <div className="dashboard-scenario-primary-grid">
+            <div className="dashboard-scenario-primary-card">
+              <p className="dashboard-scenario-primary-label">Net position</p>
+              <div className="dashboard-scenario-primary-value-row">
+                <p className="dashboard-scenario-primary-value">{formatCurrency(results.user_net_position)}</p>
+                <DeltaPill value={results.delta_user_net_position} />
+              </div>
+            </div>
+
+            <div className="dashboard-scenario-primary-card dashboard-scenario-primary-card-right">
+              <p className="dashboard-scenario-primary-label">Monthly surplus</p>
+              <div className="dashboard-scenario-primary-value-row">
+                <p className={`dashboard-scenario-primary-value${results.user_monthly_surplus_deficit < 0 ? " is-negative" : ""}`}>
+                  {formatCurrency(results.user_monthly_surplus_deficit)}
+                </p>
+                <DeltaPill value={results.delta_user_monthly} />
+              </div>
+            </div>
+          </div>
+
+          <div className="dashboard-scenario-breakdown-chips" aria-label="Outcome breakdown">
+            {breakdownItems.map((item) => (
+              <div key={item.label} className="dashboard-scenario-breakdown-chip">
+                <span className="dashboard-scenario-breakdown-chip-label">{item.label}</span>
+                <span
+                  className={`dashboard-scenario-breakdown-chip-value${
+                    item.value > 0 ? " is-positive" : item.value < 0 ? " is-negative" : " is-zero"
+                  }`}
+                >
+                  {formatCompactCurrency(item.value)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="dashboard-scenario-body">
+        <div className="dashboard-scenario-content">
           {SECTION_ORDER.map((sectionKey) => {
             const expanded = expandedSections[sectionKey];
             const setExpanded = () =>
@@ -222,529 +352,416 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
 
             if (sectionKey === "property") {
               return (
-                <div className="dashboard-section" key={sectionKey}>
-                  <button type="button" className="dashboard-section-header" onClick={setExpanded} aria-expanded={expanded}>
-                    <span className="dashboard-section-title">Property decisions</span>
-                    <span className="dashboard-section-chevron">▾</span>
-                  </button>
-                  <div className="dashboard-section-body" data-open={expanded}>
-                    {config.property_decisions.map((decision, index) => {
-                      const property = propertyById.get(decision.property_id);
-                      if (!property) return null;
-                      const equity = property.current_value - property.mortgage_outstanding;
-                      const userShare = Math.round((equity * decision.equity_split_user) / 100);
-                      const partnerShare = equity - userShare;
+                <Section
+                  key={sectionKey}
+                  title="Property decisions"
+                  count={`${config.property_decisions.length} ${config.property_decisions.length === 1 ? "property" : "properties"}`}
+                  expanded={expanded}
+                  onToggle={setExpanded}
+                >
+                  {config.property_decisions.map((decision, index) => {
+                    const property = propertyById.get(decision.property_id);
+                    if (!property) {
+                      return null;
+                    }
 
-                      return (
-                        <div key={decision.property_id} className="dashboard-control-row">
-                          <div className="dashboard-control-top">
-                            <p className="dashboard-control-label">{property.label || "Property"}</p>
-                            <p className="dashboard-control-sub">Equity: {formatCurrency(equity)}</p>
-                          </div>
-                          <div className="dashboard-control-spacing-sm">
-                            <select
-                              className="dashboard-select"
-                              value={decision.action}
-                              onChange={(event) => {
-                                const propertyDecisions = [...config.property_decisions];
-                                propertyDecisions[index] = {
-                                  ...decision,
-                                  action: event.target.value as ScenarioConfig["property_decisions"][number]["action"],
-                                };
-                                setConfigDirty({ ...config, property_decisions: propertyDecisions });
-                              }}
-                            >
-                              <option value="sell">Sell</option>
-                              <option value="user_keeps">You keep</option>
-                              <option value="partner_keeps">Partner keeps</option>
-                            </select>
-                          </div>
+                    const equity = property.current_value - property.mortgage_outstanding;
+                    const userShare = Math.round((equity * decision.equity_split_user) / 100);
+                    const partnerShare = equity - userShare;
 
-                          {decision.action === "sell" ? (
-                            <>
-                              <div className="dashboard-slider-wrap">
-                                <input
-                                  className="dashboard-slider"
-                                  type="range"
-                                  min={0}
-                                  max={100}
-                                  value={decision.equity_split_user}
-                                  onChange={(event) => {
-                                    const propertyDecisions = [...config.property_decisions];
-                                    propertyDecisions[index] = {
-                                      ...decision,
-                                      equity_split_user: Number(event.target.value),
-                                    };
-                                    setConfigDirty({ ...config, property_decisions: propertyDecisions });
-                                  }}
-                                />
-                                <span className="dashboard-slider-pct">{decision.equity_split_user}%</span>
-                              </div>
-                              <p className="dashboard-slider-split">
-                                You: {formatCurrency(userShare)} · Partner: {formatCurrency(partnerShare)}
-                              </p>
-                            </>
-                          ) : (
-                            <p className="dashboard-slider-split">
-                              {decision.action === "user_keeps"
-                                ? `You keep full equity: ${formatCurrency(equity)}`
-                                : `Partner keeps full equity: ${formatCurrency(equity)}`}
-                            </p>
-                          )}
+                    return (
+                      <div key={decision.property_id} className="dashboard-scenario-control-row">
+                        <div className="dashboard-scenario-row-head">
+                          <p className="dashboard-scenario-row-label">{property.label || "Property"}</p>
+                          <p className="dashboard-scenario-row-value">{formatCurrency(equity)} equity</p>
                         </div>
-                      );
-                    })}
-                  </div>
-                </div>
+
+                        <label className="dashboard-scenario-field-label" htmlFor={`property-action-${decision.property_id}`}>
+                          What happens to this property?
+                        </label>
+                        <select
+                          id={`property-action-${decision.property_id}`}
+                          className="dashboard-scenario-select"
+                          value={decision.action}
+                          onChange={(event) => {
+                            const propertyDecisions = [...config.property_decisions];
+                            propertyDecisions[index] = {
+                              ...decision,
+                              action: event.target.value as ScenarioConfig["property_decisions"][number]["action"],
+                            };
+                            setConfigDirty({ ...config, property_decisions: propertyDecisions });
+                          }}
+                        >
+                          <option value="sell">Sell and split equity</option>
+                          <option value="user_keeps">You keep</option>
+                          <option value="partner_keeps">Partner keeps</option>
+                        </select>
+
+                        <div className={`dashboard-scenario-fade-wrap${decision.action === "sell" ? " is-visible" : ""}`}>
+                          <SplitSlider
+                            label="Equity split"
+                            total={equity}
+                            percent={decision.equity_split_user}
+                            onChange={(value) => {
+                              const propertyDecisions = [...config.property_decisions];
+                              propertyDecisions[index] = { ...decision, equity_split_user: value };
+                              setConfigDirty({ ...config, property_decisions: propertyDecisions });
+                            }}
+                          />
+                        </div>
+
+                        {decision.action !== "sell" ? (
+                          <p className="dashboard-scenario-helper">
+                            Full equity allocated to {decision.action === "user_keeps" ? "you" : "your partner"}.
+                            <span className="dashboard-scenario-helper-inline-value">
+                              You {formatCurrency(userShare)} · Partner {formatCurrency(partnerShare)}
+                            </span>
+                          </p>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </Section>
               );
             }
 
             if (sectionKey === "pension") {
               return (
-                <div className="dashboard-section" key={sectionKey}>
-                  <button type="button" className="dashboard-section-header" onClick={setExpanded} aria-expanded={expanded}>
-                    <span className="dashboard-section-title">Pension splits</span>
-                    <span className="dashboard-section-chevron">▾</span>
-                  </button>
-                  <div className="dashboard-section-body" data-open={expanded}>
-                    {config.pension_splits.map((split, index) => {
-                      const pension = pensionById.get(split.pension_id);
-                      if (!pension) return null;
-                      const userShare = Math.round((pension.current_value * split.split_user) / 100);
-                      const partnerShare = pension.current_value - userShare;
+                <Section
+                  key={sectionKey}
+                  title="Pension splits"
+                  count={`${config.pension_splits.length} ${config.pension_splits.length === 1 ? "pension" : "pensions"}`}
+                  expanded={expanded}
+                  onToggle={setExpanded}
+                >
+                  {config.pension_splits.map((split, index) => {
+                    const pension = pensionById.get(split.pension_id);
+                    if (!pension) {
+                      return null;
+                    }
 
-                      return (
-                        <div key={split.pension_id} className="dashboard-control-row">
-                          <div className="dashboard-control-top">
-                            <p className="dashboard-control-label">{pension.label || "Pension"}</p>
-                            <p className="dashboard-control-sub">Value: {formatCurrency(pension.current_value)}</p>
-                          </div>
-                          <div className="dashboard-slider-wrap">
-                            <input
-                              className="dashboard-slider"
-                              type="range"
-                              min={0}
-                              max={100}
-                              value={split.split_user}
-                              onChange={(event) => {
-                                const pensionSplits = [...config.pension_splits];
-                                pensionSplits[index] = { ...split, split_user: Number(event.target.value) };
-                                setConfigDirty({ ...config, pension_splits: pensionSplits });
-                              }}
-                            />
-                            <span className="dashboard-slider-pct">{split.split_user}%</span>
-                          </div>
-                          <p className="dashboard-slider-split">
-                            You: {formatCurrency(userShare)} · Partner: {formatCurrency(partnerShare)}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                    return (
+                      <SplitSlider
+                        key={split.pension_id}
+                        label={pension.label || "Pension"}
+                        total={pension.current_value}
+                        percent={split.split_user}
+                        onChange={(value) => {
+                          const pensionSplits = [...config.pension_splits];
+                          pensionSplits[index] = { ...split, split_user: value };
+                          setConfigDirty({ ...config, pension_splits: pensionSplits });
+                        }}
+                      />
+                    );
+                  })}
+                </Section>
               );
             }
 
             if (sectionKey === "savings") {
               return (
-                <div className="dashboard-section" key={sectionKey}>
-                  <button type="button" className="dashboard-section-header" onClick={setExpanded} aria-expanded={expanded}>
-                    <span className="dashboard-section-title">Savings splits</span>
-                    <span className="dashboard-section-chevron">▾</span>
-                  </button>
-                  <div className="dashboard-section-body" data-open={expanded}>
-                    {config.savings_splits.map((split, index) => {
-                      const savings = savingsById.get(split.savings_id);
-                      if (!savings) return null;
-                      const userShare = Math.round((savings.current_value * split.split_user) / 100);
-                      const partnerShare = savings.current_value - userShare;
+                <Section
+                  key={sectionKey}
+                  title="Savings & investments"
+                  count={`${config.savings_splits.length} ${config.savings_splits.length === 1 ? "item" : "items"}`}
+                  expanded={expanded}
+                  onToggle={setExpanded}
+                >
+                  {config.savings_splits.map((split, index) => {
+                    const savings = savingsById.get(split.savings_id);
+                    if (!savings) {
+                      return null;
+                    }
 
-                      return (
-                        <div key={split.savings_id} className="dashboard-control-row">
-                          <div className="dashboard-control-top">
-                            <p className="dashboard-control-label">{savings.label || "Savings"}</p>
-                            <p className="dashboard-control-sub">Value: {formatCurrency(savings.current_value)}</p>
-                          </div>
-                          <div className="dashboard-slider-wrap">
-                            <input
-                              className="dashboard-slider"
-                              type="range"
-                              min={0}
-                              max={100}
-                              value={split.split_user}
-                              onChange={(event) => {
-                                const savingsSplits = [...config.savings_splits];
-                                savingsSplits[index] = { ...split, split_user: Number(event.target.value) };
-                                setConfigDirty({ ...config, savings_splits: savingsSplits });
-                              }}
-                            />
-                            <span className="dashboard-slider-pct">{split.split_user}%</span>
-                          </div>
-                          <p className="dashboard-slider-split">
-                            You: {formatCurrency(userShare)} · Partner: {formatCurrency(partnerShare)}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                    return (
+                      <SplitSlider
+                        key={split.savings_id}
+                        label={savings.label || "Savings"}
+                        total={savings.current_value}
+                        percent={split.split_user}
+                        onChange={(value) => {
+                          const savingsSplits = [...config.savings_splits];
+                          savingsSplits[index] = { ...split, split_user: value };
+                          setConfigDirty({ ...config, savings_splits: savingsSplits });
+                        }}
+                      />
+                    );
+                  })}
+                </Section>
               );
             }
 
             if (sectionKey === "debts") {
               return (
-                <div className="dashboard-section" key={sectionKey}>
-                  <button type="button" className="dashboard-section-header" onClick={setExpanded} aria-expanded={expanded}>
-                    <span className="dashboard-section-title">Debt splits</span>
-                    <span className="dashboard-section-chevron">▾</span>
-                  </button>
-                  <div className="dashboard-section-body" data-open={expanded}>
-                    {config.debt_splits.map((split, index) => {
-                      const debt = debtById.get(split.debt_id);
-                      if (!debt) return null;
-                      const userShare = Math.round((debt.outstanding * split.split_user) / 100);
-                      const partnerShare = debt.outstanding - userShare;
+                <Section
+                  key={sectionKey}
+                  title="Debts"
+                  count={`${config.debt_splits.length} ${config.debt_splits.length === 1 ? "debt" : "debts"}`}
+                  expanded={expanded}
+                  onToggle={setExpanded}
+                >
+                  {config.debt_splits.map((split, index) => {
+                    const debt = debtById.get(split.debt_id);
+                    if (!debt) {
+                      return null;
+                    }
 
-                      return (
-                        <div key={split.debt_id} className="dashboard-control-row">
-                          <div className="dashboard-control-top">
-                            <p className="dashboard-control-label">{debt.label || "Debt"}</p>
-                            <p className="dashboard-control-sub">Outstanding: {formatCurrency(debt.outstanding)}</p>
-                          </div>
-                          <div className="dashboard-slider-wrap">
-                            <input
-                              className="dashboard-slider"
-                              type="range"
-                              min={0}
-                              max={100}
-                              value={split.split_user}
-                              onChange={(event) => {
-                                const debtSplits = [...config.debt_splits];
-                                debtSplits[index] = { ...split, split_user: Number(event.target.value) };
-                                setConfigDirty({ ...config, debt_splits: debtSplits });
-                              }}
-                            />
-                            <span className="dashboard-slider-pct">{split.split_user}%</span>
-                          </div>
-                          <p className="dashboard-slider-split">
-                            You: {formatCurrency(userShare)} · Partner: {formatCurrency(partnerShare)}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                    return (
+                      <SplitSlider
+                        key={split.debt_id}
+                        label={debt.label || "Debt"}
+                        total={debt.outstanding}
+                        percent={split.split_user}
+                        onChange={(value) => {
+                          const debtSplits = [...config.debt_splits];
+                          debtSplits[index] = { ...split, split_user: value };
+                          setConfigDirty({ ...config, debt_splits: debtSplits });
+                        }}
+                      />
+                    );
+                  })}
+                </Section>
               );
             }
 
             if (sectionKey === "maintenance") {
+              const showSpousalAmount = config.spousal_maintenance.direction !== "none";
+              const showChildAmount = config.child_maintenance.direction !== "none";
+
               return (
-                <div className="dashboard-section" key={sectionKey}>
-                  <button type="button" className="dashboard-section-header" onClick={setExpanded} aria-expanded={expanded}>
-                    <span className="dashboard-section-title">Maintenance</span>
-                    <span className="dashboard-section-chevron">▾</span>
-                  </button>
-                  <div className="dashboard-section-body" data-open={expanded}>
-                    <div className="dashboard-control-row">
-                      <p className="dashboard-control-label">Spousal maintenance (aliment)</p>
-                      <div className="dashboard-inline-actions dashboard-inline-actions-top">
-                        <select
-                          className="dashboard-select"
-                          value={config.spousal_maintenance.direction}
-                          onChange={(event) =>
-                            setConfigDirty({
-                              ...config,
-                              spousal_maintenance: {
-                                ...config.spousal_maintenance,
-                                direction: event.target.value as ScenarioConfig["spousal_maintenance"]["direction"],
-                              },
-                            })
-                          }
-                        >
-                          <option value="none">None</option>
-                          <option value="user_pays">You pay</option>
-                          <option value="partner_pays">Partner pays</option>
-                        </select>
-                        <div className="dashboard-currency-wrap">
-                          <span>£</span>
-                          <input
-                            className="dashboard-currency-input"
-                            inputMode="decimal"
-                            value={config.spousal_maintenance.monthly_amount}
-                            onChange={(event) =>
-                              setConfigDirty({
-                                ...config,
-                                spousal_maintenance: {
-                                  ...config.spousal_maintenance,
-                                  monthly_amount: parseNumber(event.target.value),
-                                },
-                              })
-                            }
-                          />
-                        </div>
+                <Section key={sectionKey} title="Maintenance" expanded={expanded} onToggle={setExpanded}>
+                  <div className="dashboard-scenario-control-row">
+                    <label className="dashboard-scenario-field-label" htmlFor="spousal-maintenance-direction">
+                      Spousal maintenance
+                    </label>
+                    <select
+                      id="spousal-maintenance-direction"
+                      className="dashboard-scenario-select"
+                      value={config.spousal_maintenance.direction}
+                      onChange={(event) =>
+                        setConfigDirty({
+                          ...config,
+                          spousal_maintenance: {
+                            ...config.spousal_maintenance,
+                            direction: event.target.value as ScenarioConfig["spousal_maintenance"]["direction"],
+                          },
+                        })
+                      }
+                    >
+                      <option value="none">None</option>
+                      <option value="user_pays">You pay</option>
+                      <option value="partner_pays">Partner pays you</option>
+                    </select>
+
+                    <div className={`dashboard-scenario-fade-wrap${showSpousalAmount ? " is-visible" : ""}`}>
+                      <label className="dashboard-scenario-field-label" htmlFor="spousal-maintenance-amount">
+                        Monthly amount
+                      </label>
+                      <div className="dashboard-scenario-currency-wrap">
+                        <span>£</span>
                         <input
-                          className="dashboard-input dashboard-input-compact"
-                          type="number"
-                          min={0}
-                          value={config.spousal_maintenance.duration_months}
+                          id="spousal-maintenance-amount"
+                          className="dashboard-scenario-currency"
+                          inputMode="decimal"
+                          value={config.spousal_maintenance.monthly_amount}
                           onChange={(event) =>
                             setConfigDirty({
                               ...config,
                               spousal_maintenance: {
                                 ...config.spousal_maintenance,
-                                duration_months: parseNumber(event.target.value),
+                                monthly_amount: parseNumber(event.target.value),
                               },
                             })
                           }
                         />
                       </div>
-                      <p className="dashboard-help dashboard-help-top dashboard-help-italic">
-                        Illustrative only — there is no fixed formula for spousal maintenance.
-                      </p>
                     </div>
 
-                    <div className="dashboard-control-row">
-                      <p className="dashboard-control-label">Child maintenance</p>
-                      <div className="dashboard-inline-actions dashboard-inline-actions-top">
-                        <select
-                          className="dashboard-select"
-                          value={config.child_maintenance.direction}
+                    <p className="dashboard-scenario-helper dashboard-scenario-helper-italic">
+                      Illustrative only — there is no fixed formula for spousal maintenance.
+                    </p>
+                  </div>
+
+                  <div className="dashboard-scenario-control-row dashboard-scenario-subdivider">
+                    <label className="dashboard-scenario-field-label" htmlFor="child-maintenance-direction">
+                      Child maintenance
+                    </label>
+                    <select
+                      id="child-maintenance-direction"
+                      className="dashboard-scenario-select"
+                      value={config.child_maintenance.direction}
+                      onChange={(event) =>
+                        setConfigDirty({
+                          ...config,
+                          child_maintenance: {
+                            ...config.child_maintenance,
+                            direction: event.target.value as ScenarioConfig["child_maintenance"]["direction"],
+                          },
+                        })
+                      }
+                    >
+                      <option value="none">None</option>
+                      <option value="user_pays">You pay</option>
+                      <option value="partner_pays">Partner pays you</option>
+                    </select>
+
+                    <div className={`dashboard-scenario-fade-wrap${showChildAmount ? " is-visible" : ""}`}>
+                      <label className="dashboard-scenario-field-label" htmlFor="child-maintenance-amount">
+                        Monthly amount
+                      </label>
+                      <div className="dashboard-scenario-currency-wrap">
+                        <span>£</span>
+                        <input
+                          id="child-maintenance-amount"
+                          className="dashboard-scenario-currency"
+                          inputMode="decimal"
+                          value={config.child_maintenance.monthly_amount}
                           onChange={(event) =>
                             setConfigDirty({
                               ...config,
                               child_maintenance: {
                                 ...config.child_maintenance,
-                                direction: event.target.value as ScenarioConfig["child_maintenance"]["direction"],
+                                monthly_amount: parseNumber(event.target.value),
                               },
                             })
                           }
-                        >
-                          <option value="none">None</option>
-                          <option value="user_pays">You pay</option>
-                          <option value="partner_pays">Partner pays</option>
-                        </select>
-                        <div className="dashboard-currency-wrap">
-                          <span>£</span>
-                          <input
-                            className="dashboard-currency-input"
-                            inputMode="decimal"
-                            value={config.child_maintenance.monthly_amount}
-                            onChange={(event) =>
-                              setConfigDirty({
-                                ...config,
-                                child_maintenance: {
-                                  ...config.child_maintenance,
-                                  monthly_amount: parseNumber(event.target.value),
-                                },
-                              })
-                            }
-                          />
-                        </div>
+                        />
                       </div>
-                      <p className="dashboard-help dashboard-help-top">
-                        For an official estimate, use the CMS calculator at{" "}
-                        <a
-                          href="https://www.gov.uk/calculate-child-maintenance"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-link"
-                        >
-                          gov.uk/calculate-child-maintenance
-                        </a>
-                        .
-                      </p>
                     </div>
+
+                    <p className="dashboard-scenario-helper">
+                      For an official estimate, use the{" "}
+                      <a
+                        href="https://www.gov.uk/calculate-child-maintenance"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-link"
+                      >
+                        CMS calculator
+                      </a>
+                      .
+                    </p>
                   </div>
-                </div>
+                </Section>
               );
             }
 
             if (sectionKey === "housing") {
               return (
-                <div className="dashboard-section" key={sectionKey}>
-                  <button type="button" className="dashboard-section-header" onClick={setExpanded} aria-expanded={expanded}>
-                    <span className="dashboard-section-title">Post-separation housing</span>
-                    <span className="dashboard-section-chevron">▾</span>
-                  </button>
-                  <div className="dashboard-section-body" data-open={expanded}>
-                    {!userKeepsProperty ? (
-                      <div className="dashboard-control-row">
-                        <p className="dashboard-control-label">New monthly rent for you</p>
-                        <div className="dashboard-currency-wrap dashboard-currency-wrap-top">
-                          <span>£</span>
-                          <input
-                            className="dashboard-currency-input"
-                            value={config.housing_change.user_new_rent ?? ""}
-                            onChange={(event) =>
-                              setConfigDirty({
-                                ...config,
-                                housing_change: {
-                                  ...config.housing_change,
-                                  user_new_rent: parseNullableNumber(event.target.value),
-                                },
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {!partnerKeepsProperty ? (
-                      <div className="dashboard-control-row">
-                        <p className="dashboard-control-label">New monthly rent for partner</p>
-                        <div className="dashboard-currency-wrap dashboard-currency-wrap-top">
-                          <span>£</span>
-                          <input
-                            className="dashboard-currency-input"
-                            value={config.housing_change.partner_new_rent ?? ""}
-                            onChange={(event) =>
-                              setConfigDirty({
-                                ...config,
-                                housing_change: {
-                                  ...config.housing_change,
-                                  partner_new_rent: parseNullableNumber(event.target.value),
-                                },
-                              })
-                            }
-                          />
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {userKeepsProperty && partnerKeepsProperty ? (
-                      <p className="dashboard-help dashboard-help-block">
-                        Housing overrides appear when one party does not keep a property.
-                      </p>
-                    ) : null}
+                <Section key={sectionKey} title="Post-separation housing" expanded={expanded} onToggle={setExpanded}>
+                  <div className="dashboard-scenario-control-row">
+                    <label className="dashboard-scenario-field-label" htmlFor="housing-rent-user">
+                      New monthly rent for you
+                    </label>
+                    <div className="dashboard-scenario-currency-wrap">
+                      <span>£</span>
+                      <input
+                        id="housing-rent-user"
+                        className="dashboard-scenario-currency"
+                        inputMode="decimal"
+                        value={config.housing_change.user_new_rent ?? ""}
+                        onChange={(event) =>
+                          setConfigDirty({
+                            ...config,
+                            housing_change: {
+                              ...config.housing_change,
+                              user_new_rent: parseNullableNumber(event.target.value),
+                            },
+                          })
+                        }
+                      />
+                    </div>
                   </div>
-                </div>
+
+                  <div className="dashboard-scenario-control-row">
+                    <label className="dashboard-scenario-field-label" htmlFor="housing-rent-partner">
+                      New monthly rent for partner
+                    </label>
+                    <div className="dashboard-scenario-currency-wrap">
+                      <span>£</span>
+                      <input
+                        id="housing-rent-partner"
+                        className="dashboard-scenario-currency"
+                        inputMode="decimal"
+                        value={config.housing_change.partner_new_rent ?? ""}
+                        onChange={(event) =>
+                          setConfigDirty({
+                            ...config,
+                            housing_change: {
+                              ...config.housing_change,
+                              partner_new_rent: parseNullableNumber(event.target.value),
+                            },
+                          })
+                        }
+                      />
+                    </div>
+
+                    <p className="dashboard-scenario-helper">Only if you won&apos;t be keeping a property.</p>
+                  </div>
+                </Section>
               );
             }
 
             return (
-              <div className="dashboard-section" key={sectionKey}>
-                <button type="button" className="dashboard-section-header" onClick={setExpanded} aria-expanded={expanded}>
-                  <span className="dashboard-section-title">Income changes</span>
-                  <span className="dashboard-section-chevron">▾</span>
-                </button>
-                <div className="dashboard-section-body" data-open={expanded}>
-                  <div className="dashboard-control-row">
-                    <p className="dashboard-control-label">Your new net monthly income</p>
-                    <div className="dashboard-currency-wrap dashboard-currency-wrap-top">
-                      <span>£</span>
-                      <input
-                        className="dashboard-currency-input"
-                        value={config.income_changes.user_new_net_monthly ?? ""}
-                        onChange={(event) =>
-                          setConfigDirty({
-                            ...config,
-                            income_changes: {
-                              ...config.income_changes,
-                              user_new_net_monthly: parseNullableNumber(event.target.value),
-                            },
-                          })
-                        }
-                      />
-                    </div>
+              <Section key={sectionKey} title="Income changes" expanded={expanded} onToggle={setExpanded}>
+                <div className="dashboard-scenario-control-row">
+                  <label className="dashboard-scenario-field-label" htmlFor="income-user">
+                    Your new net monthly income
+                  </label>
+                  <div className="dashboard-scenario-currency-wrap">
+                    <span>£</span>
+                    <input
+                      id="income-user"
+                      className="dashboard-scenario-currency"
+                      inputMode="decimal"
+                      value={config.income_changes.user_new_net_monthly ?? ""}
+                      onChange={(event) =>
+                        setConfigDirty({
+                          ...config,
+                          income_changes: {
+                            ...config.income_changes,
+                            user_new_net_monthly: parseNullableNumber(event.target.value),
+                          },
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+
+                <div className="dashboard-scenario-control-row">
+                  <label className="dashboard-scenario-field-label" htmlFor="income-partner">
+                    Partner&apos;s new net monthly income
+                  </label>
+                  <div className="dashboard-scenario-currency-wrap">
+                    <span>£</span>
+                    <input
+                      id="income-partner"
+                      className="dashboard-scenario-currency"
+                      inputMode="decimal"
+                      value={config.income_changes.partner_new_net_monthly ?? ""}
+                      onChange={(event) =>
+                        setConfigDirty({
+                          ...config,
+                          income_changes: {
+                            ...config.income_changes,
+                            partner_new_net_monthly: parseNullableNumber(event.target.value),
+                          },
+                        })
+                      }
+                    />
                   </div>
 
-                  <div className="dashboard-control-row">
-                    <p className="dashboard-control-label">Partner’s new net monthly income</p>
-                    <div className="dashboard-currency-wrap dashboard-currency-wrap-top">
-                      <span>£</span>
-                      <input
-                        className="dashboard-currency-input"
-                        value={config.income_changes.partner_new_net_monthly ?? ""}
-                        onChange={(event) =>
-                          setConfigDirty({
-                            ...config,
-                            income_changes: {
-                              ...config.income_changes,
-                              partner_new_net_monthly: parseNullableNumber(event.target.value),
-                            },
-                          })
-                        }
-                      />
-                    </div>
-                  </div>
-                  <p className="dashboard-help dashboard-help-block-top">
-                    Adjust if either party’s income will change after separation (for example returning to full-time work).
-                  </p>
+                  <p className="dashboard-scenario-helper">Adjust if either party’s income will change after separation.</p>
                 </div>
-              </div>
+              </Section>
             );
           })}
-        </section>
 
-        <aside className="dashboard-editor-right">
-          <p className="dashboard-outcome-header">Scenario outcome</p>
-
-          <div className="dashboard-outcome-primary">
-            <p className="dashboard-outcome-label">Your net position</p>
-            <CountUp
-              value={results.user_net_position}
-              durationMs={400}
-              render={(value) => formatCurrency(Math.round(value))}
-              className="dashboard-outcome-value"
-            />
-            <DeltaValue value={results.delta_user_net_position} suffix="from current" />
-          </div>
-
-          <div className="dashboard-outcome-primary">
-            <p className="dashboard-outcome-label">Monthly surplus / deficit</p>
-            <CountUp
-              value={results.user_monthly_surplus_deficit}
-              durationMs={400}
-              render={(value) => formatCurrency(Math.round(value))}
-              className="dashboard-outcome-value secondary"
-            />
-            <DeltaValue value={results.delta_user_monthly} suffix="from current" />
-          </div>
-
-          <OutcomeRow
-            label="Property equity retained"
-            value={results.user_property_equity}
-            delta={results.user_property_equity - baseline.user_property_equity}
-          />
-          <OutcomeRow
-            label="Pension value retained"
-            value={results.user_total_pensions}
-            delta={results.user_total_pensions - baseline.user_total_pensions}
-          />
-          <OutcomeRow
-            label="Savings retained"
-            value={results.user_total_savings}
-            delta={results.user_total_savings - baseline.user_total_savings}
-          />
-          <OutcomeRow
-            label="Debts assumed"
-            value={results.user_total_debts}
-            delta={results.user_total_debts - baseline.user_total_debts}
-            invert
-          />
-          <OutcomeRow label="Maintenance (net)" value={maintenanceNet} />
-          <OutcomeRow
-            label="Monthly income (post-change)"
-            value={results.user_monthly_income}
-            delta={results.user_monthly_income - baseline.user_monthly_income}
-          />
-          <OutcomeRow
-            label="Monthly expenditure (post-change)"
-            value={results.user_monthly_expenditure}
-            delta={results.user_monthly_expenditure - baseline.user_monthly_expenditure}
-            invert
-          />
-
-          <p className="dashboard-disclaimer">
+          <p className="dashboard-scenario-disclaimer">
             These figures are modelled outcomes, not legal entitlements or predictions. Consult a solicitor for advice specific to
             your circumstances.
           </p>
-          <p className="dashboard-help dashboard-help-spaced">
-            <Link href="/dashboard/scenarios" className="inline-link">
-              Back to scenarios
-            </Link>
-          </p>
-        </aside>
+        </div>
       </div>
     </div>
   );
