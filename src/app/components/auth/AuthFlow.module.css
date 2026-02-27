@@ -13,7 +13,7 @@
   left: 0;
   right: 0;
   z-index: 20;
-  padding: 18px 32px;
+  padding: 14px 24px;
   display: flex;
   align-items: center;
   border-bottom: 1px solid rgb(42 42 42 / 0.5);
@@ -46,7 +46,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 104px 20px 32px;
+  padding: 88px 16px 22px;
 }
 
 .contentWrap {
@@ -56,13 +56,13 @@
 
 .screen {
   opacity: 0;
-  transform: translateY(16px);
+  transform: translateY(12px);
   animation: screenIn 0.4s ease-out 0.1s forwards;
 }
 
 .screenExiting {
   opacity: 0;
-  transform: translateX(-16px);
+  transform: translateX(-12px);
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
@@ -84,25 +84,25 @@
   font-size: clamp(2rem, 4.5vw, 2.45rem);
   letter-spacing: -0.02em;
   line-height: 1.15;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .supporting {
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 16px;
   font-weight: 400;
-  line-height: 1.65;
+  line-height: 1.55;
   color: var(--text-muted);
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .fieldGroup {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   font-weight: 500;
@@ -115,12 +115,12 @@
 
 .input {
   width: 100%;
-  height: 48px;
+  height: 44px;
   border: 1px solid var(--bg-divider);
   border-radius: 0;
   background: var(--bg-panel);
   color: var(--text-primary);
-  padding: 0 14px;
+  padding: 0 12px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -137,7 +137,7 @@
 
 .primaryButton {
   width: 100%;
-  height: 52px;
+  height: 46px;
   border: none;
   border-radius: 0;
   background: var(--accent-raspberry);
@@ -174,7 +174,7 @@
 .actionsRow {
   display: flex;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .primaryButtonCompact {
@@ -182,7 +182,7 @@
 }
 
 .continueButton {
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 @keyframes buttonPulse {
@@ -197,7 +197,7 @@
 }
 
 .secondaryLink {
-  margin-top: 16px;
+  margin-top: 12px;
   text-align: center;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
@@ -220,10 +220,10 @@
 }
 
 .tertiaryText {
-  margin-top: 12px;
+  margin-top: 10px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text-subtle);
 }
 
@@ -282,7 +282,7 @@
 }
 
 .aliasNote {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.6;
@@ -290,14 +290,14 @@
 }
 
 .priceBlock {
-  margin: 12px 0;
+  margin: 8px 0;
   text-align: center;
 }
 
 .priceAmount {
   font-family: var(--font-space-grotesk), "Space Grotesk", sans-serif;
   font-weight: 700;
-  font-size: 56px;
+  font-size: 50px;
   line-height: 1;
   letter-spacing: -0.04em;
 }
@@ -312,12 +312,12 @@
 .includesPanel {
   border: 1px solid var(--bg-divider);
   background: var(--bg-panel);
-  padding: 16px;
-  margin-bottom: 18px;
+  padding: 12px;
+  margin-bottom: 12px;
 }
 
 .includesTitle {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   font-weight: 600;
@@ -329,12 +329,12 @@
 .includesList {
   list-style: none;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .includesList li {
   position: relative;
-  padding-left: 18px;
+  padding-left: 14px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 14px;
   line-height: 1.5;
@@ -353,15 +353,15 @@
 
 .checkoutPanel {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .walletPanel {
   border: 1px solid var(--bg-divider);
   background: var(--bg-panel);
-  padding: 14px;
+  padding: 12px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .walletTitle {
@@ -413,19 +413,19 @@
 .promoRow {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px;
+  gap: 6px;
 }
 
 .promoInput {
-  height: 44px;
+  height: 40px;
   font-size: 14px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .promoButton {
-  min-width: 96px;
-  height: 44px;
+  min-width: 88px;
+  height: 40px;
   border: 1px solid var(--bg-divider);
   background: var(--bg-panel);
   color: var(--text-primary);
@@ -434,7 +434,7 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0 14px;
+  padding: 0 12px;
   cursor: pointer;
 }
 
@@ -463,7 +463,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .promoCode {
@@ -497,7 +497,7 @@
 .cardElementPanel {
   border: 1px solid var(--bg-divider);
   background: var(--bg-panel);
-  padding: 14px;
+  padding: 12px;
 }
 
 .cardElementPanel :global(iframe) {
@@ -505,24 +505,24 @@
 }
 
 .billingNote {
-  margin-top: 12px;
+  margin-top: 8px;
   text-align: center;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text-subtle);
 }
 
 .securityNote {
-  margin-top: 6px;
+  margin-top: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   text-align: center;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text-subtle);
 }
 
@@ -547,7 +547,7 @@
 
 .successLineTwo {
   color: var(--accent-raspberry);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   opacity: 0;
   animation: successIn 0.3s ease-out 0.3s forwards;
 }
@@ -567,16 +567,16 @@
 .successSupporting {
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 16px;
-  line-height: 1.65;
+  line-height: 1.55;
   color: var(--text-muted);
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .statusMessage {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text-muted);
 }
 
@@ -593,7 +593,7 @@
 
 @media (max-width: 520px) {
   .headerBar {
-    padding: 14px 16px;
+    padding: 12px 14px;
   }
 
   .logoLink {
@@ -610,25 +610,25 @@
   }
 
   .priceAmount {
-    font-size: 44px;
+    font-size: 40px;
   }
 }
 
 @media (max-width: 900px) and (min-width: 521px) {
   .headerBar {
-    padding: 16px 20px;
+    padding: 14px 16px;
   }
 
   .viewport {
     align-items: flex-start;
-    padding: 92px 18px 30px;
+    padding: 82px 14px 22px;
   }
 }
 
 @media (max-height: 820px) {
   .viewport {
     align-items: flex-start;
-    padding-top: 88px;
-    padding-bottom: 24px;
+    padding-top: 78px;
+    padding-bottom: 18px;
   }
 }
