@@ -19,16 +19,18 @@ type OnboardingShellProps = {
 function LoadingShell({ firstName }: { firstName: string | null }) {
   return (
     <div className="onboarding-theme min-h-screen bg-[#121212] text-[#F4F1EA]">
-      <Sidebar firstName={firstName} />
-      <main className="px-5 py-6 md:ml-[280px] md:max-w-[740px] md:px-14 md:py-12 lg:mr-[300px]">
-        <div className="space-y-4 animate-pulse">
-          <div className="h-10 w-2/3 bg-[#1E1E1E]" />
-          <div className="h-5 w-full bg-[#1E1E1E]" />
-          <div className="h-5 w-4/5 bg-[#1E1E1E]" />
-          <div className="mt-10 h-64 w-full bg-[#1E1E1E]" />
-        </div>
-      </main>
-      <ContextPanel guidance="Loading guidance..." />
+      <div className="grid min-h-screen md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)_300px]">
+        <Sidebar firstName={firstName} />
+        <main className="min-w-0 px-5 py-6 md:px-12 md:py-10 xl:px-14 xl:py-12">
+          <div className="mx-auto w-full max-w-[740px] space-y-4 animate-pulse">
+            <div className="h-10 w-2/3 bg-[#1E1E1E]" />
+            <div className="h-5 w-full bg-[#1E1E1E]" />
+            <div className="h-5 w-4/5 bg-[#1E1E1E]" />
+            <div className="mt-10 h-64 w-full bg-[#1E1E1E]" />
+          </div>
+        </main>
+        <ContextPanel guidance="Loading guidance..." />
+      </div>
     </div>
   );
 }
@@ -65,12 +67,16 @@ export default function OnboardingShell({ userId, firstName, children }: Onboard
   return (
     <OnboardingUIProvider value={{ openGuidance: () => setGuidanceOpen(true) }}>
       <div className="onboarding-theme min-h-screen bg-[#121212] text-[#F4F1EA]">
-        <Sidebar firstName={firstName} />
         <MobileProgressBar />
+        <div className="grid min-h-screen md:grid-cols-[280px_minmax(0,1fr)] lg:grid-cols-[280px_minmax(0,1fr)_300px]">
+          <Sidebar firstName={firstName} />
 
-        <main className="px-5 py-6 md:ml-[280px] md:max-w-[740px] md:px-14 md:py-12 lg:mr-[300px]">{children}</main>
+          <main className="min-w-0 px-5 py-6 md:px-12 md:py-10 xl:px-14 xl:py-12">
+            <div className="mx-auto w-full max-w-[740px]">{children}</div>
+          </main>
 
-        <ContextPanel guidance={currentGuidance} />
+          <ContextPanel guidance={currentGuidance} />
+        </div>
 
         <div className={`fixed inset-0 z-40 transition-opacity lg:hidden ${isGuidanceOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}>
           <button

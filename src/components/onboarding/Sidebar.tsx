@@ -29,13 +29,13 @@ export default function Sidebar({ firstName }: SidebarProps) {
   const position = useFinancialStore((state) => state.position);
 
   return (
-    <aside className="fixed top-0 left-0 hidden h-screen w-[280px] flex-col border-r border-[#2A2A2A] bg-[#1E1E1E] md:flex">
-      <div className="border-b border-[#2A2A2A] px-8 py-8">
+    <aside className="hidden h-screen w-[280px] flex-col border-r border-[#2A2A2A] bg-[#1E1E1E] md:sticky md:top-0 md:flex">
+      <div className="border-b border-[#2A2A2A] px-8 pt-8 pb-7">
         <p className="font-['Space_Grotesk'] text-base font-bold tracking-[4px] text-[#F4F1EA] uppercase">UNTIE</p>
-        <p className="mt-3 text-sm text-[#9A9590]">Hi {firstName?.trim() ? firstName : "there"}</p>
+        <p className="mt-2.5 text-sm text-[#9A9590]">Hi {firstName?.trim() ? firstName : "there"}</p>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4">
+      <nav className="flex-1 overflow-y-auto py-5">
         <ul>
           {MODULES.map((module, index) => {
             const isActive = activeModuleName === module.name;
@@ -45,7 +45,7 @@ export default function Sidebar({ firstName }: SidebarProps) {
               <li key={module.name}>
                 <Link
                   href={module.route}
-                  className={`flex items-center gap-3 border-l-2 px-6 py-3 transition-colors ${
+                  className={`flex items-center gap-3 border-l-2 px-6 py-2.5 transition-colors ${
                     isActive
                       ? "border-[#C2185B] bg-[#121212]"
                       : "border-transparent text-[#9A9590] hover:bg-[#121212]/60"

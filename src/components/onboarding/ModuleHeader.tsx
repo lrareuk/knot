@@ -12,8 +12,8 @@ export default function ModuleHeader({ title, description }: ModuleHeaderProps) 
   const { openGuidance } = useOnboardingUI();
 
   return (
-    <div className="relative mb-10">
-      <div className="absolute top-0 right-0 flex items-center gap-3">
+    <div className="relative mb-10 pr-20 md:pr-28">
+      <div className="absolute top-1 right-0 flex items-center gap-3">
         <SaveIndicator />
         <button
           type="button"

@@ -8,8 +8,8 @@ type ContextPanelProps = {
 
 export default function ContextPanel({ guidance }: ContextPanelProps) {
   return (
-    <aside className="fixed top-0 right-0 hidden h-screen w-[300px] flex-col border-l border-[#2A2A2A] bg-[#1E1E1E] p-12 lg:flex">
-      <section>
+    <aside className="hidden h-screen w-[300px] flex-col border-l border-[#2A2A2A] bg-[#1E1E1E] p-10 lg:sticky lg:top-0 lg:flex">
+      <section className="shrink-0">
         <p className="font-['Space_Grotesk'] text-[13px] font-semibold tracking-[3px] text-[#9A9590] uppercase">Guidance</p>
         <p className="mt-4 text-sm leading-relaxed text-[#9A9590]">{guidance}</p>
       </section>
