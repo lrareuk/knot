@@ -13,6 +13,7 @@ import type {
 } from "@/types/financial";
 import { createClient } from "@/lib/supabase";
 import { defaultExpenditure, defaultIncome } from "@/lib/onboarding/defaults";
+import { normalizeFinancialPosition } from "@/lib/onboarding/normalize";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -44,41 +45,6 @@ interface FinancialStore {
 const saveTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const retryTimers = new Map<string, ReturnType<typeof setTimeout>>();
 const pendingSaves = new Map<string, SavePayload>();
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function normalizePosition(raw: unknown, userId: string): FinancialPosition {
-  const record = isRecord(raw) ? raw : {};
-  const rawIncome = isRecord(record.income) ? record.income : {};
-  const rawExpenditure = isRecord(record.expenditure) ? record.expenditure : {};
-
-  return {
-    id: typeof record.id === "string" ? record.id : crypto.randomUUID(),
-    user_id: typeof record.user_id === "string" ? record.user_id : userId,
-    date_of_marriage: typeof record.date_of_marriage === "string" ? record.date_of_marriage : null,
-    date_of_separation: typeof record.date_of_separation === "string" ? record.date_of_separation : null,
-    properties: Array.isArray(record.properties) ? (record.properties as PropertyItem[]) : [],
-    pensions: Array.isArray(record.pensions) ? (record.pensions as PensionItem[]) : [],
-    savings: Array.isArray(record.savings) ? (record.savings as SavingsItem[]) : [],
-    debts: Array.isArray(record.debts) ? (record.debts as DebtItem[]) : [],
-    income: {
-      ...defaultIncome,
-      ...(rawIncome as Partial<IncomeData>),
-      is_estimated: isRecord(rawIncome.is_estimated)
-        ? (rawIncome.is_estimated as IncomeData["is_estimated"])
-        : defaultIncome.is_estimated,
-    },
-    dependants: Array.isArray(record.dependants) ? (record.dependants as DependantItem[]) : [],
-    expenditure: {
-      ...defaultExpenditure,
-      ...(rawExpenditure as Partial<ExpenditureData>),
-    },
-    has_no_dependants: Boolean(record.has_no_dependants),
-    updated_at: typeof record.updated_at === "string" ? record.updated_at : new Date().toISOString(),
-  };
-}
 
 function createInsertPayload(userId: string) {
   return {
@@ -189,7 +155,7 @@ export const useFinancialStore = create<FinancialStore>((set, get) => ({
 
     if (error) {
       set({
-        position: normalizePosition(createInsertPayload(userId), userId),
+        position: normalizeFinancialPosition(createInsertPayload(userId), userId),
         isLoading: false,
         lastError: error.message,
         saveStatus: "error",
@@ -198,7 +164,7 @@ export const useFinancialStore = create<FinancialStore>((set, get) => ({
     }
 
     if (data) {
-      set({ position: normalizePosition(data, userId), isLoading: false, lastError: null });
+      set({ position: normalizeFinancialPosition(data, userId), isLoading: false, lastError: null });
       return;
     }
 
@@ -210,7 +176,7 @@ export const useFinancialStore = create<FinancialStore>((set, get) => ({
 
     if (insertError) {
       set({
-        position: normalizePosition(createInsertPayload(userId), userId),
+        position: normalizeFinancialPosition(createInsertPayload(userId), userId),
         isLoading: false,
         lastError: insertError.message,
         saveStatus: "error",
@@ -218,7 +184,7 @@ export const useFinancialStore = create<FinancialStore>((set, get) => ({
       return;
     }
 
-    set({ position: normalizePosition(insertedRow, userId), isLoading: false, lastError: null });
+    set({ position: normalizeFinancialPosition(insertedRow, userId), isLoading: false, lastError: null });
   },
 
   updateDates: (dates) => {
