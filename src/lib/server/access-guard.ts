@@ -70,8 +70,7 @@ export function resolveAccessRedirect(input: AccessInput): string | null {
 
   if (pathname.startsWith("/onboarding")) {
     if (!paid) return "/signup/payment";
-    if (onboardingDone && recoveryKeyRequired) return "/recovery-key";
-    if (onboardingDone) return "/dashboard";
+    if (recoveryKeyRequired) return "/recovery-key";
     return null;
   }
 

@@ -100,6 +100,20 @@ describe("resolveAccessRedirect", () => {
     ).toBeNull();
   });
 
+  it("allows onboarding routes for paid onboarded users so they can edit their financial position", () => {
+    expect(
+      resolveAccessRedirect({
+        pathname: "/onboarding/review",
+        isAuthenticated: true,
+        paid: true,
+        onboardingDone: true,
+        accountState: "active",
+        recoveryKeyRequired: false,
+        hasSignupName: false,
+      })
+    ).toBeNull();
+  });
+
   it("redirects authenticated hidden users to login", () => {
     expect(
       resolveAccessRedirect({

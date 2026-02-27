@@ -12,6 +12,14 @@ type Props = {
 };
 
 type BusyMap = Record<string, boolean>;
+const MAX_SCENARIOS = 5;
+
+const updatedDateFormatter = new Intl.DateTimeFormat("en-US", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
 function deltaClass(value: number) {
   if (value > 0) return " is-positive";
@@ -25,6 +33,15 @@ function deltaText(value: number, currencyCode: "GBP" | "USD" | "CAD") {
   }
 
   return `${value > 0 ? "↑" : "↓"} ${formatCurrency(Math.abs(value), currencyCode)} from baseline`;
+}
+
+function updatedText(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Updated recently";
+  }
+
+  return `Updated ${updatedDateFormatter.format(date)}`;
 }
 
 export default function ScenarioListView({ initialScenarios, currencyCode }: Props) {
@@ -48,7 +65,8 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
     return () => document.removeEventListener("click", closeMenu);
   }, []);
 
-  const canCreate = scenarios.length < 5;
+  const canCreate = scenarios.length < MAX_SCENARIOS;
+  const slotsRemaining = Math.max(0, MAX_SCENARIOS - scenarios.length);
   const anyBusy = useMemo(() => Object.values(busyMap).some(Boolean), [busyMap]);
 
   const updateScenario = (id: string, updater: (scenario: ScenarioRecord) => ScenarioRecord) => {
@@ -116,8 +134,16 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
         <div>
           <h1 className="dashboard-page-title">Your scenarios</h1>
           <p className="dashboard-page-subtitle">
-            Each scenario models a different way to divide your finances. You can create up to 5.
+            Each scenario models a different way to divide your finances. Build a few options, then compare outcomes side by side.
           </p>
+          <div className="dashboard-scenarios-meta">
+            <p className="dashboard-scenarios-meta-pill">
+              {scenarios.length} of {MAX_SCENARIOS} used
+            </p>
+            <p className="dashboard-scenarios-meta-pill is-subtle">
+              {slotsRemaining} slot{slotsRemaining === 1 ? "" : "s"} left
+            </p>
+          </div>
         </div>
 
         <CreateScenarioButton
@@ -130,7 +156,9 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
 
       {scenarios.length === 0 ? (
         <section className="dashboard-empty-state">
-          <p>No scenarios yet. Create one to start modelling.</p>
+          <p className="dashboard-panel-eyebrow">Scenarios</p>
+          <h2 className="dashboard-scenarios-empty-title">No scenarios yet</h2>
+          <p className="dashboard-scenarios-empty-copy">Create one to start modelling and compare possible outcomes.</p>
           <CreateScenarioButton className="dashboard-btn" label="Create your first scenario" />
         </section>
       ) : (
@@ -173,28 +201,31 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
                 ) : (
                   <>
                     <div className="dashboard-scenario-header">
-                      {isRenaming ? (
-                        <input
-                          className="dashboard-editable-name-input"
-                          value={nameDraft}
-                          maxLength={40}
-                          autoFocus
-                          onClick={(event) => event.stopPropagation()}
-                          onChange={(event) => setNameDraft(event.target.value)}
-                          onBlur={() => renameScenario(scenario.id, nameDraft)}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter") {
-                              void renameScenario(scenario.id, nameDraft);
-                            }
-                            if (event.key === "Escape") {
-                              setRenamingId(null);
-                              setOpenMenuId(null);
-                            }
-                          }}
-                        />
-                      ) : (
-                        <h2 className="dashboard-scenario-name">{scenario.name}</h2>
-                      )}
+                      <div className="dashboard-scenario-title-wrap">
+                        {isRenaming ? (
+                          <input
+                            className="dashboard-editable-name-input"
+                            value={nameDraft}
+                            maxLength={40}
+                            autoFocus
+                            onClick={(event) => event.stopPropagation()}
+                            onChange={(event) => setNameDraft(event.target.value)}
+                            onBlur={() => renameScenario(scenario.id, nameDraft)}
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                void renameScenario(scenario.id, nameDraft);
+                              }
+                              if (event.key === "Escape") {
+                                setRenamingId(null);
+                                setOpenMenuId(null);
+                              }
+                            }}
+                          />
+                        ) : (
+                          <h2 className="dashboard-scenario-name">{scenario.name}</h2>
+                        )}
+                        <p className="dashboard-scenario-updated">{updatedText(scenario.updated_at)}</p>
+                      </div>
 
                       <div className="dashboard-scenario-menu-wrap" ref={openMenuId === scenario.id ? menuRef : null}>
                         <button
@@ -256,6 +287,9 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
                     <div className="dashboard-scenario-delta-row">
                       <p className={`dashboard-scenario-delta${deltaClass(scenario.results.delta_user_net_position)}`}>
                         {deltaText(scenario.results.delta_user_net_position, currencyCode)}
+                      </p>
+                      <p className="dashboard-scenario-open-hint" aria-hidden>
+                        Open scenario →
                       </p>
                     </div>
                   </>

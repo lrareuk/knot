@@ -13,7 +13,7 @@
   left: 0;
   right: 0;
   z-index: 20;
-  padding: 22px 40px;
+  padding: 18px 32px;
   display: flex;
   align-items: center;
   border-bottom: 1px solid rgb(42 42 42 / 0.5);
@@ -46,7 +46,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 120px 24px 48px;
+  padding: 104px 20px 32px;
 }
 
 .contentWrap {
@@ -93,11 +93,11 @@
   font-weight: 400;
   line-height: 1.65;
   color: var(--text-muted);
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .fieldGroup {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .label {
@@ -197,7 +197,7 @@
 }
 
 .secondaryLink {
-  margin-top: 20px;
+  margin-top: 16px;
   text-align: center;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
@@ -220,7 +220,7 @@
 }
 
 .tertiaryText {
-  margin-top: 16px;
+  margin-top: 12px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.6;
@@ -282,7 +282,7 @@
 }
 
 .aliasNote {
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.6;
@@ -290,7 +290,7 @@
 }
 
 .priceBlock {
-  margin: 16px 0;
+  margin: 12px 0;
   text-align: center;
 }
 
@@ -312,12 +312,12 @@
 .includesPanel {
   border: 1px solid var(--bg-divider);
   background: var(--bg-panel);
-  padding: 20px;
-  margin-bottom: 24px;
+  padding: 16px;
+  margin-bottom: 18px;
 }
 
 .includesTitle {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   font-weight: 600;
@@ -329,7 +329,7 @@
 .includesList {
   list-style: none;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .includesList li {
@@ -353,15 +353,15 @@
 
 .checkoutPanel {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .walletPanel {
   border: 1px solid var(--bg-divider);
   background: var(--bg-panel);
-  padding: 16px;
+  padding: 14px;
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .walletTitle {
@@ -402,7 +402,7 @@
 
 .cardForm {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .promoForm {
@@ -505,7 +505,7 @@
 }
 
 .billingNote {
-  margin-top: 16px;
+  margin-top: 12px;
   text-align: center;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
@@ -514,7 +514,7 @@
 }
 
 .securityNote {
-  margin-top: 8px;
+  margin-top: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -573,7 +573,7 @@
 }
 
 .statusMessage {
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.6;
@@ -593,7 +593,7 @@
 
 @media (max-width: 520px) {
   .headerBar {
-    padding: 18px 20px;
+    padding: 14px 16px;
   }
 
   .logoLink {
@@ -616,19 +616,19 @@
 
 @media (max-width: 900px) and (min-width: 521px) {
   .headerBar {
-    padding: 18px 24px;
+    padding: 16px 20px;
   }
 
   .viewport {
     align-items: flex-start;
-    padding: 104px 20px 36px;
+    padding: 92px 18px 30px;
   }
 }
 
 @media (max-height: 820px) {
   .viewport {
     align-items: flex-start;
-    padding-top: 96px;
-    padding-bottom: 32px;
+    padding-top: 88px;
+    padding-bottom: 24px;
   }
 }
