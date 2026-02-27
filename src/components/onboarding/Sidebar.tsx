@@ -34,7 +34,7 @@ export default function Sidebar({ firstName }: SidebarProps) {
           const itemClassName = `onboarding-nav-item ${isActive ? "is-active" : ""} ${status === "complete" ? "is-complete" : ""}`;
 
           return (
-            <Link key={module.name} href={module.route} className={itemClassName.trim()}>
+            <Link key={module.name} href={module.route} className={itemClassName.trim()} aria-current={isActive ? "page" : undefined}>
               <span className={`onboarding-nav-dot ${dotState}`}>{index + 1}</span>
               <span className="onboarding-nav-label">{module.title}</span>
             </Link>

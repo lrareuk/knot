@@ -101,7 +101,12 @@ export default function DashboardShell({ firstName, hasRelevantAgreements, child
           {NAV_ITEMS.map((item) => {
             const active = item.isActive(pathname);
             return (
-              <Link key={item.href} href={item.href} className={`dashboard-nav-item${active ? " is-active" : ""}`}>
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`dashboard-nav-item${active ? " is-active" : ""}`}
+                aria-current={active ? "page" : undefined}
+              >
                 <span className="dashboard-nav-icon" aria-hidden>
                   {item.icon}
                 </span>

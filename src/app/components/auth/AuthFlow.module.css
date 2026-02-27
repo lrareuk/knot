@@ -46,7 +46,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 88px 16px 22px;
+  padding: 84px 14px 18px;
 }
 
 .contentWrap {
@@ -84,7 +84,7 @@
   font-size: clamp(2rem, 4.5vw, 2.45rem);
   letter-spacing: -0.02em;
   line-height: 1.15;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .supporting {
@@ -93,11 +93,11 @@
   font-weight: 400;
   line-height: 1.55;
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .fieldGroup {
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .label {
@@ -173,8 +173,8 @@
 
 .actionsRow {
   display: flex;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .primaryButtonCompact {
@@ -182,7 +182,7 @@
 }
 
 .continueButton {
-  margin-top: 10px;
+  margin-top: 8px;
 }
 
 @keyframes buttonPulse {
@@ -197,7 +197,7 @@
 }
 
 .secondaryLink {
-  margin-top: 12px;
+  margin-top: 10px;
   text-align: center;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
@@ -220,7 +220,7 @@
 }
 
 .tertiaryText {
-  margin-top: 10px;
+  margin-top: 8px;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.5;
@@ -297,7 +297,7 @@
 .priceAmount {
   font-family: var(--font-space-grotesk), "Space Grotesk", sans-serif;
   font-weight: 700;
-  font-size: 50px;
+  font-size: 42px;
   line-height: 1;
   letter-spacing: -0.04em;
 }
@@ -312,8 +312,8 @@
 .includesPanel {
   border: 1px solid var(--bg-divider);
   background: var(--bg-panel);
-  padding: 12px;
-  margin-bottom: 12px;
+  padding: 10px;
+  margin-bottom: 10px;
 }
 
 .includesTitle {
@@ -353,15 +353,15 @@
 
 .checkoutPanel {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .walletPanel {
   border: 1px solid var(--bg-divider);
   background: var(--bg-panel);
-  padding: 12px;
+  padding: 10px;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .walletTitle {
@@ -402,12 +402,12 @@
 
 .cardForm {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .promoForm {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .promoRow {
@@ -497,7 +497,7 @@
 .cardElementPanel {
   border: 1px solid var(--bg-divider);
   background: var(--bg-panel);
-  padding: 12px;
+  padding: 10px;
 }
 
 .cardElementPanel :global(iframe) {
@@ -505,7 +505,7 @@
 }
 
 .billingNote {
-  margin-top: 8px;
+  margin-top: 6px;
   text-align: center;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
@@ -514,7 +514,7 @@
 }
 
 .securityNote {
-  margin-top: 4px;
+  margin-top: 2px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -569,11 +569,11 @@
   font-size: 16px;
   line-height: 1.55;
   color: var(--text-muted);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .statusMessage {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   font-family: var(--font-manrope), "Manrope", sans-serif;
   font-size: 13px;
   line-height: 1.5;
@@ -610,7 +610,7 @@
   }
 
   .priceAmount {
-    font-size: 40px;
+    font-size: 34px;
   }
 }
 
@@ -621,14 +621,14 @@
 
   .viewport {
     align-items: flex-start;
-    padding: 82px 14px 22px;
+    padding: 78px 12px 18px;
   }
 }
 
 @media (max-height: 820px) {
   .viewport {
     align-items: flex-start;
-    padding-top: 78px;
-    padding-bottom: 18px;
+    padding-top: 72px;
+    padding-bottom: 14px;
   }
 }

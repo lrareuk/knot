@@ -25,7 +25,7 @@ const scenarioData: Record<ScenarioKey, ScenarioRow[]> = {
   B: [
     { label: "Housing equity", value: "£285,000", change: "−£185,000", type: "negative" },
     { label: "Pension value", value: "£124,000", change: "−£12,000", type: "negative" },
-    { label: "Monthly income", value: "£4,200", change: "−£600", type: "positive" },
+    { label: "Monthly income", value: "£4,200", change: "−£600", type: "negative" },
     { label: "Savings retained", value: "£42,000", change: "−£8,000", type: "negative" },
   ],
 };
@@ -45,7 +45,7 @@ function HomeContent() {
   }, [router, searchParams]);
 
   return (
-    <>
+    <div className="marketing-page">
       <SiteHeader navItems={HOME_NAV_ITEMS} ctaHref="/start" ctaLabel="Get started" />
 
       <section className="hero">
@@ -262,7 +262,7 @@ function HomeContent() {
 
       <div className="divider" />
       <SiteFooter />
-    </>
+    </div>
   );
 }
 

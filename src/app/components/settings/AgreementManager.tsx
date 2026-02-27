@@ -337,7 +337,7 @@ export default function AgreementManager({ initialDisclosure, defaultJurisdictio
             </button>
           </form>
 
-          <div className="stack-md" style={{ marginTop: 20 }}>
+          <div className="stack-md dashboard-stack-offset">
             {agreements.length === 0 ? <p className="dashboard-status">No agreements added yet.</p> : null}
 
             {agreements.map((agreement) => {
@@ -424,12 +424,12 @@ export default function AgreementManager({ initialDisclosure, defaultJurisdictio
                       {busyAgreementId === agreement.id ? "Saving..." : "Save agreement"}
                     </button>
 
-                    <label className="dashboard-btn-ghost" style={{ display: "inline-flex", cursor: "pointer" }}>
+                    <label className="dashboard-btn-ghost dashboard-upload-label">
                       Upload document
                       <input
                         type="file"
                         accept="application/pdf,image/jpeg,image/png,image/heic"
-                        style={{ display: "none" }}
+                        className="dashboard-hidden-input"
                         onChange={(event) => {
                           const file = event.target.files?.[0];
                           if (!file) {

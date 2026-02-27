@@ -154,14 +154,14 @@ export default function ReportGenerator({
               <span className={`dashboard-report-checkbox${checked ? " is-selected" : ""}`} aria-hidden>
                 {checked ? "✓" : ""}
               </span>
-                <span className="dashboard-report-option-content">
-                  <span className="dashboard-report-option-title">{scenario.name}</span>
-                  <span className="dashboard-report-option-summary">
-                    Net: {formatCurrency(scenario.results.user_net_position, currencyCode)} · Monthly:{" "}
-                    {formatCurrency(scenario.results.user_monthly_surplus_deficit, currencyCode)}/mo
-                  </span>
+              <span className="dashboard-report-option-content">
+                <span className="dashboard-report-option-title">{scenario.name}</span>
+                <span className="dashboard-report-option-summary">
+                  Net: {formatCurrency(scenario.results.user_net_position, currencyCode)} · Monthly:{" "}
+                  {formatCurrency(scenario.results.user_monthly_surplus_deficit, currencyCode)}/mo
                 </span>
-              </button>
+              </span>
+            </button>
           );
         })}
       </section>
