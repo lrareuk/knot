@@ -92,7 +92,7 @@ export default function SignupPaymentSuccessStep({ firstName, initialPaid }: Pro
       <h2 className={styles.successLineTwo}>{firstName}.</h2>
       <p className={styles.successSupporting}>{supportingCopy}</p>
 
-      <button type="button" className={styles.primaryButton} onClick={() => router.push("/onboarding/key-dates")} disabled={!paid}>
+      <button type="button" className={styles.primaryButton} onClick={() => router.push("/onboarding/dates")} disabled={!paid}>
         Begin
       </button>
 

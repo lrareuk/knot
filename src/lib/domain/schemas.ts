@@ -103,6 +103,7 @@ export const financialPositionSchema = z.object({
   income: incomeSchema,
   dependants: z.array(dependantSchema),
   expenditure: expenditureSchema,
+  has_no_dependants: z.boolean().optional(),
   date_of_marriage: z.string().date().nullable(),
   date_of_separation: z.string().date().nullable(),
 });

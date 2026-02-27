@@ -99,6 +99,7 @@ export function createDefaultFinancialPosition(): FinancialPosition {
     income: { ...DEFAULT_INCOME },
     dependants: [],
     expenditure: { ...DEFAULT_EXPENDITURE },
+    has_no_dependants: false,
     date_of_marriage: null,
     date_of_separation: null,
   };

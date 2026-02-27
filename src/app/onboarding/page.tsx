@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { ONBOARDING_MODULES } from "@/lib/domain/defaults";
-import { firstIncompleteModule } from "@/lib/domain/onboarding";
-import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
+import { firstIncompleteModuleRoute } from "@/lib/onboarding/progress";
+import { normalizeFinancialPosition } from "@/lib/onboarding/normalize";
 import { getAuthContext } from "@/lib/server/auth";
+import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 
 export default async function OnboardingRootPage() {
   const { user, profile, supabase } = await getAuthContext();
@@ -11,11 +11,15 @@ export default async function OnboardingRootPage() {
     redirect("/login");
   }
 
+  if (profile.account_state !== "active") {
+    redirect("/login");
+  }
+
   if (!profile.paid) {
     redirect("/signup/payment");
   }
 
-  const position = await getOrCreateFinancialPosition(supabase, user.id);
-  const nextModule = firstIncompleteModule(position, [...ONBOARDING_MODULES]);
-  redirect(`/onboarding/${nextModule}`);
+  const rawPosition = await getOrCreateFinancialPosition(supabase, user.id);
+  const position = normalizeFinancialPosition(rawPosition, user.id);
+  redirect(firstIncompleteModuleRoute(position));
 }

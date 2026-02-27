@@ -110,6 +110,7 @@ export type FinancialPosition = {
   income: IncomeBlock;
   dependants: DependantItem[];
   expenditure: ExpenditureBlock;
+  has_no_dependants?: boolean;
   date_of_marriage: string | null;
   date_of_separation: string | null;
   updated_at?: string;

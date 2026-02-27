@@ -42,7 +42,10 @@ export async function PUT(req: Request) {
   }
 
   const withEquity = normalizeEquity(parsed.data);
-  const normalized = ensureStableItemIds(withEquity);
+  const normalized = ensureStableItemIds({
+    ...withEquity,
+    has_no_dependants: withEquity.has_no_dependants ?? false,
+  });
 
   const { error } = await context.supabase.from("financial_position").upsert(
     {

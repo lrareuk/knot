@@ -1,31 +1,26 @@
 import { notFound, redirect } from "next/navigation";
-import { ONBOARDING_MODULES, type OnboardingModule } from "@/lib/domain/defaults";
-import OnboardingModuleEditor from "@/app/components/onboarding/OnboardingModuleEditor";
-import { getAuthContext } from "@/lib/server/auth";
-import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 
-export default async function OnboardingModulePage({
+const legacyModuleRedirects: Record<string, string> = {
+  "key-dates": "/onboarding/dates",
+  property: "/onboarding/property",
+  income: "/onboarding/income",
+  pensions: "/onboarding/pensions",
+  "savings-investments": "/onboarding/savings",
+  debts: "/onboarding/debts",
+  "dependants-expenditure": "/onboarding/dependants",
+};
+
+export default async function LegacyOnboardingModulePage({
   params,
 }: {
   params: Promise<{ module: string }>;
 }) {
   const { module } = await params;
+  const redirectTo = legacyModuleRedirects[module];
 
-  if (!ONBOARDING_MODULES.includes(module as OnboardingModule)) {
-    notFound();
+  if (redirectTo) {
+    redirect(redirectTo);
   }
 
-  const { user, profile, supabase } = await getAuthContext();
-
-  if (!user || !profile) {
-    redirect("/login");
-  }
-
-  if (!profile.paid) {
-    redirect("/signup/payment");
-  }
-
-  const position = await getOrCreateFinancialPosition(supabase, user.id);
-
-  return <OnboardingModuleEditor module={module as OnboardingModule} initialPosition={position} />;
+  notFound();
 }

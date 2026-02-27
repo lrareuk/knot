@@ -13,6 +13,7 @@ export function normalizeFinancialPosition(raw: Partial<FinancialPosition> | nul
     income: raw?.income ?? fallback.income,
     dependants: raw?.dependants ?? fallback.dependants,
     expenditure: raw?.expenditure ?? fallback.expenditure,
+    has_no_dependants: raw?.has_no_dependants ?? fallback.has_no_dependants,
     date_of_marriage: raw?.date_of_marriage ?? null,
     date_of_separation: raw?.date_of_separation ?? null,
   };
@@ -25,7 +26,7 @@ export async function getOrCreateFinancialPosition(
   const { data } = await supabase
     .from("financial_position")
     .select(
-      "id,user_id,properties,pensions,savings,debts,income,dependants,expenditure,date_of_marriage,date_of_separation,updated_at"
+      "id,user_id,properties,pensions,savings,debts,income,dependants,expenditure,has_no_dependants,date_of_marriage,date_of_separation,updated_at"
     )
     .eq("user_id", userId)
     .maybeSingle<FinancialPosition>();

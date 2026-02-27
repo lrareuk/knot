@@ -1414,3 +1414,45 @@ tbody tr:nth-child(even) {
     position: static;
   }
 }
+
+@keyframes onboarding-item-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onboarding-theme {
+  background: #121212;
+  color: #f4f1ea;
+}
+
+.onboarding-theme * {
+  border-radius: 0 !important;
+}
+
+.onboarding-theme input,
+.onboarding-theme select,
+.onboarding-theme textarea,
+.onboarding-theme button {
+  box-shadow: none;
+}
+
+.onboarding-theme input:focus,
+.onboarding-theme select:focus,
+.onboarding-theme textarea:focus,
+.onboarding-theme button:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.onboarding-theme input[type="number"]::-webkit-outer-spin-button,
+.onboarding-theme input[type="number"]::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}

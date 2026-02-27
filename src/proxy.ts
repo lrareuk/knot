@@ -84,8 +84,16 @@ export async function proxy(req: NextRequest) {
     return redirectToLegalDoc(req, "terms");
   }
 
-  if (pathname === "/onboarding/dates") {
-    return redirectTo(req, "/onboarding/key-dates");
+  if (pathname === "/onboarding/key-dates") {
+    return redirectTo(req, "/onboarding/dates");
+  }
+
+  if (pathname === "/onboarding/savings-investments") {
+    return redirectTo(req, "/onboarding/savings");
+  }
+
+  if (pathname === "/onboarding/dependants-expenditure") {
+    return redirectTo(req, "/onboarding/dependants");
   }
 
   if (pathname === "/app" || pathname.startsWith("/app/")) {
