@@ -1,9 +1,10 @@
 "use client";
 
-import { formatPounds } from "@/lib/onboarding/currency";
 import { getFinancialTotals } from "@/lib/onboarding/totals";
 import { useFinancialStore } from "@/stores/financial-position";
 import type { FinancialPosition } from "@/types/financial";
+import { useOnboardingUI } from "@/components/onboarding/OnboardingUIContext";
+import { formatMoney } from "@/lib/onboarding/currency";
 
 function hasPropertyData(position: FinancialPosition): boolean {
   return position.properties.some(
@@ -29,6 +30,7 @@ function hasDebtData(position: FinancialPosition): boolean {
 
 export default function RunningTotals() {
   const position = useFinancialStore((state) => state.position);
+  const { currencyCode } = useOnboardingUI();
 
   if (!position) {
     return null;
@@ -57,12 +59,12 @@ export default function RunningTotals() {
       {rows.map((row) => (
         <div key={row.label} className="onboarding-total-row">
           <span className="onboarding-total-label">{row.label}</span>
-          <span className="onboarding-total-value">{formatPounds(row.value)}</span>
+          <span className="onboarding-total-value">{formatMoney(row.value, currencyCode)}</span>
         </div>
       ))}
       <div className="onboarding-total-row is-net">
         <span className="onboarding-total-label">Net position</span>
-        <span className="onboarding-total-value">{formatPounds(totals.netPosition)}</span>
+        <span className="onboarding-total-value">{formatMoney(totals.netPosition, currencyCode)}</span>
       </div>
     </section>
   );

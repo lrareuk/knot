@@ -8,6 +8,7 @@ import ModuleHeader from "@/components/onboarding/ModuleHeader";
 import SelectInput from "@/components/onboarding/SelectInput";
 import TextInput from "@/components/onboarding/TextInput";
 import Toggle from "@/components/onboarding/Toggle";
+import { useOnboardingUI } from "@/components/onboarding/OnboardingUIContext";
 import { createDefaultPension } from "@/lib/onboarding/defaults";
 import { useFinancialStore } from "@/stores/financial-position";
 import type { PensionItem } from "@/types/financial";
@@ -16,6 +17,7 @@ import { MODULES } from "@/types/financial";
 const PENSIONS_MODULE = MODULES.find((module) => module.name === "pensions")!;
 
 export default function OnboardingPensionsPage() {
+  const { jurisdiction } = useOnboardingUI();
   const position = useFinancialStore((state) => state.position);
   const setPensions = useFinancialStore((state) => state.setPensions);
 
@@ -129,13 +131,17 @@ export default function OnboardingPensionsPage() {
                     })
                   }
                 />
-                {pension.pension_type === "state" ? (
+                {pension.pension_type === "state" && jurisdiction === "GB-SCT" ? (
                   <p className="onboarding-field-help">
                     Full new state pension is currently £221.20/week (£11,502/year). Check yours at{" "}
                     <a href="https://www.gov.uk/check-state-pension" target="_blank" rel="noreferrer" className="onboarding-inline-link">
                       gov.uk/check-state-pension
                     </a>
                     .
+                  </p>
+                ) : pension.pension_type === "state" ? (
+                  <p className="onboarding-field-help">
+                    Add your latest annual estimate from your pension statement or government benefits account.
                   </p>
                 ) : null}
               </div>

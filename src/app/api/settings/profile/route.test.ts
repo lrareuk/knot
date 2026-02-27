@@ -18,7 +18,10 @@ function createSupabaseMock() {
       id: "user-1",
       email: "alex@example.com",
       first_name: "Alex",
-      jurisdiction: "scotland",
+      jurisdiction: "GB-SCT",
+      currency_code: "GBP",
+      currency_overridden: false,
+      has_relevant_agreements: null,
     },
     error: null,
   });
@@ -40,6 +43,12 @@ describe("PATCH /api/settings/profile", () => {
     mockRequireApiUser.mockResolvedValue({
       response: null,
       user: { id: "user-1" },
+      profile: {
+        id: "user-1",
+        jurisdiction: "GB-SCT",
+        currency_code: "GBP",
+        currency_overridden: false,
+      },
       supabase,
     });
 
@@ -52,7 +61,12 @@ describe("PATCH /api/settings/profile", () => {
     const payload = (await response.json()) as { profile?: { first_name: string } };
 
     expect(response.status).toBe(200);
-    expect(update).toHaveBeenCalledWith({ first_name: "Alex" });
+    expect(update).toHaveBeenCalledWith({
+      first_name: "Alex",
+      jurisdiction: "GB-SCT",
+      currency_overridden: false,
+      currency_code: "GBP",
+    });
     expect(payload.profile?.first_name).toBe("Alex");
   });
 });

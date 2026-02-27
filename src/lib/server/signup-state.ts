@@ -1,8 +1,12 @@
 import { cookies } from "next/headers";
-import { SIGNUP_STATE_COOKIE, deserializeSignupFirstName } from "@/lib/auth/signup-state";
+import { SIGNUP_STATE_COOKIE, deserializeSignupState } from "@/lib/auth/signup-state";
 
-export async function readSignupFirstNameCookie() {
+export async function readSignupStateCookie() {
   const cookieStore = await cookies();
-  return deserializeSignupFirstName(cookieStore.get(SIGNUP_STATE_COOKIE)?.value);
+  return deserializeSignupState(cookieStore.get(SIGNUP_STATE_COOKIE)?.value);
 }
 
+export async function readSignupFirstNameCookie() {
+  const state = await readSignupStateCookie();
+  return state?.firstName ?? null;
+}

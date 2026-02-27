@@ -6,7 +6,7 @@ import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 
 export default async function ScenarioEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { user, supabase } = await requireDashboardAccess();
+  const { user, profile, supabase } = await requireDashboardAccess();
   const position = await getOrCreateFinancialPosition(supabase, user.id);
   const baseline = computeBaseline(position);
 
@@ -21,5 +21,19 @@ export default async function ScenarioEditorPage({ params }: { params: Promise<{
     notFound();
   }
 
-  return <ScenarioEditor scenario={scenario} position={position} baseline={baseline} />;
+  const { data: agreementTerms } = await supabase
+    .from("legal_agreement_terms")
+    .select("id,agreement_id,user_id,term_type,term_payload,impact_direction,confidence,citation,source_document_id,created_at,updated_at")
+    .eq("user_id", user.id);
+
+  return (
+    <ScenarioEditor
+      scenario={scenario}
+      position={position}
+      baseline={baseline}
+      jurisdictionCode={profile?.jurisdiction ?? "GB-SCT"}
+      currencyCode={profile?.currency_code ?? "GBP"}
+      agreementTerms={agreementTerms ?? []}
+    />
+  );
 }

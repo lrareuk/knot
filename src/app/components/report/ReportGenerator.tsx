@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatCurrency } from "@/lib/domain/currency";
+import { interpretScenarioAgreements } from "@/lib/domain/interpret-scenario-agreements";
 import type { ScenarioRecord } from "@/lib/domain/types";
+import type { JurisdictionProfile } from "@/lib/legal/jurisdictions";
+import type { LegalAgreementTerm } from "@/lib/legal/types";
 
 type ReportItem = {
   id: string;
@@ -17,6 +20,9 @@ type Props = {
   scenarios: ScenarioRecord[];
   initialReports: ReportItem[];
   preselectedScenarioIds?: string[];
+  currencyCode: "GBP" | "USD" | "CAD";
+  jurisdictionProfile: JurisdictionProfile | null;
+  agreementTerms: LegalAgreementTerm[];
 };
 
 type GeneratedReport = {
@@ -24,7 +30,13 @@ type GeneratedReport = {
   downloadUrl: string;
 };
 
-export default function ReportGenerator({ scenarios, preselectedScenarioIds = [] }: Props) {
+export default function ReportGenerator({
+  scenarios,
+  preselectedScenarioIds = [],
+  currencyCode,
+  jurisdictionProfile,
+  agreementTerms,
+}: Props) {
   const initialSelected = useMemo(() => {
     const valid = preselectedScenarioIds.filter((id) => scenarios.some((scenario) => scenario.id === id)).slice(0, 3);
     if (valid.length > 0) {
@@ -142,13 +154,14 @@ export default function ReportGenerator({ scenarios, preselectedScenarioIds = []
               <span className={`dashboard-report-checkbox${checked ? " is-selected" : ""}`} aria-hidden>
                 {checked ? "✓" : ""}
               </span>
-              <span className="dashboard-report-option-content">
-                <span className="dashboard-report-option-title">{scenario.name}</span>
-                <span className="dashboard-report-option-summary">
-                  Net: {formatCurrency(scenario.results.user_net_position)} · Monthly: {formatCurrency(scenario.results.user_monthly_surplus_deficit)}/mo
+                <span className="dashboard-report-option-content">
+                  <span className="dashboard-report-option-title">{scenario.name}</span>
+                  <span className="dashboard-report-option-summary">
+                    Net: {formatCurrency(scenario.results.user_net_position, currencyCode)} · Monthly:{" "}
+                    {formatCurrency(scenario.results.user_monthly_surplus_deficit, currencyCode)}/mo
+                  </span>
                 </span>
-              </span>
-            </button>
+              </button>
           );
         })}
       </section>
@@ -183,6 +196,38 @@ export default function ReportGenerator({ scenarios, preselectedScenarioIds = []
           <p className="dashboard-status">This download link expires in 24 hours. You can regenerate at any time.</p>
         </section>
       ) : null}
+
+      <section className="dashboard-settings-section">
+        <h2 className="dashboard-scenario-name">Agreement interpretation preview</h2>
+        {jurisdictionProfile ? (
+          <p className="dashboard-status">
+            Jurisdiction profile: {jurisdictionProfile.display_name}. {jurisdictionProfile.property_framework}
+          </p>
+        ) : null}
+
+        {selected.map((scenarioId) => {
+          const scenario = scenarios.find((entry) => entry.id === scenarioId);
+          if (!scenario) return null;
+          const warnings = interpretScenarioAgreements({
+            jurisdictionCode: jurisdictionProfile?.code ?? "GB-SCT",
+            config: scenario.config,
+            terms: agreementTerms,
+          });
+
+          return (
+            <article key={scenario.id} className="dashboard-status">
+              <p>
+                <strong>{scenario.name}</strong> · {warnings.length} agreement consideration(s)
+              </p>
+              {warnings.slice(0, 3).map((warning) => (
+                <p key={warning.key}>
+                  [{warning.severity.toUpperCase()}] {warning.message} Citation: &quot;{warning.citation.quote}&quot;
+                </p>
+              ))}
+            </article>
+          );
+        })}
+      </section>
     </div>
   );
 }

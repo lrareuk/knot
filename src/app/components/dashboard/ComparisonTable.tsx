@@ -6,6 +6,7 @@ import type { ScenarioRecord, ScenarioResults } from "@/lib/domain/types";
 type Props = {
   baseline: ScenarioResults;
   scenarios: ScenarioRecord[];
+  currencyCode: "GBP" | "USD" | "CAD";
 };
 
 type BetterDirection = "higher" | "lower";
@@ -16,20 +17,20 @@ type MetricRow = {
   better: BetterDirection;
   baselineValue: number;
   valueForScenario: (scenario: ScenarioRecord) => number;
-  formatValue?: (value: number) => string;
+  formatValue?: (value: number, currencyCode: "GBP" | "USD" | "CAD") => string;
   valueClassName?: (value: number) => string;
 };
 
-function maintenanceLabel(value: number) {
+function maintenanceLabel(value: number, currencyCode: "GBP" | "USD" | "CAD") {
   if (value === 0) {
     return "No maintenance";
   }
 
   if (value > 0) {
-    return `You receive ${formatCurrency(value)}/mo`;
+    return `You receive ${formatCurrency(value, currencyCode)}/mo`;
   }
 
-  return `You pay ${formatCurrency(Math.abs(value))}/mo`;
+  return `You pay ${formatCurrency(Math.abs(value), currencyCode)}/mo`;
 }
 
 function metricRows(baseline: ScenarioResults): MetricRow[] {
@@ -116,16 +117,16 @@ function deltaTone(delta: number, better: BetterDirection) {
   return delta < 0 ? " is-positive" : " is-negative";
 }
 
-function deltaText(delta: number, better: BetterDirection) {
+function deltaText(delta: number, better: BetterDirection, currencyCode: "GBP" | "USD" | "CAD") {
   if (delta === 0) {
     return "No change";
   }
 
   const improved = better === "higher" ? delta > 0 : delta < 0;
-  return `${improved ? "↑" : "↓"} ${formatCurrency(Math.abs(delta))}`;
+  return `${improved ? "↑" : "↓"} ${formatCurrency(Math.abs(delta), currencyCode)}`;
 }
 
-export default function ComparisonTable({ baseline, scenarios }: Props) {
+export default function ComparisonTable({ baseline, scenarios, currencyCode }: Props) {
   const rows = metricRows(baseline);
 
   return (
@@ -148,7 +149,7 @@ export default function ComparisonTable({ baseline, scenarios }: Props) {
               <td className="dashboard-compare-metric dashboard-compare-sticky-col">{row.label}</td>
               <td>
                 <div className={`dashboard-compare-value${row.valueClassName ? row.valueClassName(row.baselineValue) : ""}`}>
-                  {row.formatValue ? row.formatValue(row.baselineValue) : formatCurrency(row.baselineValue)}
+                  {row.formatValue ? row.formatValue(row.baselineValue, currencyCode) : formatCurrency(row.baselineValue, currencyCode)}
                 </div>
               </td>
               {scenarios.map((scenario) => {
@@ -158,9 +159,11 @@ export default function ComparisonTable({ baseline, scenarios }: Props) {
                 return (
                   <td key={scenario.id}>
                     <div className={`dashboard-compare-value${row.valueClassName ? row.valueClassName(value) : ""}`}>
-                      {row.formatValue ? row.formatValue(value) : formatCurrency(value)}
+                      {row.formatValue ? row.formatValue(value, currencyCode) : formatCurrency(value, currencyCode)}
                     </div>
-                    <p className={`dashboard-delta dashboard-delta-sm${deltaTone(delta, row.better)}`}>{deltaText(delta, row.better)}</p>
+                    <p className={`dashboard-delta dashboard-delta-sm${deltaTone(delta, row.better)}`}>
+                      {deltaText(delta, row.better, currencyCode)}
+                    </p>
                   </td>
                 );
               })}

@@ -6,8 +6,15 @@ export default async function SettingsPage() {
   const { profile } = await requireDashboardAccess();
 
   return (
-    <DashboardShell firstName={profile.first_name}>
-      <SettingsView firstName={profile.first_name} email={profile.email} jurisdiction={profile.jurisdiction} />
+    <DashboardShell firstName={profile.first_name} hasRelevantAgreements={profile.has_relevant_agreements}>
+      <SettingsView
+        firstName={profile.first_name}
+        email={profile.email}
+        jurisdiction={profile.jurisdiction}
+        currencyCode={profile.currency_code}
+        currencyOverridden={profile.currency_overridden}
+        hasRelevantAgreements={profile.has_relevant_agreements}
+      />
     </DashboardShell>
   );
 }

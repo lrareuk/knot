@@ -1,19 +1,20 @@
 import { redirect } from "next/navigation";
 import AuthFlowShell from "@/app/components/auth/AuthFlowShell";
 import SignupEmailStep from "@/app/components/auth/SignupEmailStep";
-import { readSignupFirstNameCookie } from "@/lib/server/signup-state";
+import { readSignupStateCookie } from "@/lib/server/signup-state";
 
 export default async function SignupEmailPage() {
-  const firstName = await readSignupFirstNameCookie();
+  const signupState = await readSignupStateCookie();
+  const firstName = signupState?.firstName ?? null;
+  const jurisdiction = signupState?.jurisdiction ?? null;
 
-  if (!firstName) {
+  if (!firstName || !jurisdiction) {
     redirect("/signup");
   }
 
   return (
     <AuthFlowShell>
-      <SignupEmailStep firstName={firstName} />
+      <SignupEmailStep firstName={firstName} jurisdiction={jurisdiction} />
     </AuthFlowShell>
   );
 }
-

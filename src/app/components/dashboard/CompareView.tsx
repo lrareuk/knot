@@ -8,9 +8,10 @@ import type { ScenarioRecord, ScenarioResults } from "@/lib/domain/types";
 type Props = {
   baseline: ScenarioResults;
   scenarios: ScenarioRecord[];
+  currencyCode: "GBP" | "USD" | "CAD";
 };
 
-export default function CompareView({ baseline, scenarios }: Props) {
+export default function CompareView({ baseline, scenarios, currencyCode }: Props) {
   const [selectedScenarioIds, setSelectedScenarioIds] = useState<string[]>(() => scenarios.slice(0, 2).map((scenario) => scenario.id));
 
   const selectedScenarios = useMemo(
@@ -80,7 +81,7 @@ export default function CompareView({ baseline, scenarios }: Props) {
         })}
       </section>
 
-      <ComparisonTable baseline={baseline} scenarios={selectedScenarios} />
+      <ComparisonTable baseline={baseline} scenarios={selectedScenarios} currencyCode={currencyCode} />
 
       <div className="dashboard-compare-actions">
         <Link href={reportHref} className="dashboard-btn">

@@ -5,12 +5,18 @@ import type { CSSProperties, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency } from "@/lib/domain/currency";
 import { computeScenario } from "@/lib/domain/compute-scenario";
+import { interpretScenarioAgreements } from "@/lib/domain/interpret-scenario-agreements";
+import { getJurisdictionProfile } from "@/lib/legal/jurisdictions";
 import type { FinancialPosition, ScenarioConfig, ScenarioRecord, ScenarioResults } from "@/lib/domain/types";
+import type { LegalAgreementTerm } from "@/lib/legal/types";
 
 type Props = {
   scenario: ScenarioRecord;
   position: FinancialPosition;
   baseline: ScenarioResults;
+  jurisdictionCode: string;
+  currencyCode: "GBP" | "USD" | "CAD";
+  agreementTerms: LegalAgreementTerm[];
 };
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -20,6 +26,7 @@ type SplitSliderProps = {
   label: string;
   total: number;
   percent: number;
+  currencyCode: "GBP" | "USD" | "CAD";
   onChange: (value: number) => void;
 };
 
@@ -50,22 +57,36 @@ function clampPercent(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
 
-function formatCompactCurrency(value: number) {
+function symbolForCurrency(currencyCode: "GBP" | "USD" | "CAD") {
+  return (
+    new Intl.NumberFormat(currencyCode === "USD" ? "en-US" : currencyCode === "CAD" ? "en-CA" : "en-GB", {
+      style: "currency",
+      currency: currencyCode,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    })
+      .formatToParts(0)
+      .find((part) => part.type === "currency")?.value ?? "$"
+  );
+}
+
+function formatCompactCurrency(value: number, currencyCode: "GBP" | "USD" | "CAD") {
   if (!Number.isFinite(value) || value === 0) {
     return "—";
   }
 
-  const sign = value < 0 ? "-£" : "£";
+  const symbol = symbolForCurrency(currencyCode);
+  const sign = value < 0 ? `-${symbol}` : symbol;
   const absolute = Math.abs(Math.round(value));
   if (absolute >= 1000) {
     const compact = (absolute / 1000).toFixed(absolute % 1000 === 0 ? 0 : 1);
     return `${sign}${compact}k`;
   }
 
-  return `${sign}${absolute.toLocaleString("en-GB")}`;
+  return `${sign}${absolute.toLocaleString("en-US")}`;
 }
 
-function DeltaPill({ value }: { value: number }) {
+function DeltaPill({ value, currencyCode }: { value: number; currencyCode: "GBP" | "USD" | "CAD" }) {
   if (value === 0) {
     return null;
   }
@@ -73,7 +94,7 @@ function DeltaPill({ value }: { value: number }) {
   const positive = value > 0;
   return (
     <span className={`dashboard-scenario-delta-pill ${positive ? "is-positive" : "is-negative"}`}>
-      {positive ? "↑" : "↓"} {formatCurrency(Math.abs(value))}
+      {positive ? "↑" : "↓"} {formatCurrency(Math.abs(value), currencyCode)}
     </span>
   );
 }
@@ -108,7 +129,7 @@ function Section({
   );
 }
 
-function SplitSlider({ label, total, percent, onChange }: SplitSliderProps) {
+function SplitSlider({ label, total, percent, currencyCode, onChange }: SplitSliderProps) {
   const safePercent = clampPercent(percent);
   const userShare = Math.round((total * safePercent) / 100);
   const partnerShare = total - userShare;
@@ -118,7 +139,7 @@ function SplitSlider({ label, total, percent, onChange }: SplitSliderProps) {
     <div className="dashboard-scenario-split-row">
       <div className="dashboard-scenario-row-head">
         <p className="dashboard-scenario-row-label">{label}</p>
-        <p className="dashboard-scenario-row-value">{formatCurrency(total)}</p>
+        <p className="dashboard-scenario-row-value">{formatCurrency(total, currencyCode)}</p>
       </div>
 
       <div className="dashboard-scenario-slider-wrap">
@@ -141,17 +162,17 @@ function SplitSlider({ label, total, percent, onChange }: SplitSliderProps) {
 
       <div className="dashboard-scenario-slider-values">
         <span>
-          {formatCurrency(userShare)} ({safePercent}%)
+          {formatCurrency(userShare, currencyCode)} ({safePercent}%)
         </span>
         <span>
-          {formatCurrency(partnerShare)} ({100 - safePercent}%)
+          {formatCurrency(partnerShare, currencyCode)} ({100 - safePercent}%)
         </span>
       </div>
     </div>
   );
 }
 
-export default function ScenarioEditor({ scenario, position }: Props) {
+export default function ScenarioEditor({ scenario, position, jurisdictionCode, currencyCode, agreementTerms }: Props) {
   const router = useRouter();
 
   const [name, setName] = useState(scenario.name);
@@ -171,6 +192,16 @@ export default function ScenarioEditor({ scenario, position }: Props) {
   const dirtyRef = useRef(false);
 
   const results = useMemo(() => computeScenario(position, config), [config, position]);
+  const agreementWarnings = useMemo(
+    () =>
+      interpretScenarioAgreements({
+        jurisdictionCode,
+        config,
+        terms: agreementTerms,
+      }),
+    [agreementTerms, config, jurisdictionCode]
+  );
+  const jurisdictionProfile = useMemo(() => getJurisdictionProfile(jurisdictionCode), [jurisdictionCode]);
   const propertyById = useMemo(() => new Map(position.properties.map((item) => [item.id, item])), [position.properties]);
   const pensionById = useMemo(() => new Map(position.pensions.map((item) => [item.id, item])), [position.pensions]);
   const savingsById = useMemo(() => new Map(position.savings.map((item) => [item.id, item])), [position.savings]);
@@ -307,8 +338,8 @@ export default function ScenarioEditor({ scenario, position }: Props) {
             <div className="dashboard-scenario-primary-card">
               <p className="dashboard-scenario-primary-label">Net position</p>
               <div className="dashboard-scenario-primary-value-row">
-                <p className="dashboard-scenario-primary-value">{formatCurrency(results.user_net_position)}</p>
-                <DeltaPill value={results.delta_user_net_position} />
+                <p className="dashboard-scenario-primary-value">{formatCurrency(results.user_net_position, currencyCode)}</p>
+                <DeltaPill value={results.delta_user_net_position} currencyCode={currencyCode} />
               </div>
             </div>
 
@@ -316,9 +347,9 @@ export default function ScenarioEditor({ scenario, position }: Props) {
               <p className="dashboard-scenario-primary-label">Monthly surplus</p>
               <div className="dashboard-scenario-primary-value-row">
                 <p className={`dashboard-scenario-primary-value${results.user_monthly_surplus_deficit < 0 ? " is-negative" : ""}`}>
-                  {formatCurrency(results.user_monthly_surplus_deficit)}
+                  {formatCurrency(results.user_monthly_surplus_deficit, currencyCode)}
                 </p>
-                <DeltaPill value={results.delta_user_monthly} />
+                <DeltaPill value={results.delta_user_monthly} currencyCode={currencyCode} />
               </div>
             </div>
           </div>
@@ -332,7 +363,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                     item.value > 0 ? " is-positive" : item.value < 0 ? " is-negative" : " is-zero"
                   }`}
                 >
-                  {formatCompactCurrency(item.value)}
+                  {formatCompactCurrency(item.value, currencyCode)}
                 </span>
               </div>
             ))}
@@ -373,7 +404,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                       <div key={decision.property_id} className="dashboard-scenario-control-row">
                         <div className="dashboard-scenario-row-head">
                           <p className="dashboard-scenario-row-label">{property.label || "Property"}</p>
-                          <p className="dashboard-scenario-row-value">{formatCurrency(equity)} equity</p>
+                          <p className="dashboard-scenario-row-value">{formatCurrency(equity, currencyCode)} equity</p>
                         </div>
 
                         <label className="dashboard-scenario-field-label" htmlFor={`property-action-${decision.property_id}`}>
@@ -402,6 +433,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                             label="Equity split"
                             total={equity}
                             percent={decision.equity_split_user}
+                            currencyCode={currencyCode}
                             onChange={(value) => {
                               const propertyDecisions = [...config.property_decisions];
                               propertyDecisions[index] = { ...decision, equity_split_user: value };
@@ -414,7 +446,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                           <p className="dashboard-scenario-helper">
                             Full equity allocated to {decision.action === "user_keeps" ? "you" : "your partner"}.
                             <span className="dashboard-scenario-helper-inline-value">
-                              You {formatCurrency(userShare)} · Partner {formatCurrency(partnerShare)}
+                              You {formatCurrency(userShare, currencyCode)} · Partner {formatCurrency(partnerShare, currencyCode)}
                             </span>
                           </p>
                         ) : null}
@@ -446,6 +478,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                         label={pension.label || "Pension"}
                         total={pension.current_value}
                         percent={split.split_user}
+                        currencyCode={currencyCode}
                         onChange={(value) => {
                           const pensionSplits = [...config.pension_splits];
                           pensionSplits[index] = { ...split, split_user: value };
@@ -479,6 +512,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                         label={savings.label || "Savings"}
                         total={savings.current_value}
                         percent={split.split_user}
+                        currencyCode={currencyCode}
                         onChange={(value) => {
                           const savingsSplits = [...config.savings_splits];
                           savingsSplits[index] = { ...split, split_user: value };
@@ -512,6 +546,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                         label={debt.label || "Debt"}
                         total={debt.outstanding}
                         percent={split.split_user}
+                        currencyCode={currencyCode}
                         onChange={(value) => {
                           const debtSplits = [...config.debt_splits];
                           debtSplits[index] = { ...split, split_user: value };
@@ -558,7 +593,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                         Monthly amount
                       </label>
                       <div className="dashboard-scenario-currency-wrap">
-                        <span>£</span>
+                        <span>{symbolForCurrency(currencyCode)}</span>
                         <input
                           id="spousal-maintenance-amount"
                           className="dashboard-scenario-currency"
@@ -610,7 +645,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                         Monthly amount
                       </label>
                       <div className="dashboard-scenario-currency-wrap">
-                        <span>£</span>
+                        <span>{symbolForCurrency(currencyCode)}</span>
                         <input
                           id="child-maintenance-amount"
                           className="dashboard-scenario-currency"
@@ -630,14 +665,14 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                     </div>
 
                     <p className="dashboard-scenario-helper">
-                      For an official estimate, use the{" "}
+                      For an official estimate, use{" "}
                       <a
-                        href="https://www.gov.uk/calculate-child-maintenance"
+                        href={jurisdictionProfile?.child_support_reference.url ?? "https://www.gov.uk/calculate-child-maintenance"}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-link"
                       >
-                        CMS calculator
+                        {jurisdictionProfile?.child_support_reference.label ?? "the local child support calculator"}
                       </a>
                       .
                     </p>
@@ -654,7 +689,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                       New monthly rent for you
                     </label>
                     <div className="dashboard-scenario-currency-wrap">
-                      <span>£</span>
+                      <span>{symbolForCurrency(currencyCode)}</span>
                       <input
                         id="housing-rent-user"
                         className="dashboard-scenario-currency"
@@ -678,7 +713,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                       New monthly rent for partner
                     </label>
                     <div className="dashboard-scenario-currency-wrap">
-                      <span>£</span>
+                      <span>{symbolForCurrency(currencyCode)}</span>
                       <input
                         id="housing-rent-partner"
                         className="dashboard-scenario-currency"
@@ -709,7 +744,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                     Your new net monthly income
                   </label>
                   <div className="dashboard-scenario-currency-wrap">
-                    <span>£</span>
+                    <span>{symbolForCurrency(currencyCode)}</span>
                     <input
                       id="income-user"
                       className="dashboard-scenario-currency"
@@ -733,7 +768,7 @@ export default function ScenarioEditor({ scenario, position }: Props) {
                     Partner&apos;s new net monthly income
                   </label>
                   <div className="dashboard-scenario-currency-wrap">
-                    <span>£</span>
+                    <span>{symbolForCurrency(currencyCode)}</span>
                     <input
                       id="income-partner"
                       className="dashboard-scenario-currency"
@@ -756,6 +791,34 @@ export default function ScenarioEditor({ scenario, position }: Props) {
               </Section>
             );
           })}
+
+          <section className="dashboard-scenario-section">
+            <div className="dashboard-scenario-section-header">
+              <div className="dashboard-scenario-section-heading">
+                <span className="dashboard-scenario-section-title">Agreement considerations</span>
+                <span className="dashboard-scenario-section-count">{agreementWarnings.length}</span>
+              </div>
+            </div>
+
+            <div className="dashboard-scenario-section-inner">
+              {agreementWarnings.length === 0 ? (
+                <p className="dashboard-scenario-helper">No agreement conflicts were detected for this scenario.</p>
+              ) : (
+                agreementWarnings.map((warning) => (
+                  <article key={warning.key} className="dashboard-status">
+                    <p>
+                      <strong>[{warning.severity.toUpperCase()}]</strong> {warning.message}
+                    </p>
+                    <p>
+                      Citation: &quot;{warning.citation.quote}&quot;
+                      {warning.citation.page ? ` (page ${warning.citation.page})` : ""}
+                      {warning.citation.section ? `, section ${warning.citation.section}` : ""}
+                    </p>
+                  </article>
+                ))
+              )}
+            </div>
+          </section>
 
           <p className="dashboard-scenario-disclaimer">
             These figures are modelled outcomes, not legal entitlements or predictions. Consult a solicitor for advice specific to

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useOnboardingUI } from "@/components/onboarding/OnboardingUIContext";
+import { currencySymbol } from "@/lib/onboarding/currency";
 
 type CurrencyInputProps = {
   label: string;
@@ -13,12 +15,9 @@ type CurrencyInputProps = {
   onEstimateToggle?: () => void;
 };
 
-const displayFormatter = new Intl.NumberFormat("en-GB", {
-  maximumFractionDigits: 2,
-});
-
-function sanitizeCurrencyInput(rawValue: string): string {
-  const withoutSymbols = rawValue.replace(/[\s,£]/g, "");
+function sanitizeCurrencyInput(rawValue: string, symbol: string): string {
+  const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const withoutSymbols = rawValue.replace(new RegExp(`[\\s,${escapedSymbol}]`, "g"), "");
   const onlyNumeric = withoutSymbols.replace(/[^0-9.-]/g, "");
   const unsigned = onlyNumeric.replace(/-/g, "");
   const firstDotIndex = unsigned.indexOf(".");
@@ -30,8 +29,8 @@ function sanitizeCurrencyInput(rawValue: string): string {
   return `${unsigned.slice(0, firstDotIndex + 1)}${unsigned.slice(firstDotIndex + 1).replace(/\./g, "")}`;
 }
 
-function parseCurrency(rawValue: string): number | null {
-  const normalized = sanitizeCurrencyInput(rawValue);
+function parseCurrency(rawValue: string, symbol: string): number | null {
+  const normalized = sanitizeCurrencyInput(rawValue, symbol);
   if (!normalized) {
     return null;
   }
@@ -51,11 +50,11 @@ function formatForEdit(value: number | null): string {
   return `${value}`;
 }
 
-function formatForDisplay(value: number | null): string {
+function formatForDisplay(value: number | null, locale: string): string {
   if (typeof value !== "number" || Number.isNaN(value)) {
     return "";
   }
-  return displayFormatter.format(value);
+  return new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value);
 }
 
 export default function CurrencyInput({
@@ -68,12 +67,15 @@ export default function CurrencyInput({
   isEstimated,
   onEstimateToggle,
 }: CurrencyInputProps) {
+  const { currencyCode } = useOnboardingUI();
+  const symbol = currencySymbol(currencyCode);
+  const locale = currencyCode === "USD" ? "en-US" : currencyCode === "CAD" ? "en-CA" : "en-GB";
   const [isFocused, setIsFocused] = useState(false);
   const [inputValue, setInputValue] = useState("");
 
   const displayValue = useMemo(() => {
-    return isFocused ? formatForEdit(value) : formatForDisplay(value);
-  }, [isFocused, value]);
+    return isFocused ? formatForEdit(value) : formatForDisplay(value, locale);
+  }, [isFocused, locale, value]);
 
   useEffect(() => {
     setInputValue(displayValue);
@@ -83,7 +85,7 @@ export default function CurrencyInput({
     <div className="onboarding-field">
       <label className="onboarding-field-label">{label}</label>
       <div className="onboarding-currency-wrap">
-        <span className="onboarding-currency-prefix">£</span>
+        <span className="onboarding-currency-prefix">{symbol}</span>
         <input
           type="text"
           inputMode="decimal"
@@ -96,12 +98,12 @@ export default function CurrencyInput({
           }}
           onBlur={() => {
             setIsFocused(false);
-            setInputValue(formatForDisplay(value));
+            setInputValue(formatForDisplay(value, locale));
           }}
           onChange={(event) => {
             const nextRawValue = event.target.value;
             setInputValue(nextRawValue);
-            onChange(parseCurrency(nextRawValue));
+            onChange(parseCurrency(nextRawValue, symbol));
           }}
         />
       </div>

@@ -1,4 +1,6 @@
 import ReportGenerator from "@/app/components/report/ReportGenerator";
+import { getJurisdictionProfile } from "@/lib/legal/jurisdictions";
+import type { LegalAgreementTerm } from "@/lib/legal/types";
 import { requireDashboardAccess } from "@/lib/server/auth";
 import { listScenarios } from "@/lib/server/scenarios";
 
@@ -7,8 +9,12 @@ export default async function ReportPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { user, supabase } = await requireDashboardAccess();
+  const { user, profile, supabase } = await requireDashboardAccess();
   const scenarios = await listScenarios(supabase, user.id);
+  const { data: terms } = await supabase
+    .from("legal_agreement_terms")
+    .select("id,agreement_id,user_id,term_type,term_payload,impact_direction,confidence,citation,source_document_id,created_at,updated_at")
+    .eq("user_id", user.id);
   const params = await searchParams;
   const rawPreselected = params.scenarios;
   const preselected =
@@ -19,5 +25,14 @@ export default async function ReportPage({
           .filter(Boolean)
       : [];
 
-  return <ReportGenerator scenarios={scenarios} initialReports={[]} preselectedScenarioIds={preselected} />;
+  return (
+    <ReportGenerator
+      scenarios={scenarios}
+      initialReports={[]}
+      preselectedScenarioIds={preselected}
+      currencyCode={profile.currency_code}
+      jurisdictionProfile={getJurisdictionProfile(profile.jurisdiction)}
+      agreementTerms={(terms ?? []) as LegalAgreementTerm[]}
+    />
+  );
 }

@@ -68,8 +68,12 @@ export async function POST() {
   if (reportPaths.length > 0) {
     const batches = chunk(reportPaths.filter(Boolean), REMOVE_CHUNK_SIZE);
     for (const batch of batches) {
-      const { error: removeError } = await admin.storage.from("reports").remove(batch);
-      if (removeError) {
+      const [{ error: reportRemoveError }, { error: agreementRemoveError }] = await Promise.all([
+        admin.storage.from("reports").remove(batch),
+        admin.storage.from("agreements").remove(batch),
+      ]);
+
+      if (reportRemoveError && agreementRemoveError) {
         return serverError("Unable to hide account");
       }
     }

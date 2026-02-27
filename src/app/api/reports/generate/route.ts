@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { z } from "zod";
 import { computeBaseline } from "@/lib/domain/compute-scenario";
+import { interpretScenarioAgreements } from "@/lib/domain/interpret-scenario-agreements";
 import { generateScenarioObservations } from "@/lib/domain/observations";
+import { getJurisdictionProfile } from "@/lib/legal/jurisdictions";
 import { badRequest, requireApiUser, serverError } from "@/lib/server/api";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 import { ClarityReportDocument } from "@/lib/report/ClarityReportDocument";
@@ -42,11 +44,28 @@ export async function POST(req: Request) {
 
   const position = await getOrCreateFinancialPosition(context.supabase, context.user.id);
   const baseline = computeBaseline(position);
-  const generatedAt = new Date().toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" });
+  const locale = context.profile?.currency_code === "USD" ? "en-US" : context.profile?.currency_code === "CAD" ? "en-CA" : "en-GB";
+  const generatedAt = new Date().toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
+  const jurisdictionProfile = getJurisdictionProfile(context.profile?.jurisdiction);
+
+  const { data: agreementTerms } = await context.supabase
+    .from("legal_agreement_terms")
+    .select("id,agreement_id,user_id,term_type,term_payload,impact_direction,confidence,citation,source_document_id,created_at,updated_at")
+    .eq("user_id", context.user.id);
 
   const observations: Record<string, string[]> = {};
+  const agreementInterpretations: Record<string, ReturnType<typeof interpretScenarioAgreements>> = {};
   for (const scenario of scenarios) {
-    observations[scenario.id] = generateScenarioObservations(scenario.name, scenario.results);
+    observations[scenario.id] = generateScenarioObservations(
+      scenario.name,
+      scenario.results,
+      context.profile?.currency_code ?? "GBP"
+    );
+    agreementInterpretations[scenario.id] = interpretScenarioAgreements({
+      jurisdictionCode: context.profile?.jurisdiction ?? "GB-SCT",
+      config: scenario.config,
+      terms: agreementTerms ?? [],
+    });
   }
 
   const buffer = await renderToBuffer(
@@ -55,6 +74,9 @@ export async function POST(req: Request) {
       baseline,
       scenarios,
       observations,
+      agreementInterpretations,
+      jurisdictionProfile,
+      currencyCode: context.profile?.currency_code ?? "GBP",
     })
   );
 

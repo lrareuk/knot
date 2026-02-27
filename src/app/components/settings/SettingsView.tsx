@@ -3,12 +3,17 @@
 import Link from "next/link";
 import { useState } from "react";
 import AccountDeletionForm from "@/app/components/settings/AccountDeletionForm";
+import AgreementManager from "@/app/components/settings/AgreementManager";
+import { jurisdictionGroupsForApi } from "@/lib/legal/jurisdictions";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 
 type Props = {
   firstName: string | null;
   email: string;
   jurisdiction: string;
+  currencyCode: "GBP" | "USD" | "CAD";
+  currencyOverridden: boolean;
+  hasRelevantAgreements: boolean | null;
 };
 
 function maskEmail(email: string) {
@@ -24,10 +29,27 @@ function maskEmail(email: string) {
   return `${local.slice(0, 2)}***${local.slice(-1)}@${domain}`;
 }
 
-export default function SettingsView({ firstName, email, jurisdiction }: Props) {
+export default function SettingsView({
+  firstName,
+  email,
+  jurisdiction,
+  currencyCode,
+  currencyOverridden,
+  hasRelevantAgreements,
+}: Props) {
   const [nameInput, setNameInput] = useState(firstName ?? "");
+  const [jurisdictionInput, setJurisdictionInput] = useState(jurisdiction);
+  const [currencyCodeInput, setCurrencyCodeInput] = useState<"GBP" | "USD" | "CAD">(currencyCode);
+  const [currencyOverriddenInput, setCurrencyOverriddenInput] = useState(currencyOverridden);
   const [profileStatus, setProfileStatus] = useState<string | null>(null);
   const [profileSaving, setProfileSaving] = useState(false);
+  const jurisdictionOptions = jurisdictionGroupsForApi().flatMap((country) =>
+    country.subdivisions.map((subdivision) => ({
+      code: subdivision.code,
+      label: `${country.label} · ${subdivision.display_name}`,
+      defaultCurrency: subdivision.default_currency,
+    }))
+  );
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -49,7 +71,12 @@ export default function SettingsView({ firstName, email, jurisdiction }: Props) 
     const response = await fetch("/api/settings/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ first_name: nameInput }),
+      body: JSON.stringify({
+        first_name: nameInput,
+        jurisdiction: jurisdictionInput,
+        currency_code: currencyCodeInput,
+        currency_overridden: currencyOverriddenInput,
+      }),
     });
 
     const payload = (await response.json().catch(() => ({}))) as { error?: string };
@@ -190,8 +217,41 @@ export default function SettingsView({ firstName, email, jurisdiction }: Props) 
         </label>
         <label>
           Jurisdiction
-          <select className="dashboard-select" value={jurisdiction} disabled>
-            <option value="scotland">Scotland</option>
+          <select className="dashboard-select" value={jurisdictionInput} onChange={(event) => setJurisdictionInput(event.target.value)}>
+            {jurisdictionOptions.map((option) => (
+              <option key={option.code} value={option.code}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="inline-control">
+          <input
+            type="checkbox"
+            checked={currencyOverriddenInput}
+            onChange={(event) => {
+              const nextOverridden = event.target.checked;
+              setCurrencyOverriddenInput(nextOverridden);
+
+              if (!nextOverridden) {
+                const jurisdictionOption = jurisdictionOptions.find((option) => option.code === jurisdictionInput);
+                setCurrencyCodeInput((jurisdictionOption?.defaultCurrency as "GBP" | "USD" | "CAD" | undefined) ?? "GBP");
+              }
+            }}
+          />
+          Override currency
+        </label>
+        <label>
+          Currency
+          <select
+            className="dashboard-select"
+            value={currencyCodeInput}
+            onChange={(event) => setCurrencyCodeInput(event.target.value as "GBP" | "USD" | "CAD")}
+            disabled={!currencyOverriddenInput}
+          >
+            <option value="GBP">GBP</option>
+            <option value="USD">USD</option>
+            <option value="CAD">CAD</option>
           </select>
         </label>
         <div>
@@ -201,6 +261,8 @@ export default function SettingsView({ firstName, email, jurisdiction }: Props) 
         </div>
         {profileStatus ? <p className="dashboard-status">{profileStatus}</p> : null}
       </section>
+
+      <AgreementManager initialDisclosure={hasRelevantAgreements} />
 
       <section className="dashboard-settings-section">
         <h2 className="dashboard-scenario-name">Password</h2>

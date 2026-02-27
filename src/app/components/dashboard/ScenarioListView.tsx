@@ -8,6 +8,7 @@ import type { ScenarioRecord } from "@/lib/domain/types";
 
 type Props = {
   initialScenarios: ScenarioRecord[];
+  currencyCode: "GBP" | "USD" | "CAD";
 };
 
 type BusyMap = Record<string, boolean>;
@@ -18,15 +19,15 @@ function deltaClass(value: number) {
   return "";
 }
 
-function deltaText(value: number) {
+function deltaText(value: number, currencyCode: "GBP" | "USD" | "CAD") {
   if (value === 0) {
     return "No change from baseline";
   }
 
-  return `${value > 0 ? "↑" : "↓"} ${formatCurrency(Math.abs(value))} from baseline`;
+  return `${value > 0 ? "↑" : "↓"} ${formatCurrency(Math.abs(value), currencyCode)} from baseline`;
 }
 
-export default function ScenarioListView({ initialScenarios }: Props) {
+export default function ScenarioListView({ initialScenarios, currencyCode }: Props) {
   const router = useRouter();
   const [scenarios, setScenarios] = useState(initialScenarios);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -242,19 +243,19 @@ export default function ScenarioListView({ initialScenarios }: Props) {
                     <div className="dashboard-scenario-metrics-row">
                       <div>
                         <p className="dashboard-scenario-metric-label">Net position</p>
-                        <p className="dashboard-scenario-metric-value">{formatCurrency(scenario.results.user_net_position)}</p>
+                        <p className="dashboard-scenario-metric-value">{formatCurrency(scenario.results.user_net_position, currencyCode)}</p>
                       </div>
                       <div>
                         <p className="dashboard-scenario-metric-label">Monthly</p>
                         <p className={`dashboard-scenario-metric-value${scenario.results.user_monthly_surplus_deficit < 0 ? " is-negative" : ""}`}>
-                          {formatCurrency(scenario.results.user_monthly_surplus_deficit)}/mo
+                          {formatCurrency(scenario.results.user_monthly_surplus_deficit, currencyCode)}/mo
                         </p>
                       </div>
                     </div>
 
                     <div className="dashboard-scenario-delta-row">
                       <p className={`dashboard-scenario-delta${deltaClass(scenario.results.delta_user_net_position)}`}>
-                        {deltaText(scenario.results.delta_user_net_position)}
+                        {deltaText(scenario.results.delta_user_net_position, currencyCode)}
                       </p>
                     </div>
                   </>

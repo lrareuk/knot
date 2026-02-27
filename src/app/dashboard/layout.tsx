@@ -8,5 +8,9 @@ export default async function DashboardLayout({
 }>) {
   const { profile } = await requireDashboardAccess();
 
-  return <DashboardShell firstName={profile.first_name}>{children}</DashboardShell>;
+  return (
+    <DashboardShell firstName={profile.first_name} hasRelevantAgreements={profile.has_relevant_agreements}>
+      {children}
+    </DashboardShell>
+  );
 }

@@ -7,15 +7,16 @@ import ItemCard from "@/components/onboarding/ItemCard";
 import ModuleHeader from "@/components/onboarding/ModuleHeader";
 import SelectInput from "@/components/onboarding/SelectInput";
 import Toggle from "@/components/onboarding/Toggle";
+import { useOnboardingUI } from "@/components/onboarding/OnboardingUIContext";
 import { createDefaultDependant } from "@/lib/onboarding/defaults";
-import { formatPounds, toNumber } from "@/lib/onboarding/currency";
+import { formatMoney, toNumber } from "@/lib/onboarding/currency";
 import { EXPENDITURE_FIELDS, MODULES } from "@/types/financial";
 import { useFinancialStore } from "@/stores/financial-position";
 import type { DependantItem, ExpenditureData } from "@/types/financial";
 
 const DEPENDANTS_MODULE = MODULES.find((module) => module.name === "dependants")!;
 
-const EXPENDITURE_LABELS: Record<keyof ExpenditureData, string> = {
+const BASE_EXPENDITURE_LABELS: Record<keyof ExpenditureData, string> = {
   housing: "Housing",
   utilities: "Utilities",
   council_tax: "Council tax",
@@ -28,6 +29,7 @@ const EXPENDITURE_LABELS: Record<keyof ExpenditureData, string> = {
 };
 
 export default function OnboardingDependantsPage() {
+  const { currencyCode, jurisdiction } = useOnboardingUI();
   const position = useFinancialStore((state) => state.position);
   const setDependants = useFinancialStore((state) => state.setDependants);
   const setExpenditure = useFinancialStore((state) => state.setExpenditure);
@@ -50,6 +52,10 @@ export default function OnboardingDependantsPage() {
   const dependants = position.dependants;
   const hasDependantChildren = !position.has_no_dependants;
   const expenditure = position.expenditure;
+  const expenditureLabels: Record<keyof ExpenditureData, string> = {
+    ...BASE_EXPENDITURE_LABELS,
+    council_tax: jurisdiction.startsWith("US-") || jurisdiction.startsWith("CA-") ? "Property tax" : "Council tax",
+  };
 
   const updateDependantAt = (index: number, updates: Partial<DependantItem>) => {
     const next = [...dependants];
@@ -145,7 +151,7 @@ export default function OnboardingDependantsPage() {
           {EXPENDITURE_FIELDS.map((field) => (
             <CurrencyInput
               key={field}
-              label={EXPENDITURE_LABELS[field]}
+              label={expenditureLabels[field]}
               value={expenditure[field]}
               onChange={(value) =>
                 setExpenditure({
@@ -159,7 +165,7 @@ export default function OnboardingDependantsPage() {
 
         <div className="onboarding-expenditure-total">
           <span>Total monthly expenditure</span>
-          <span>{formatPounds(monthlyExpenditureTotal)}</span>
+          <span>{formatMoney(monthlyExpenditureTotal, currencyCode)}</span>
         </div>
       </section>
 

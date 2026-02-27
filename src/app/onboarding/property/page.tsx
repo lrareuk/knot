@@ -8,8 +8,9 @@ import ModuleHeader from "@/components/onboarding/ModuleHeader";
 import SelectInput from "@/components/onboarding/SelectInput";
 import TextInput from "@/components/onboarding/TextInput";
 import Toggle from "@/components/onboarding/Toggle";
+import { useOnboardingUI } from "@/components/onboarding/OnboardingUIContext";
 import { createDefaultProperty } from "@/lib/onboarding/defaults";
-import { formatPounds, toNumber } from "@/lib/onboarding/currency";
+import { formatMoney, toNumber } from "@/lib/onboarding/currency";
 import { useFinancialStore } from "@/stores/financial-position";
 import type { PropertyItem } from "@/types/financial";
 import { MODULES } from "@/types/financial";
@@ -26,6 +27,7 @@ function nextProperty(current: PropertyItem, updates: Partial<PropertyItem>): Pr
 }
 
 export default function OnboardingPropertyPage() {
+  const { currencyCode } = useOnboardingUI();
   const position = useFinancialStore((state) => state.position);
   const setProperties = useFinancialStore((state) => state.setProperties);
 
@@ -125,7 +127,7 @@ export default function OnboardingPropertyPage() {
               <div className="onboarding-computed-field">
                 <span className="onboarding-computed-label">Equity</span>
                 <span className={`onboarding-computed-value ${toNumber(property.equity) < 0 ? "is-negative" : ""}`}>
-                  {formatPounds(property.equity)}
+                  {formatMoney(property.equity, currencyCode)}
                 </span>
               </div>
 

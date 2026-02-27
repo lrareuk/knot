@@ -7,6 +7,7 @@ import { supabaseBrowser } from "@/lib/supabase/browser";
 
 type Props = {
   firstName: string | null;
+  hasRelevantAgreements: boolean | null;
   children: React.ReactNode;
 };
 
@@ -72,7 +73,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const MOBILE_ITEMS: NavItem[] = [NAV_ITEMS[0], NAV_ITEMS[1], NAV_ITEMS[2], NAV_ITEMS[4]].filter(Boolean) as NavItem[];
 
-export default function DashboardShell({ firstName, children }: Props) {
+export default function DashboardShell({ firstName, hasRelevantAgreements, children }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const hasName = Boolean(firstName?.trim());
@@ -89,12 +90,11 @@ export default function DashboardShell({ firstName, children }: Props) {
       <aside className="dashboard-sidebar" aria-label="Primary navigation">
         <div className="dashboard-sidebar-top">
           <Link href="/dashboard" className="dashboard-brand-link" aria-label="Untie home">
-            <span className="dashboard-wordmark" aria-hidden>
-              UNTIE
-            </span>
+            <span className="logo-wordmark dashboard-logo-image" aria-hidden />
             <span className="dashboard-wordmark-compact" aria-hidden>
               U
             </span>
+            <span className="sr-only">Untie</span>
           </Link>
           <p className="dashboard-greeting">{greeting}</p>
         </div>
@@ -125,6 +125,19 @@ export default function DashboardShell({ firstName, children }: Props) {
       </aside>
 
       <main className="dashboard-main" role="main">
+        {hasRelevantAgreements === null ? (
+          <div className="dashboard-page">
+            <section className="dashboard-settings-section">
+              <h2 className="dashboard-scenario-name">Finish legal agreement disclosure</h2>
+              <p className="dashboard-status">
+                Tell us whether any prenup, postnup, or separation agreement may affect your financial position.
+              </p>
+              <Link href="/settings" className="dashboard-btn-ghost">
+                Open settings
+              </Link>
+            </section>
+          </div>
+        ) : null}
         {children}
       </main>
 

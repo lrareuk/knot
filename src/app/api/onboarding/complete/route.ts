@@ -7,6 +7,10 @@ export async function POST() {
     return context.response;
   }
 
+  if (context.profile?.has_relevant_agreements === null) {
+    return NextResponse.json({ error: "Agreement disclosure is required before completing onboarding" }, { status: 400 });
+  }
+
   const { error } = await context.supabase
     .from("users")
     .update({ onboarding_done: true })

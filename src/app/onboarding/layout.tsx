@@ -18,7 +18,12 @@ export default async function OnboardingLayout({ children }: { children: React.R
   }
 
   return (
-    <OnboardingShell userId={user.id} firstName={profile.first_name ?? null}>
+    <OnboardingShell
+      userId={user.id}
+      firstName={profile.first_name ?? null}
+      currencyCode={profile.currency_code}
+      jurisdiction={profile.jurisdiction}
+    >
       {children}
     </OnboardingShell>
   );

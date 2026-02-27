@@ -13,6 +13,8 @@ import { useFinancialStore } from "@/stores/financial-position";
 type OnboardingShellProps = {
   userId: string;
   firstName: string | null;
+  currencyCode: "GBP" | "USD" | "CAD";
+  jurisdiction: string;
   children: ReactNode;
 };
 
@@ -35,7 +37,7 @@ function LoadingShell({ firstName }: { firstName: string | null }) {
   );
 }
 
-export default function OnboardingShell({ userId, firstName, children }: OnboardingShellProps) {
+export default function OnboardingShell({ userId, firstName, currencyCode, jurisdiction, children }: OnboardingShellProps) {
   const pathname = usePathname();
   const fetchPosition = useFinancialStore((state) => state.fetch);
   const isLoading = useFinancialStore((state) => state.isLoading);
@@ -57,7 +59,11 @@ export default function OnboardingShell({ userId, firstName, children }: Onboard
   }, [currentModuleName]);
 
   if (isReviewPage) {
-    return <div className="onboarding-theme min-h-screen">{children}</div>;
+    return (
+      <OnboardingUIProvider value={{ openGuidance: () => setGuidanceOpen(true), currencyCode, jurisdiction }}>
+        <div className="onboarding-theme min-h-screen">{children}</div>
+      </OnboardingUIProvider>
+    );
   }
 
   if (isLoading || !position) {
@@ -65,7 +71,7 @@ export default function OnboardingShell({ userId, firstName, children }: Onboard
   }
 
   return (
-    <OnboardingUIProvider value={{ openGuidance: () => setGuidanceOpen(true) }}>
+    <OnboardingUIProvider value={{ openGuidance: () => setGuidanceOpen(true), currencyCode, jurisdiction }}>
       <div className="onboarding-theme onboarding-shell">
         <MobileProgressBar />
         <div className="onboarding-grid">

@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useOnboardingUI } from "@/components/onboarding/OnboardingUIContext";
 import { createClient } from "@/lib/supabase";
-import { formatPounds } from "@/lib/onboarding/currency";
+import { formatMoney } from "@/lib/onboarding/currency";
 import { getFinancialTotals } from "@/lib/onboarding/totals";
 import { getModuleStatus } from "@/lib/onboarding/progress";
 import { MODULES, type FinancialPosition, type ModuleName } from "@/types/financial";
@@ -17,7 +18,7 @@ type SummaryCard = {
 
 type ModuleStatus = "complete" | "partial" | "empty";
 
-function summaryForModule(position: FinancialPosition, moduleName: ModuleName): string[] {
+function summaryForModule(position: FinancialPosition, moduleName: ModuleName, currencyCode: "GBP" | "USD" | "CAD"): string[] {
   if (moduleName === "dates") {
     const lines: string[] = [];
     if (position.date_of_marriage) {
@@ -35,20 +36,20 @@ function summaryForModule(position: FinancialPosition, moduleName: ModuleName): 
       .slice(0, 3)
       .map((property) => {
         const equity = (property.current_value ?? 0) - (property.mortgage_outstanding ?? 0);
-        return `${property.label || "Property"}: ${formatPounds(equity)} equity`;
+        return `${property.label || "Property"}: ${formatMoney(equity, currencyCode)} equity`;
       });
   }
 
   if (moduleName === "income") {
     const lines: string[] = [];
     if (position.income.user_net_monthly !== null) {
-      lines.push(`Your net monthly income: ${formatPounds(position.income.user_net_monthly)}`);
+      lines.push(`Your net monthly income: ${formatMoney(position.income.user_net_monthly, currencyCode)}`);
     }
     if (position.income.partner_net_monthly !== null) {
-      lines.push(`Partner net monthly income: ${formatPounds(position.income.partner_net_monthly)}`);
+      lines.push(`Partner net monthly income: ${formatMoney(position.income.partner_net_monthly, currencyCode)}`);
     }
     if (position.income.other_income !== null) {
-      lines.push(`Other income: ${formatPounds(position.income.other_income)}`);
+      lines.push(`Other income: ${formatMoney(position.income.other_income, currencyCode)}`);
     }
     return lines;
   }
@@ -59,7 +60,7 @@ function summaryForModule(position: FinancialPosition, moduleName: ModuleName): 
       .slice(0, 3)
       .map((pension) => {
         const value = pension.current_value ?? pension.annual_amount;
-        return `${pension.label || "Pension"}: ${formatPounds(value)}`;
+        return `${pension.label || "Pension"}: ${formatMoney(value, currencyCode)}`;
       });
   }
 
@@ -67,14 +68,14 @@ function summaryForModule(position: FinancialPosition, moduleName: ModuleName): 
     return position.savings
       .filter((savings) => savings.current_value !== null)
       .slice(0, 3)
-      .map((savings) => `${savings.label || "Account"}: ${formatPounds(savings.current_value)}`);
+      .map((savings) => `${savings.label || "Account"}: ${formatMoney(savings.current_value, currencyCode)}`);
   }
 
   if (moduleName === "debts") {
     return position.debts
       .filter((debt) => debt.outstanding !== null)
       .slice(0, 3)
-      .map((debt) => `${debt.label || "Debt"}: ${formatPounds(debt.outstanding)} outstanding`);
+      .map((debt) => `${debt.label || "Debt"}: ${formatMoney(debt.outstanding, currencyCode)} outstanding`);
   }
 
   const lines: string[] = [];
@@ -86,7 +87,7 @@ function summaryForModule(position: FinancialPosition, moduleName: ModuleName): 
 
   const expenditureTotal = Object.values(position.expenditure).reduce((sum, value) => sum + (value ?? 0), 0);
   if (expenditureTotal > 0) {
-    lines.push(`Monthly expenditure: ${formatPounds(expenditureTotal)}`);
+    lines.push(`Monthly expenditure: ${formatMoney(expenditureTotal, currencyCode)}`);
   }
   return lines;
 }
@@ -123,9 +124,22 @@ function statusPillClass(status: ModuleStatus): string {
 
 export default function OnboardingReviewPage() {
   const router = useRouter();
+  const { currencyCode } = useOnboardingUI();
   const position = useFinancialStore((state) => state.position);
   const [isCompleting, setCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasRelevantAgreements, setHasRelevantAgreements] = useState<boolean | null>(null);
+  const [disclosureSaving, setDisclosureSaving] = useState(false);
+
+  useEffect(() => {
+    void (async () => {
+      const response = await fetch("/api/agreements");
+      const payload = (await response.json().catch(() => ({}))) as { has_relevant_agreements?: boolean | null };
+      if (response.ok) {
+        setHasRelevantAgreements(payload.has_relevant_agreements ?? null);
+      }
+    })();
+  }, []);
 
   const moduleCards = useMemo((): SummaryCard[] => {
     if (!position) {
@@ -134,9 +148,9 @@ export default function OnboardingReviewPage() {
 
     return MODULES.map((module) => ({
       moduleName: module.name,
-      lines: summaryForModule(position, module.name),
+      lines: summaryForModule(position, module.name, currencyCode),
     }));
-  }, [position]);
+  }, [currencyCode, position]);
 
   const moduleStatuses = useMemo(() => {
     if (!position) {
@@ -161,6 +175,11 @@ export default function OnboardingReviewPage() {
   const completedModulesCount = moduleStatuses.filter((status) => status === "complete").length;
 
   const markOnboardingComplete = async () => {
+    if (hasRelevantAgreements === null) {
+      setError("Please answer the legal agreement disclosure before continuing.");
+      return;
+    }
+
     setCompleting(true);
     setError(null);
 
@@ -185,6 +204,27 @@ export default function OnboardingReviewPage() {
     router.push("/dashboard");
   };
 
+  const saveDisclosure = async (value: boolean) => {
+    setDisclosureSaving(true);
+    setError(null);
+
+    const response = await fetch("/api/agreements/disclosure", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ has_relevant_agreements: value }),
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as { has_relevant_agreements?: boolean; error?: string };
+    setDisclosureSaving(false);
+
+    if (!response.ok) {
+      setError(payload.error ?? "Unable to save agreement disclosure. Please try again.");
+      return;
+    }
+
+    setHasRelevantAgreements(payload.has_relevant_agreements ?? value);
+  };
+
   return (
     <main className="onboarding-review-page">
       <header className="onboarding-review-header">
@@ -204,11 +244,11 @@ export default function OnboardingReviewPage() {
             </article>
             <article>
               <span>Net position</span>
-              <strong>{formatPounds(totals.netPosition)}</strong>
+              <strong>{formatMoney(totals.netPosition, currencyCode)}</strong>
             </article>
             <article>
               <span>Monthly surplus/deficit</span>
-              <strong>{formatPounds(totals.monthlySurplusDeficit)}</strong>
+              <strong>{formatMoney(totals.monthlySurplusDeficit, currencyCode)}</strong>
             </article>
           </div>
         </section>
@@ -255,41 +295,69 @@ export default function OnboardingReviewPage() {
       <section className="onboarding-review-totals">
         <div className="onboarding-review-total-row">
           <span>Total property equity</span>
-          <strong>{formatPounds(totals.totalPropertyEquity)}</strong>
+          <strong>{formatMoney(totals.totalPropertyEquity, currencyCode)}</strong>
         </div>
         <div className="onboarding-review-total-row">
           <span>Total pensions</span>
-          <strong>{formatPounds(totals.totalPensions)}</strong>
+          <strong>{formatMoney(totals.totalPensions, currencyCode)}</strong>
         </div>
         <div className="onboarding-review-total-row">
           <span>Total savings</span>
-          <strong>{formatPounds(totals.totalSavings)}</strong>
+          <strong>{formatMoney(totals.totalSavings, currencyCode)}</strong>
         </div>
         <div className="onboarding-review-total-row">
           <span>Total debts</span>
-          <strong>{formatPounds(totals.totalDebts)}</strong>
+          <strong>{formatMoney(totals.totalDebts, currencyCode)}</strong>
         </div>
 
         <div className="onboarding-review-total-row is-net">
           <span>Net position</span>
-          <strong>{formatPounds(totals.netPosition)}</strong>
+          <strong>{formatMoney(totals.netPosition, currencyCode)}</strong>
         </div>
 
         <div className="onboarding-review-total-row">
           <span>Combined monthly income</span>
-          <strong>{formatPounds(totals.combinedMonthlyIncome)}</strong>
+          <strong>{formatMoney(totals.combinedMonthlyIncome, currencyCode)}</strong>
         </div>
         <div className="onboarding-review-total-row">
           <span>Combined monthly expenditure</span>
-          <strong>{formatPounds(totals.combinedMonthlyExpenditure)}</strong>
+          <strong>{formatMoney(totals.combinedMonthlyExpenditure, currencyCode)}</strong>
         </div>
         <div className="onboarding-review-total-row">
           <span>Monthly surplus/deficit</span>
-          <strong>{formatPounds(totals.monthlySurplusDeficit)}</strong>
+          <strong>{formatMoney(totals.monthlySurplusDeficit, currencyCode)}</strong>
         </div>
       </section>
 
       <section className="onboarding-review-cta">
+        <article className="onboarding-review-card">
+          <header className="onboarding-review-card-head">
+            <div className="onboarding-review-card-title-wrap">
+              <h2>Legal agreement disclosure</h2>
+              <span className={`onboarding-review-status-pill ${hasRelevantAgreements === null ? "is-empty" : "is-complete"}`}>
+                {hasRelevantAgreements === null ? "Required" : hasRelevantAgreements ? "Yes" : "No"}
+              </span>
+            </div>
+          </header>
+
+          <p>
+            Have you signed a prenup, postnup, or separation agreement that may affect your financial position?
+          </p>
+          <div className="dashboard-inline-actions">
+            <button type="button" className="dashboard-btn-ghost" onClick={() => void saveDisclosure(true)} disabled={disclosureSaving}>
+              Yes
+            </button>
+            <button type="button" className="dashboard-btn-ghost" onClick={() => void saveDisclosure(false)} disabled={disclosureSaving}>
+              No
+            </button>
+            {hasRelevantAgreements ? (
+              <button type="button" className="dashboard-btn-ghost" onClick={() => router.push("/settings")}>
+                Add details in settings
+              </button>
+            ) : null}
+          </div>
+        </article>
+
         {hasEmptyModule ? (
           <p className="onboarding-review-warning">
             Some sections are incomplete. Your scenarios will be more accurate with more data, but you can always add it later.

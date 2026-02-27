@@ -7,6 +7,7 @@ import type { FinancialPosition, ScenarioRecord } from "@/lib/domain/types";
 type Props = {
   position: FinancialPosition;
   scenarios: ScenarioRecord[];
+  currencyCode: "GBP" | "USD" | "CAD";
 };
 
 function safeNumber(value: number | null | undefined) {
@@ -43,17 +44,19 @@ function MetricCard({
   label,
   value,
   count,
+  currencyCode,
   negative = false,
 }: {
   label: string;
   value: number;
   count: number;
+  currencyCode: "GBP" | "USD" | "CAD";
   negative?: boolean;
 }) {
   return (
     <article className="dashboard-metric-card">
       <p className="dashboard-metric-label">{label}</p>
-      <p className={`dashboard-metric-value${negative ? " is-negative" : ""}`}>{formatCurrency(value)}</p>
+      <p className={`dashboard-metric-value${negative ? " is-negative" : ""}`}>{formatCurrency(value, currencyCode)}</p>
       <p className="dashboard-metric-count">
         {count} item{count === 1 ? "" : "s"}
       </p>
@@ -61,7 +64,7 @@ function MetricCard({
   );
 }
 
-export default function OverviewView({ position, scenarios }: Props) {
+export default function OverviewView({ position, scenarios, currencyCode }: Props) {
   const propertyEquity = position.properties.reduce(
     (total, property) => total + (safeNumber(property.current_value) - safeNumber(property.mortgage_outstanding)),
     0
@@ -92,15 +95,21 @@ export default function OverviewView({ position, scenarios }: Props) {
 
       <section className="dashboard-net-hero" aria-label="Net position">
         <p className="dashboard-panel-eyebrow">Net position</p>
-        <p className={`dashboard-net-value${net < 0 ? " is-negative" : ""}`}>{formatCurrency(net)}</p>
+        <p className={`dashboard-net-value${net < 0 ? " is-negative" : ""}`}>{formatCurrency(net, currencyCode)}</p>
         <p className="dashboard-muted-note">Total assets minus total liabilities</p>
       </section>
 
       <section className="dashboard-metrics-grid" aria-label="Category totals">
-        <MetricCard label="Property equity" value={propertyEquity} count={position.properties.length} negative={propertyEquity < 0} />
-        <MetricCard label="Pensions" value={pensions} count={position.pensions.length} />
-        <MetricCard label="Savings" value={savings} count={position.savings.length} />
-        <MetricCard label="Debts" value={debts} count={position.debts.length} negative />
+        <MetricCard
+          label="Property equity"
+          value={propertyEquity}
+          count={position.properties.length}
+          currencyCode={currencyCode}
+          negative={propertyEquity < 0}
+        />
+        <MetricCard label="Pensions" value={pensions} count={position.pensions.length} currencyCode={currencyCode} />
+        <MetricCard label="Savings" value={savings} count={position.savings.length} currencyCode={currencyCode} />
+        <MetricCard label="Debts" value={debts} count={position.debts.length} currencyCode={currencyCode} negative />
       </section>
 
       <section className="dashboard-cashflow-panel" aria-label="Monthly cash flow">
@@ -109,17 +118,17 @@ export default function OverviewView({ position, scenarios }: Props) {
         <div className="dashboard-cashflow-metrics">
           <div>
             <p className="dashboard-cashflow-label">Combined income</p>
-            <p className="dashboard-cashflow-value">{formatCurrency(income)}</p>
+            <p className="dashboard-cashflow-value">{formatCurrency(income, currencyCode)}</p>
           </div>
 
           <div>
             <p className="dashboard-cashflow-label">Combined expenditure</p>
-            <p className="dashboard-cashflow-value">{formatCurrency(expenditure)}</p>
+            <p className="dashboard-cashflow-value">{formatCurrency(expenditure, currencyCode)}</p>
           </div>
 
           <div>
             <p className="dashboard-cashflow-label">Surplus / Deficit</p>
-            <p className={`dashboard-cashflow-surplus${surplus < 0 ? " is-negative" : ""}`}>{formatCurrency(surplus)}</p>
+            <p className={`dashboard-cashflow-surplus${surplus < 0 ? " is-negative" : ""}`}>{formatCurrency(surplus, currencyCode)}</p>
           </div>
         </div>
 

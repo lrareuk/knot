@@ -18,7 +18,8 @@ export default function Sidebar({ firstName }: SidebarProps) {
   return (
     <aside className="onboarding-sidebar" aria-label="Onboarding sidebar">
       <div className="onboarding-sidebar-head">
-        <p className="onboarding-sidebar-logo">UNTIE</p>
+        <span className="logo-wordmark onboarding-sidebar-logo-image" aria-hidden />
+        <span className="sr-only">Untie</span>
         <p className="onboarding-sidebar-greeting">Hi {firstName?.trim() ? firstName : "there"}</p>
       </div>
 

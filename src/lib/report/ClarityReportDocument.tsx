@@ -1,11 +1,16 @@
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import type { ScenarioRecord, ScenarioResults } from "@/lib/domain/types";
+import type { JurisdictionProfile } from "@/lib/legal/jurisdictions";
+import type { AgreementInterpretationWarning } from "@/lib/legal/types";
 
 type Props = {
   generatedAt: string;
   baseline: ScenarioResults;
   scenarios: ScenarioRecord[];
   observations: Record<string, string[]>;
+  agreementInterpretations: Record<string, AgreementInterpretationWarning[]>;
+  jurisdictionProfile: JurisdictionProfile | null;
+  currencyCode: "GBP" | "USD" | "CAD";
 };
 
 const styles = StyleSheet.create({
@@ -106,17 +111,18 @@ const styles = StyleSheet.create({
   },
 });
 
-function money(value: number) {
-  return new Intl.NumberFormat("en-GB", {
+function money(value: number, currencyCode: "GBP" | "USD" | "CAD") {
+  const locale = currencyCode === "USD" ? "en-US" : currencyCode === "CAD" ? "en-CA" : "en-GB";
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "GBP",
+    currency: currencyCode,
     maximumFractionDigits: 0,
   }).format(value);
 }
 
-function delta(value: number) {
+function delta(value: number, currencyCode: "GBP" | "USD" | "CAD") {
   if (value === 0) return "—";
-  return `${value > 0 ? "+" : "−"}${money(Math.abs(value))}`;
+  return `${value > 0 ? "+" : "−"}${money(Math.abs(value), currencyCode)}`;
 }
 
 function PageHeader() {
@@ -128,38 +134,46 @@ function PageHeader() {
   );
 }
 
-function SummaryRows({ results }: { results: ScenarioResults }) {
+function SummaryRows({ results, currencyCode }: { results: ScenarioResults; currencyCode: "GBP" | "USD" | "CAD" }) {
   return (
     <View>
       <View style={styles.tableRow}>
         <Text style={styles.tableLabel}>Net position (user)</Text>
-        <Text style={styles.tableCell}>{money(results.user_net_position)}</Text>
+        <Text style={styles.tableCell}>{money(results.user_net_position, currencyCode)}</Text>
       </View>
       <View style={styles.tableRow}>
         <Text style={styles.tableLabel}>Property equity</Text>
-        <Text style={styles.tableCell}>{money(results.user_property_equity)}</Text>
+        <Text style={styles.tableCell}>{money(results.user_property_equity, currencyCode)}</Text>
       </View>
       <View style={styles.tableRow}>
         <Text style={styles.tableLabel}>Pensions</Text>
-        <Text style={styles.tableCell}>{money(results.user_total_pensions)}</Text>
+        <Text style={styles.tableCell}>{money(results.user_total_pensions, currencyCode)}</Text>
       </View>
       <View style={styles.tableRow}>
         <Text style={styles.tableLabel}>Savings</Text>
-        <Text style={styles.tableCell}>{money(results.user_total_savings)}</Text>
+        <Text style={styles.tableCell}>{money(results.user_total_savings, currencyCode)}</Text>
       </View>
       <View style={styles.tableRow}>
         <Text style={styles.tableLabel}>Debts</Text>
-        <Text style={styles.tableCell}>{money(results.user_total_debts)}</Text>
+        <Text style={styles.tableCell}>{money(results.user_total_debts, currencyCode)}</Text>
       </View>
       <View style={styles.tableRow}>
         <Text style={styles.tableLabel}>Monthly surplus/deficit</Text>
-        <Text style={styles.tableCell}>{money(results.user_monthly_surplus_deficit)}</Text>
+        <Text style={styles.tableCell}>{money(results.user_monthly_surplus_deficit, currencyCode)}</Text>
       </View>
     </View>
   );
 }
 
-export function ClarityReportDocument({ generatedAt, baseline, scenarios, observations }: Props) {
+export function ClarityReportDocument({
+  generatedAt,
+  baseline,
+  scenarios,
+  observations,
+  agreementInterpretations,
+  jurisdictionProfile,
+  currencyCode,
+}: Props) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -188,7 +202,7 @@ export function ClarityReportDocument({ generatedAt, baseline, scenarios, observ
           <Text style={styles.sectionHeading}>Section 1: Baseline financial position</Text>
           <View style={styles.card}>
             <Text style={styles.cardHeader}>Current position</Text>
-            <SummaryRows results={baseline} />
+            <SummaryRows results={baseline} currencyCode={currencyCode} />
           </View>
         </View>
       </Page>
@@ -200,7 +214,7 @@ export function ClarityReportDocument({ generatedAt, baseline, scenarios, observ
             <Text style={styles.sectionHeading}>Section 2: {scenario.name}</Text>
             <View style={styles.card}>
               <Text style={styles.cardHeader}>Scenario configuration outcome</Text>
-              <SummaryRows results={scenario.results} />
+              <SummaryRows results={scenario.results} currencyCode={currencyCode} />
             </View>
 
             <View style={styles.card}>
@@ -208,15 +222,28 @@ export function ClarityReportDocument({ generatedAt, baseline, scenarios, observ
               <View style={styles.tableRow}>
                 <Text style={styles.tableLabel}>Net position delta</Text>
                 <Text style={[styles.tableCell, scenario.results.delta_user_net_position < 0 ? styles.deltaNeg : styles.deltaPos]}>
-                  {delta(scenario.results.delta_user_net_position)}
+                  {delta(scenario.results.delta_user_net_position, currencyCode)}
                 </Text>
               </View>
               <View style={styles.tableRow}>
                 <Text style={styles.tableLabel}>Monthly delta</Text>
                 <Text style={[styles.tableCell, scenario.results.delta_user_monthly < 0 ? styles.deltaNeg : styles.deltaPos]}>
-                  {delta(scenario.results.delta_user_monthly)}
+                  {delta(scenario.results.delta_user_monthly, currencyCode)}
                 </Text>
               </View>
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardHeader}>Agreement interpretation</Text>
+              {(agreementInterpretations[scenario.id] ?? []).length === 0 ? (
+                <Text style={styles.listItem}>No agreement conflicts detected for this scenario.</Text>
+              ) : (
+                (agreementInterpretations[scenario.id] ?? []).map((warning) => (
+                  <Text key={warning.key} style={styles.listItem}>
+                    • [{warning.severity.toUpperCase()}] {warning.message} Citation: &quot;{warning.citation.quote}&quot;
+                  </Text>
+                ))
+              )}
             </View>
           </View>
         </Page>
@@ -239,20 +266,20 @@ export function ClarityReportDocument({ generatedAt, baseline, scenarios, observ
 
             <View style={styles.tableRow}>
               <Text style={styles.tableLabel}>Net position (user)</Text>
-              <Text style={styles.tableCell}>{money(baseline.user_net_position)}</Text>
+              <Text style={styles.tableCell}>{money(baseline.user_net_position, currencyCode)}</Text>
               {scenarios.map((scenario) => (
                 <Text key={scenario.id} style={styles.tableCell}>
-                  {money(scenario.results.user_net_position)}
+                  {money(scenario.results.user_net_position, currencyCode)}
                 </Text>
               ))}
             </View>
 
             <View style={styles.tableRow}>
               <Text style={styles.tableLabel}>Monthly surplus/deficit</Text>
-              <Text style={styles.tableCell}>{money(baseline.user_monthly_surplus_deficit)}</Text>
+              <Text style={styles.tableCell}>{money(baseline.user_monthly_surplus_deficit, currencyCode)}</Text>
               {scenarios.map((scenario) => (
                 <Text key={scenario.id} style={styles.tableCell}>
-                  {money(scenario.results.user_monthly_surplus_deficit)}
+                  {money(scenario.results.user_monthly_surplus_deficit, currencyCode)}
                 </Text>
               ))}
             </View>
@@ -281,6 +308,20 @@ export function ClarityReportDocument({ generatedAt, baseline, scenarios, observ
         <PageHeader />
         <View style={styles.body}>
           <Text style={styles.sectionHeading}>Final page: Disclaimers and next steps</Text>
+          {jurisdictionProfile ? (
+            <View style={styles.card}>
+              <Text style={styles.cardHeader}>Jurisdiction profile</Text>
+              <Text style={styles.listItem}>{jurisdictionProfile.display_name}</Text>
+              <Text style={styles.listItem}>{jurisdictionProfile.property_framework}</Text>
+              <Text style={styles.listItem}>{jurisdictionProfile.maintenance_framework}</Text>
+              {jurisdictionProfile.key_caveats.map((caveat) => (
+                <Text key={caveat} style={styles.listItem}>
+                  • {caveat}
+                </Text>
+              ))}
+            </View>
+          ) : null}
+
           <View style={styles.card}>
             <Text style={styles.listItem}>
               Untie provides financial modelling only. It does not provide legal entitlement calculations, court predictions, tax

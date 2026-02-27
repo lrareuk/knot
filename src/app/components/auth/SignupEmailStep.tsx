@@ -8,11 +8,12 @@ import styles from "./AuthFlow.module.css";
 
 type Props = {
   firstName: string;
+  jurisdiction: string;
 };
 
 const EXIT_ANIMATION_MS = 200;
 
-export default function SignupEmailStep({ firstName }: Props) {
+export default function SignupEmailStep({ firstName, jurisdiction }: Props) {
   const router = useRouter();
   const emailRef = useRef<HTMLInputElement | null>(null);
   const [email, setEmail] = useState("");
@@ -53,6 +54,7 @@ export default function SignupEmailStep({ firstName }: Props) {
         emailRedirectTo: `${window.location.origin}/auth/confirm?next=%2Fstart`,
         data: {
           first_name: firstName,
+          jurisdiction,
         },
       },
     });
@@ -104,7 +106,7 @@ export default function SignupEmailStep({ firstName }: Props) {
         id: user.id,
         email: normalizedEmail,
         first_name: firstName,
-        jurisdiction: "scotland",
+        jurisdiction,
         paid: false,
         onboarding_done: false,
       },

@@ -28,11 +28,26 @@ function createSupabaseMock() {
   const reportsEq = vi.fn().mockReturnValue({ order: reportsOrder });
   const reportsSelect = vi.fn().mockReturnValue({ eq: reportsEq });
 
+  const agreementsOrder = vi.fn().mockResolvedValue({ data: [{ id: "agreement-1" }], error: null });
+  const agreementsEq = vi.fn().mockReturnValue({ order: agreementsOrder });
+  const agreementsSelect = vi.fn().mockReturnValue({ eq: agreementsEq });
+
+  const agreementDocumentsOrder = vi.fn().mockResolvedValue({ data: [{ id: "doc-1" }], error: null });
+  const agreementDocumentsEq = vi.fn().mockReturnValue({ order: agreementDocumentsOrder });
+  const agreementDocumentsSelect = vi.fn().mockReturnValue({ eq: agreementDocumentsEq });
+
+  const agreementTermsOrder = vi.fn().mockResolvedValue({ data: [{ id: "term-1" }], error: null });
+  const agreementTermsEq = vi.fn().mockReturnValue({ order: agreementTermsOrder });
+  const agreementTermsSelect = vi.fn().mockReturnValue({ eq: agreementTermsEq });
+
   const from = vi.fn((table: string) => {
     if (table === "users") return { select: usersSelect };
     if (table === "financial_position") return { select: financialSelect };
     if (table === "scenarios") return { select: scenariosSelect };
     if (table === "reports") return { select: reportsSelect };
+    if (table === "legal_agreements") return { select: agreementsSelect };
+    if (table === "legal_agreement_documents") return { select: agreementDocumentsSelect };
+    if (table === "legal_agreement_terms") return { select: agreementTermsSelect };
     throw new Error(`Unexpected table: ${table}`);
   });
 
@@ -57,6 +72,9 @@ describe("GET /api/account/export", () => {
       profile?: { id: string };
       scenarios?: Array<{ id: string }>;
       reports?: Array<{ id: string }>;
+      legal_agreements?: Array<{ id: string }>;
+      legal_agreement_documents?: Array<{ id: string }>;
+      legal_agreement_terms?: Array<{ id: string }>;
       exported_at?: string;
     };
 
@@ -64,6 +82,9 @@ describe("GET /api/account/export", () => {
     expect(payload.profile?.id).toBe("user-1");
     expect(payload.scenarios?.[0]?.id).toBe("scenario-1");
     expect(payload.reports?.[0]?.id).toBe("report-1");
+    expect(payload.legal_agreements?.[0]?.id).toBe("agreement-1");
+    expect(payload.legal_agreement_documents?.[0]?.id).toBe("doc-1");
+    expect(payload.legal_agreement_terms?.[0]?.id).toBe("term-1");
     expect(typeof payload.exported_at).toBe("string");
   });
 });

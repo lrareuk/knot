@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { deserializeSignupFirstName, SIGNUP_STATE_COOKIE } from "@/lib/auth/signup-state";
+import { deserializeSignupState, SIGNUP_STATE_COOKIE } from "@/lib/auth/signup-state";
 import { resolveAccessRedirect } from "@/lib/server/access-guard";
 import { ensureAndFetchUserProfile } from "@/lib/server/user-profile";
 
@@ -128,7 +128,7 @@ export async function proxy(req: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isApi = pathname.startsWith("/api");
-  const hasSignupName = Boolean(deserializeSignupFirstName(req.cookies.get(SIGNUP_STATE_COOKIE)?.value));
+  const hasSignupName = Boolean(deserializeSignupState(req.cookies.get(SIGNUP_STATE_COOKIE)?.value)?.firstName);
 
   if (!user) {
     const redirectPath = resolveAccessRedirect({
