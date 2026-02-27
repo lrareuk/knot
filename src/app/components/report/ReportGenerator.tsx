@@ -90,7 +90,7 @@ export default function ReportGenerator({ scenarios, initialReports, preselected
           </div>
         </header>
 
-      <section className="dashboard-empty-state">
+        <section className="dashboard-empty-state">
           <p>Create at least one scenario before generating a report.</p>
           <Link href="/dashboard/scenarios" className="dashboard-btn">
             Go to scenarios
@@ -130,17 +130,17 @@ export default function ReportGenerator({ scenarios, initialReports, preselected
         <div className="dashboard-report-preview-wordmark">
           <span aria-hidden />
         </div>
-        <p style={{ marginTop: 16, color: "#9A9590", fontSize: 14 }}>Clarity Report Preview</p>
-        <p style={{ marginTop: 8, color: "#555", fontSize: 12 }}>
+        <p className="dashboard-report-preview-title">Clarity Report Preview</p>
+        <p className="dashboard-report-preview-subtitle">
           Includes: Baseline + selected scenarios + comparison + observations
         </p>
       </section>
 
-      <div>
+      <div className="dashboard-report-generate-wrap">
         <button type="button" className="dashboard-btn" onClick={generate} disabled={loading}>
           {loading ? "Generating your report..." : "Generate report"}
         </button>
-        {error ? <p className="dashboard-status" style={{ marginTop: 10 }}>{error}</p> : null}
+        {error ? <p className="dashboard-status dashboard-status-with-top-gap">{error}</p> : null}
       </div>
 
       {latestGenerated ? (
@@ -158,14 +158,12 @@ export default function ReportGenerator({ scenarios, initialReports, preselected
       ) : null}
 
       <section>
-        <h2 className="dashboard-scenario-name" style={{ marginBottom: 12 }}>
-          Recent reports
-        </h2>
+        <h2 className="dashboard-scenario-name dashboard-report-history-title">Recent reports</h2>
         {reports.length === 0 ? <p className="dashboard-status">No reports generated yet.</p> : null}
-        <div style={{ display: "grid", gap: 12 }}>
+        <div className="dashboard-report-history-list">
           {reports.map((report) => (
-            <article key={report.id} className="dashboard-scenario-card" style={{ padding: 18 }}>
-              <div className="dashboard-inline-actions" style={{ justifyContent: "space-between", width: "100%" }}>
+            <article key={report.id} className="dashboard-scenario-card dashboard-report-history-card">
+              <div className="dashboard-inline-actions dashboard-inline-actions-between dashboard-inline-actions-full">
                 <div>
                   <p>Generated {formatDate(report.generated_at)}</p>
                   <p className="dashboard-status">Expires {formatDate(report.expires_at)}</p>

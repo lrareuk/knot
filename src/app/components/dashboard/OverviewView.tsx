@@ -236,7 +236,7 @@ export default function OverviewView({ baseline, position, scenarios, updatedAt 
           <CreateScenarioButton className="dashboard-btn" label="Create first scenario" />
         </section>
       ) : (
-        <section style={{ display: "grid", gap: 16 }}>
+        <section className="dashboard-overview-scenarios">
           <div className="dashboard-inline-actions">
             <CreateScenarioButton
               className="dashboard-btn"

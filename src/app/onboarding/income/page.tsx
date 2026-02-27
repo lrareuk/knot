@@ -26,48 +26,52 @@ export default function OnboardingIncomePage() {
       <div className="onboarding-income-grid">
         <div className="onboarding-income-divider" aria-hidden />
 
-        <section className="onboarding-stack-md">
+        <section className="onboarding-income-column">
           <h3 className="onboarding-income-heading">Your income</h3>
-          <CurrencyInput
-            label="Gross annual salary"
-            value={income.user_gross_annual}
-            onChange={(value) => setIncome({ ...income, user_gross_annual: value })}
-            placeholder="e.g. 65,000"
-          />
-          <CurrencyInput
-            label="Net monthly take-home"
-            value={income.user_net_monthly}
-            onChange={(value) => setIncome({ ...income, user_net_monthly: value })}
-            placeholder="e.g. 3,800"
-            help="Your pay after tax and deductions."
-          />
+          <div className="onboarding-income-fields">
+            <CurrencyInput
+              label="Gross annual salary"
+              value={income.user_gross_annual}
+              onChange={(value) => setIncome({ ...income, user_gross_annual: value })}
+              placeholder="e.g. 65,000"
+            />
+            <CurrencyInput
+              label="Net monthly take-home"
+              value={income.user_net_monthly}
+              onChange={(value) => setIncome({ ...income, user_net_monthly: value })}
+              placeholder="e.g. 3,800"
+              help="Your pay after tax and deductions."
+            />
+          </div>
         </section>
 
-        <section className="onboarding-stack-md">
+        <section className="onboarding-income-column">
           <h3 className="onboarding-income-heading">Your partner&apos;s income</h3>
-          <CurrencyInput
-            label="Gross annual salary"
-            value={income.partner_gross_annual}
-            onChange={(value) => setIncome({ ...income, partner_gross_annual: value })}
-            placeholder="e.g. 45,000"
-            showEstimate
-            isEstimated={income.is_estimated.partner_gross_annual}
-            onEstimateToggle={() =>
-              setIncome({
-                ...income,
-                is_estimated: {
-                  ...income.is_estimated,
-                  partner_gross_annual: !income.is_estimated.partner_gross_annual,
-                },
-              })
-            }
-          />
-          <CurrencyInput
-            label="Net monthly take-home"
-            value={income.partner_net_monthly}
-            onChange={(value) => setIncome({ ...income, partner_net_monthly: value })}
-            placeholder="e.g. 2,800"
-          />
+          <div className="onboarding-income-fields">
+            <CurrencyInput
+              label="Gross annual salary"
+              value={income.partner_gross_annual}
+              onChange={(value) => setIncome({ ...income, partner_gross_annual: value })}
+              placeholder="e.g. 45,000"
+              showEstimate
+              isEstimated={income.is_estimated.partner_gross_annual}
+              onEstimateToggle={() =>
+                setIncome({
+                  ...income,
+                  is_estimated: {
+                    ...income.is_estimated,
+                    partner_gross_annual: !income.is_estimated.partner_gross_annual,
+                  },
+                })
+              }
+            />
+            <CurrencyInput
+              label="Net monthly take-home"
+              value={income.partner_net_monthly}
+              onChange={(value) => setIncome({ ...income, partner_net_monthly: value })}
+              placeholder="e.g. 2,800"
+            />
+          </div>
         </section>
       </div>
 

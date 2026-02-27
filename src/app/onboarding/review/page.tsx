@@ -15,6 +15,8 @@ type SummaryCard = {
   lines: string[];
 };
 
+type ModuleStatus = "complete" | "partial" | "empty";
+
 function summaryForModule(position: FinancialPosition, moduleName: ModuleName): string[] {
   if (moduleName === "dates") {
     const lines: string[] = [];
@@ -89,14 +91,34 @@ function summaryForModule(position: FinancialPosition, moduleName: ModuleName): 
   return lines;
 }
 
-function completionDot(status: "complete" | "partial" | "empty"): string {
+function dotClass(status: ModuleStatus): string {
   if (status === "complete") {
-    return "bg-[#7CAA8E]";
+    return "is-complete";
   }
   if (status === "partial") {
-    return "bg-[#D4A843]";
+    return "is-partial";
   }
-  return "bg-[#2A2A2A]";
+  return "is-empty";
+}
+
+function statusLabel(status: ModuleStatus): string {
+  if (status === "complete") {
+    return "Complete";
+  }
+  if (status === "partial") {
+    return "In progress";
+  }
+  return "Not started";
+}
+
+function statusPillClass(status: ModuleStatus): string {
+  if (status === "complete") {
+    return "is-complete";
+  }
+  if (status === "partial") {
+    return "is-partial";
+  }
+  return "is-empty";
 }
 
 export default function OnboardingReviewPage() {
@@ -116,6 +138,13 @@ export default function OnboardingReviewPage() {
     }));
   }, [position]);
 
+  const moduleStatuses = useMemo(() => {
+    if (!position) {
+      return [] as ModuleStatus[];
+    }
+    return MODULES.map((module) => getModuleStatus(module.name, position));
+  }, [position]);
+
   const totals = useMemo(() => {
     if (!position) {
       return null;
@@ -127,7 +156,9 @@ export default function OnboardingReviewPage() {
     return null;
   }
 
-  const hasEmptyModule = MODULES.some((module) => getModuleStatus(module.name, position) === "empty");
+  const hasEmptyModule = moduleStatuses.some((status) => status === "empty");
+  const allModulesComplete = moduleStatuses.length > 0 && moduleStatuses.every((status) => status === "complete");
+  const completedModulesCount = moduleStatuses.filter((status) => status === "complete").length;
 
   const markOnboardingComplete = async () => {
     setCompleting(true);
@@ -155,107 +186,130 @@ export default function OnboardingReviewPage() {
   };
 
   return (
-    <main className="mx-auto max-w-[800px] px-6 py-12">
-      <header className="mb-8 space-y-3">
-        <h1 className="font-['Space_Grotesk'] text-[32px] font-bold text-[#F4F1EA]">Review your financial position</h1>
-        <p className="text-sm leading-relaxed text-[#9A9590]">
-          Check everything looks right. You can edit any section, and you can always make changes from your dashboard.
-        </p>
+    <main className="onboarding-review-page">
+      <header className="onboarding-review-header">
+        <h1>Review your financial position</h1>
+        <p>Check everything looks right. You can edit any section, and you can always make changes from your dashboard.</p>
       </header>
 
-      <section className="space-y-3">
+      {allModulesComplete ? (
+        <section className="onboarding-review-complete-banner">
+          <p className="onboarding-review-banner-kicker">Onboarding complete</p>
+          <h2>Everything looks ready for dashboard modelling.</h2>
+          <p>You&apos;ve completed all onboarding sections. You can still edit any module before continuing.</p>
+          <div className="onboarding-review-banner-metrics">
+            <article>
+              <span>Modules complete</span>
+              <strong>{completedModulesCount} / {MODULES.length}</strong>
+            </article>
+            <article>
+              <span>Net position</span>
+              <strong>{formatPounds(totals.netPosition)}</strong>
+            </article>
+            <article>
+              <span>Monthly surplus/deficit</span>
+              <strong>{formatPounds(totals.monthlySurplusDeficit)}</strong>
+            </article>
+          </div>
+        </section>
+      ) : (
+        <section className="onboarding-review-progress-banner">
+          <p>
+            Completed sections: <strong>{completedModulesCount}</strong> of <strong>{MODULES.length}</strong>
+          </p>
+        </section>
+      )}
+
+      <section className="onboarding-review-cards">
         {MODULES.map((module, index) => {
           const card = moduleCards[index];
-          const status = getModuleStatus(module.name, position);
+          const status = moduleStatuses[index] ?? "empty";
 
           return (
-            <article key={module.name} className="border border-[#2A2A2A] bg-[#1E1E1E] p-6">
-              <header className="mb-3 flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <span className={`h-2 w-2 ${completionDot(status)}`} />
-                  <h2 className="font-['Space_Grotesk'] text-base font-semibold text-[#F4F1EA]">{module.title}</h2>
+            <article key={module.name} className="onboarding-review-card">
+              <header className="onboarding-review-card-head">
+                <div className="onboarding-review-card-title-wrap">
+                  <span className={`onboarding-review-dot ${dotClass(status)}`} />
+                  <h2>{module.title}</h2>
+                  <span className={`onboarding-review-status-pill ${statusPillClass(status)}`}>{statusLabel(status)}</span>
                 </div>
-                <Link href={module.route} className="text-sm text-[#C2185B] hover:text-[#F4F1EA]">
+                <Link href={module.route} className="onboarding-review-edit-link">
                   Edit
                 </Link>
               </header>
 
               {card?.lines.length ? (
-                <div className="space-y-1">
+                <div className="onboarding-review-card-body">
                   {card.lines.map((line) => (
-                    <p key={line} className="text-sm text-[#9A9590]">
-                      {line}
-                    </p>
+                    <p key={line}>{line}</p>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-[#555555]">No data entered yet</p>
+                <p className="onboarding-review-empty">No data entered yet</p>
               )}
             </article>
           );
         })}
       </section>
 
-      <section className="mt-6 border border-[#2A2A2A] bg-[#1E1E1E] p-8">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-base text-[#9A9590]">
-            <span>Total property equity</span>
-            <span className="font-['Space_Grotesk'] font-semibold text-[#F4F1EA]">{formatPounds(totals.totalPropertyEquity)}</span>
-          </div>
-          <div className="flex items-center justify-between text-base text-[#9A9590]">
-            <span>Total pensions</span>
-            <span className="font-['Space_Grotesk'] font-semibold text-[#F4F1EA]">{formatPounds(totals.totalPensions)}</span>
-          </div>
-          <div className="flex items-center justify-between text-base text-[#9A9590]">
-            <span>Total savings</span>
-            <span className="font-['Space_Grotesk'] font-semibold text-[#F4F1EA]">{formatPounds(totals.totalSavings)}</span>
-          </div>
-          <div className="flex items-center justify-between text-base text-[#9A9590]">
-            <span>Total debts</span>
-            <span className="font-['Space_Grotesk'] font-semibold text-[#F4F1EA]">{formatPounds(totals.totalDebts)}</span>
-          </div>
+      <section className="onboarding-review-totals">
+        <div className="onboarding-review-total-row">
+          <span>Total property equity</span>
+          <strong>{formatPounds(totals.totalPropertyEquity)}</strong>
+        </div>
+        <div className="onboarding-review-total-row">
+          <span>Total pensions</span>
+          <strong>{formatPounds(totals.totalPensions)}</strong>
+        </div>
+        <div className="onboarding-review-total-row">
+          <span>Total savings</span>
+          <strong>{formatPounds(totals.totalSavings)}</strong>
+        </div>
+        <div className="onboarding-review-total-row">
+          <span>Total debts</span>
+          <strong>{formatPounds(totals.totalDebts)}</strong>
+        </div>
 
-          <div className="mt-3 border-t border-[#2A2A2A] pt-4">
-            <div className="flex items-center justify-between text-base font-semibold text-[#F4F1EA]">
-              <span>Net position</span>
-              <span className="font-['Space_Grotesk'] text-xl text-[#C2185B]">{formatPounds(totals.netPosition)}</span>
-            </div>
-          </div>
+        <div className="onboarding-review-total-row is-net">
+          <span>Net position</span>
+          <strong>{formatPounds(totals.netPosition)}</strong>
+        </div>
 
-          <div className="pt-2">
-            <div className="flex items-center justify-between text-base text-[#9A9590]">
-              <span>Combined monthly income</span>
-              <span className="font-['Space_Grotesk'] font-semibold text-[#F4F1EA]">{formatPounds(totals.combinedMonthlyIncome)}</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-base text-[#9A9590]">
-              <span>Combined monthly expenditure</span>
-              <span className="font-['Space_Grotesk'] font-semibold text-[#F4F1EA]">{formatPounds(totals.combinedMonthlyExpenditure)}</span>
-            </div>
-            <div className="mt-2 flex items-center justify-between text-base text-[#9A9590]">
-              <span>Monthly surplus/deficit</span>
-              <span className="font-['Space_Grotesk'] font-semibold text-[#F4F1EA]">{formatPounds(totals.monthlySurplusDeficit)}</span>
-            </div>
-          </div>
+        <div className="onboarding-review-total-row">
+          <span>Combined monthly income</span>
+          <strong>{formatPounds(totals.combinedMonthlyIncome)}</strong>
+        </div>
+        <div className="onboarding-review-total-row">
+          <span>Combined monthly expenditure</span>
+          <strong>{formatPounds(totals.combinedMonthlyExpenditure)}</strong>
+        </div>
+        <div className="onboarding-review-total-row">
+          <span>Monthly surplus/deficit</span>
+          <strong>{formatPounds(totals.monthlySurplusDeficit)}</strong>
         </div>
       </section>
 
-      <section className="mt-10 text-center">
+      <section className="onboarding-review-cta">
         {hasEmptyModule ? (
-          <p className="mx-auto mb-4 max-w-[620px] text-sm text-[#9A9590]">
+          <p className="onboarding-review-warning">
             Some sections are incomplete. Your scenarios will be more accurate with more data, but you can always add it later.
           </p>
-        ) : null}
+        ) : (
+          <p className="onboarding-review-ready-copy">
+            Your summary is ready. You can proceed now and continue refining numbers from your dashboard at any time.
+          </p>
+        )}
 
         <button
           type="button"
           onClick={markOnboardingComplete}
           disabled={isCompleting}
-          className="mx-auto block h-[52px] w-full max-w-[400px] rounded-none bg-[#C2185B] px-4 text-sm font-semibold tracking-wider text-[#F4F1EA] uppercase transition-colors hover:bg-[#D81B60] disabled:opacity-70"
+          className="onboarding-review-submit"
         >
           {isCompleting ? "Saving..." : "Go to your dashboard"}
         </button>
 
-        {error ? <p className="mt-3 text-sm text-[#C46A5E]">{error}</p> : null}
+        {error ? <p className="onboarding-review-error">{error}</p> : null}
       </section>
     </main>
   );

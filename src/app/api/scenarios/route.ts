@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { computeScenario } from "@/lib/domain/compute-scenario";
-import { createDefaultScenarioConfig } from "@/lib/domain/defaults";
+import { buildScenarioConfigFromTemplate, SCENARIO_TEMPLATE_KEYS } from "@/lib/domain/scenario-templates";
 import { scenarioConfigSchema } from "@/lib/domain/schemas";
 import { badRequest, requireApiUser, serverError } from "@/lib/server/api";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
@@ -9,6 +9,7 @@ import { listScenarios } from "@/lib/server/scenarios";
 
 const createSchema = z.object({
   name: z.string().min(1).max(40).optional(),
+  template: z.enum(SCENARIO_TEMPLATE_KEYS).optional(),
 });
 
 const patchSchema = z.object({
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
   }
 
   const position = await getOrCreateFinancialPosition(context.supabase, context.user.id);
-  const config = createDefaultScenarioConfig(position);
+  const config = buildScenarioConfigFromTemplate(position, parsed.data.template ?? "balanced");
   const results = computeScenario(position, config);
 
   const nextName = (parsed.data.name?.trim() || `Scenario ${String.fromCharCode(65 + current.length)}`).slice(0, 40);

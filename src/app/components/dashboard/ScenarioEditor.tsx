@@ -241,7 +241,7 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
                             <p className="dashboard-control-label">{property.label || "Property"}</p>
                             <p className="dashboard-control-sub">Equity: {formatCurrency(equity)}</p>
                           </div>
-                          <div style={{ marginTop: 8 }}>
+                          <div className="dashboard-control-spacing-sm">
                             <select
                               className="dashboard-select"
                               value={decision.action}
@@ -447,7 +447,7 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
                   <div className="dashboard-section-body" data-open={expanded}>
                     <div className="dashboard-control-row">
                       <p className="dashboard-control-label">Spousal maintenance (aliment)</p>
-                      <div className="dashboard-inline-actions" style={{ marginTop: 8 }}>
+                      <div className="dashboard-inline-actions dashboard-inline-actions-top">
                         <select
                           className="dashboard-select"
                           value={config.spousal_maintenance.direction}
@@ -483,10 +483,9 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
                           />
                         </div>
                         <input
-                          className="dashboard-input"
+                          className="dashboard-input dashboard-input-compact"
                           type="number"
                           min={0}
-                          style={{ width: 120 }}
                           value={config.spousal_maintenance.duration_months}
                           onChange={(event) =>
                             setConfigDirty({
@@ -499,14 +498,14 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
                           }
                         />
                       </div>
-                      <p className="dashboard-help" style={{ fontStyle: "italic", marginTop: 8 }}>
+                      <p className="dashboard-help dashboard-help-top dashboard-help-italic">
                         Illustrative only — there is no fixed formula for spousal maintenance.
                       </p>
                     </div>
 
                     <div className="dashboard-control-row">
                       <p className="dashboard-control-label">Child maintenance</p>
-                      <div className="dashboard-inline-actions" style={{ marginTop: 8 }}>
+                      <div className="dashboard-inline-actions dashboard-inline-actions-top">
                         <select
                           className="dashboard-select"
                           value={config.child_maintenance.direction}
@@ -542,7 +541,7 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
                           />
                         </div>
                       </div>
-                      <p className="dashboard-help" style={{ marginTop: 8 }}>
+                      <p className="dashboard-help dashboard-help-top">
                         For an official estimate, use the CMS calculator at{" "}
                         <a
                           href="https://www.gov.uk/calculate-child-maintenance"
@@ -571,7 +570,7 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
                     {!userKeepsProperty ? (
                       <div className="dashboard-control-row">
                         <p className="dashboard-control-label">New monthly rent for you</p>
-                        <div className="dashboard-currency-wrap" style={{ marginTop: 10 }}>
+                        <div className="dashboard-currency-wrap dashboard-currency-wrap-top">
                           <span>£</span>
                           <input
                             className="dashboard-currency-input"
@@ -593,7 +592,7 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
                     {!partnerKeepsProperty ? (
                       <div className="dashboard-control-row">
                         <p className="dashboard-control-label">New monthly rent for partner</p>
-                        <div className="dashboard-currency-wrap" style={{ marginTop: 10 }}>
+                        <div className="dashboard-currency-wrap dashboard-currency-wrap-top">
                           <span>£</span>
                           <input
                             className="dashboard-currency-input"
@@ -613,7 +612,7 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
                     ) : null}
 
                     {userKeepsProperty && partnerKeepsProperty ? (
-                      <p className="dashboard-help" style={{ padding: "14px 0" }}>
+                      <p className="dashboard-help dashboard-help-block">
                         Housing overrides appear when one party does not keep a property.
                       </p>
                     ) : null}
@@ -631,7 +630,7 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
                 <div className="dashboard-section-body" data-open={expanded}>
                   <div className="dashboard-control-row">
                     <p className="dashboard-control-label">Your new net monthly income</p>
-                    <div className="dashboard-currency-wrap" style={{ marginTop: 10 }}>
+                    <div className="dashboard-currency-wrap dashboard-currency-wrap-top">
                       <span>£</span>
                       <input
                         className="dashboard-currency-input"
@@ -651,7 +650,7 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
 
                   <div className="dashboard-control-row">
                     <p className="dashboard-control-label">Partner’s new net monthly income</p>
-                    <div className="dashboard-currency-wrap" style={{ marginTop: 10 }}>
+                    <div className="dashboard-currency-wrap dashboard-currency-wrap-top">
                       <span>£</span>
                       <input
                         className="dashboard-currency-input"
@@ -668,7 +667,7 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
                       />
                     </div>
                   </div>
-                  <p className="dashboard-help" style={{ paddingTop: 10 }}>
+                  <p className="dashboard-help dashboard-help-block-top">
                     Adjust if either party’s income will change after separation (for example returning to full-time work).
                   </p>
                 </div>
@@ -740,7 +739,7 @@ export default function ScenarioEditor({ scenario, position, baseline }: Props) 
             These figures are modelled outcomes, not legal entitlements or predictions. Consult a solicitor for advice specific to
             your circumstances.
           </p>
-          <p className="dashboard-help" style={{ marginTop: 12 }}>
+          <p className="dashboard-help dashboard-help-spaced">
             <Link href="/dashboard/scenarios" className="inline-link">
               Back to scenarios
             </Link>
