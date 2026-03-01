@@ -16,6 +16,20 @@ describe("resolveAccessRedirect", () => {
     ).toBe("/login");
   });
 
+  it("redirects unauthenticated admin paths to login", () => {
+    expect(
+      resolveAccessRedirect({
+        pathname: "/admin/recovery",
+        isAuthenticated: false,
+        paid: false,
+        onboardingDone: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
+        hasSignupName: false,
+      })
+    ).toBe("/login");
+  });
+
   it("redirects signup email step to signup when signup name is missing", () => {
     expect(
       resolveAccessRedirect({

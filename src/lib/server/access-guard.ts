@@ -15,6 +15,7 @@ export function resolveAccessRedirect(input: AccessInput): string | null {
   const isAuthEntryPath = pathname === "/signup" || pathname === "/signup/email" || pathname === "/login" || pathname === "/login/reset";
   const isRecoveryKeyPath = pathname === "/recovery-key" || pathname.startsWith("/recovery-key/");
   const isSettingsPath = pathname.startsWith("/settings");
+  const isAdminPath = pathname.startsWith("/admin");
 
   if (!isAuthenticated) {
     if (pathname === "/signup/email" && !hasSignupName) {
@@ -29,7 +30,8 @@ export function resolveAccessRedirect(input: AccessInput): string | null {
       pathname.startsWith("/onboarding") ||
       pathname.startsWith("/dashboard") ||
       isSettingsPath ||
-      isRecoveryKeyPath
+      isRecoveryKeyPath ||
+      isAdminPath
     ) {
       return "/login";
     }

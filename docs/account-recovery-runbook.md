@@ -22,6 +22,12 @@ This runbook defines how support handles panic-mode reinstatement requests safel
 }
 ```
 
+## Admin UI Flow
+- Admin page: `/admin/recovery` (restricted to emails in `PANIC_RECOVERY_ADMIN_EMAILS`).
+- Step 1: click "Send master key" to email a one-time code to the signed-in admin account (default `alex@lrare.co.uk`).
+- Step 2: enter `master key`, `user email`, and `recovery key`, then submit restore.
+- Master key expires after 10 minutes and is single-use.
+
 ## Outcome Rules
 - If a valid snapshot exists and is unexpired (30-day retention): restore core account data.
 - If no valid snapshot exists (expired or purged): reinstate as empty account.

@@ -24,7 +24,8 @@ function isAuthOnlyPath(pathname: string) {
     pathname.startsWith("/signup/payment") ||
     pathname.startsWith("/onboarding") ||
     pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/recovery-key")
+    pathname.startsWith("/recovery-key") ||
+    pathname.startsWith("/admin")
   );
 }
 
