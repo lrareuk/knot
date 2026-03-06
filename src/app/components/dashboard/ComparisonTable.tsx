@@ -20,7 +20,12 @@ type MetricRow = {
   valueForScenario: (scenario: ScenarioRecord) => number;
   formatValue?: (value: number, currencyCode: "GBP" | "USD" | "CAD") => string;
   valueClassName?: (value: number) => string;
+  deltaFormat?: "currency" | "percent_points";
 };
+
+function ratioLabel(value: number) {
+  return `${Math.round(value * 100)}%`;
+}
 
 function maintenanceLabel(value: number, currencyCode: "GBP" | "USD" | "CAD") {
   if (value === 0) {
@@ -99,6 +104,22 @@ function metricRows(baseline: ScenarioResults, jurisdictionCode: string): Metric
       valueForScenario: (scenario) => scenario.results.user_monthly_expenditure,
     },
     {
+      key: "retirement_income_gap_annual",
+      label: "Retirement income gap (annual)",
+      better: "lower",
+      baselineValue: Math.abs(baseline.retirement_income_gap_annual),
+      valueForScenario: (scenario) => Math.abs(scenario.results.retirement_income_gap_annual),
+    },
+    {
+      key: "retirement_income_parity",
+      label: "Retirement income parity",
+      better: "higher",
+      baselineValue: baseline.retirement_income_parity_ratio ?? 0,
+      valueForScenario: (scenario) => scenario.results.retirement_income_parity_ratio ?? 0,
+      formatValue: (value) => ratioLabel(value),
+      deltaFormat: "percent_points",
+    },
+    {
       key: "surplus",
       label: "Monthly surplus / deficit",
       better: "higher",
@@ -130,12 +151,21 @@ function deltaTone(delta: number, better: BetterDirection) {
   return delta < 0 ? " is-positive" : " is-negative";
 }
 
-function deltaText(delta: number, better: BetterDirection, currencyCode: "GBP" | "USD" | "CAD") {
+function deltaText(
+  delta: number,
+  better: BetterDirection,
+  currencyCode: "GBP" | "USD" | "CAD",
+  deltaFormat: MetricRow["deltaFormat"] = "currency"
+) {
   if (delta === 0) {
     return "No change";
   }
 
   const improved = better === "higher" ? delta > 0 : delta < 0;
+  if (deltaFormat === "percent_points") {
+    return `${improved ? "↑" : "↓"} ${Math.round(Math.abs(delta) * 100)}pp`;
+  }
+
   return `${improved ? "↑" : "↓"} ${formatCurrency(Math.abs(delta), currencyCode)}`;
 }
 
@@ -175,7 +205,7 @@ export default function ComparisonTable({ baseline, scenarios, currencyCode, jur
                       {row.formatValue ? row.formatValue(value, currencyCode) : formatCurrency(value, currencyCode)}
                     </div>
                     <p className={`dashboard-delta dashboard-delta-sm${deltaTone(delta, row.better)}`}>
-                      {deltaText(delta, row.better, currencyCode)}
+                      {deltaText(delta, row.better, currencyCode, row.deltaFormat)}
                     </p>
                   </td>
                 );

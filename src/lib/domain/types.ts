@@ -166,9 +166,13 @@ export type ScenarioConfig = {
   };
 };
 
+export const SCENARIO_MODEL_VERSION = "v3_pension_fairness_guardrails" as const;
+export type ScenarioModelVersion = typeof SCENARIO_MODEL_VERSION;
+export type PensionOffsettingTradeoffStrength = "none" | "moderate" | "strong";
+
 export type ScenarioResults = {
   label: "modelled_outcome";
-  model_version: "v2_jurisdiction_pensions";
+  model_version: ScenarioModelVersion;
   user_total_assets: number;
   user_total_liabilities: number;
   user_net_position: number;
@@ -202,6 +206,13 @@ export type ScenarioResults = {
   delta_user_assets: number;
   delta_user_monthly: number;
   delta_user_net_position: number;
+  retirement_income_gap_annual: number;
+  retirement_income_gap_monthly: number;
+  retirement_income_parity_ratio: number | null;
+  offsetting_tradeoff_detected: boolean;
+  offsetting_tradeoff_strength: PensionOffsettingTradeoffStrength;
+  specialist_advice_recommended: boolean;
+  specialist_advice_reasons: string[];
 };
 
 export type ScenarioRecord = {

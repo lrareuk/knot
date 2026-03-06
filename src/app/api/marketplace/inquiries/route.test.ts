@@ -8,6 +8,8 @@ const {
   mockCreateMarketplaceMessage,
   mockGetOrCreateFinancialPosition,
   mockListScenarios,
+  mockComputeBaseline,
+  mockComputeScenario,
 } = vi.hoisted(() => ({
   mockRequirePaidApiUser: vi.fn(),
   mockListRequesterInquiries: vi.fn(),
@@ -16,6 +18,8 @@ const {
   mockCreateMarketplaceMessage: vi.fn(),
   mockGetOrCreateFinancialPosition: vi.fn(),
   mockListScenarios: vi.fn(),
+  mockComputeBaseline: vi.fn(),
+  mockComputeScenario: vi.fn(),
 }));
 
 vi.mock("@/lib/server/api", () => ({
@@ -45,6 +49,11 @@ vi.mock("@/lib/server/scenarios", () => ({
   listScenarios: mockListScenarios,
 }));
 
+vi.mock("@/lib/domain/compute-scenario", () => ({
+  computeBaseline: mockComputeBaseline,
+  computeScenario: mockComputeScenario,
+}));
+
 import { GET, POST } from "@/app/api/marketplace/inquiries/route";
 
 describe("/api/marketplace/inquiries", () => {
@@ -62,13 +71,33 @@ describe("/api/marketplace/inquiries", () => {
       },
       supabase: {},
     });
+    mockGetMarketplaceProfileById.mockResolvedValue({
+      profile: {
+        id: "profile-1",
+        user_id: "advisor-1",
+        is_visible: true,
+        verification_status: "verified",
+        is_accepting_new_clients: true,
+      },
+      error: null,
+    });
     mockGetOrCreateFinancialPosition.mockResolvedValue({ properties: [], pensions: [] });
+    mockComputeBaseline.mockReturnValue({ model_version: "v3_pension_fairness_guardrails" });
+    mockComputeScenario.mockReturnValue({
+      model_version: "v3_pension_fairness_guardrails",
+      offsetting_tradeoff_detected: false,
+      specialist_advice_recommended: false,
+      offsetting_tradeoff_strength: "none",
+      retirement_income_gap_annual: 0,
+      retirement_income_parity_ratio: null,
+      specialist_advice_reasons: [],
+    });
     mockListScenarios.mockResolvedValue([
       {
         id: "11111111-1111-4111-8111-111111111111",
         name: "Scenario A",
         config: {},
-        results: { model_version: "v2_jurisdiction_pensions" },
+        results: { model_version: "v3_pension_fairness_guardrails" },
         updated_at: "2026-03-06T00:00:00.000Z",
       },
     ]);
@@ -117,6 +146,7 @@ describe("/api/marketplace/inquiries", () => {
           message: "This is a valid inquiry message with enough detail.",
           selected_scenario_ids: ["11111111-1111-4111-8111-111111111111"],
           finished_modelling_confirmed: true,
+          offsetting_risk_acknowledged: true,
         }),
       })
     );
@@ -132,6 +162,8 @@ describe("/api/marketplace/inquiries", () => {
         contextSnapshot: expect.objectContaining({
           snapshot_version: "marketplace_inquiry_v1",
           selected_scenario_ids: ["11111111-1111-4111-8111-111111111111"],
+          offsetting_risk_acknowledged: true,
+          offsetting_risk_summary: expect.any(Array),
         }),
       })
     );
@@ -168,6 +200,7 @@ describe("/api/marketplace/inquiries", () => {
           message: "This is a valid inquiry message with enough detail.",
           selected_scenario_ids: ["22222222-2222-4222-8222-222222222222"],
           finished_modelling_confirmed: true,
+          offsetting_risk_acknowledged: false,
         }),
       })
     );
@@ -175,5 +208,47 @@ describe("/api/marketplace/inquiries", () => {
     const payload = (await response.json()) as { error?: string };
     expect(response.status).toBe(400);
     expect(payload.error).toBe("One or more selected scenarios are invalid");
+  });
+
+  it("returns 400 when E&W offsetting risk exists without acknowledgement", async () => {
+    mockGetMarketplaceProfileById.mockResolvedValue({
+      profile: {
+        id: "profile-1",
+        user_id: "advisor-1",
+        is_visible: true,
+        verification_status: "verified",
+        is_accepting_new_clients: true,
+      },
+      error: null,
+    });
+    mockComputeScenario.mockReturnValue({
+      model_version: "v3_pension_fairness_guardrails",
+      offsetting_tradeoff_detected: true,
+      specialist_advice_recommended: false,
+      offsetting_tradeoff_strength: "moderate",
+      retirement_income_gap_annual: 4000,
+      retirement_income_parity_ratio: 0.75,
+      specialist_advice_reasons: [],
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/marketplace/inquiries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          profile_id: "11111111-1111-4111-8111-111111111111",
+          message: "This is a valid inquiry message with enough detail.",
+          selected_scenario_ids: ["11111111-1111-4111-8111-111111111111"],
+          finished_modelling_confirmed: true,
+          offsetting_risk_acknowledged: false,
+        }),
+      })
+    );
+
+    const payload = (await response.json()) as { error?: string };
+    expect(response.status).toBe(400);
+    expect(payload.error).toBe("Offsetting risk acknowledgement is required before sharing this inquiry");
   });
 });

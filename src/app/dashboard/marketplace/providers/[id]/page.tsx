@@ -49,7 +49,7 @@ export default async function MarketplaceProviderPage({ params }: { params: Prom
           </div>
         </div>
 
-        <InquiryComposer profileId={profile.id} scenarios={scenarios} />
+        <InquiryComposer profileId={profile.id} scenarios={scenarios} jurisdictionCode={userProfile.jurisdiction ?? ""} />
       </section>
     </div>
   );

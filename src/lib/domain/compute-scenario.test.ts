@@ -77,6 +77,7 @@ describe("computeBaseline", () => {
   it("treats pensions as future income in England and Wales", () => {
     const baseline = computeBaseline(position, "GB-EAW");
 
+    expect(baseline.model_version).toBe("v3_pension_fairness_guardrails");
     expect(baseline.user_total_pensions).toBe(0);
     expect(baseline.user_pension_income_annual).toBe(0);
     expect(baseline.user_total_savings).toBe(10000);
@@ -174,5 +175,43 @@ describe("computeScenario", () => {
     expect(scenario.partner_total_pensions).toBe(0);
     expect(scenario.user_pension_income_annual).toBe(3000);
     expect(scenario.partner_pension_income_annual).toBe(9000);
+  });
+
+  it("adds pension fairness guardrails for E&W offsetting patterns", () => {
+    const richPosition: FinancialPosition = {
+      ...position,
+      properties: [
+        {
+          ...position.properties[0],
+          current_value: 700000,
+          mortgage_outstanding: 100000,
+          equity: 600000,
+        },
+      ],
+      pensions: [
+        {
+          ...position.pensions[0],
+          projected_annual_income: 12000,
+        },
+      ],
+    };
+    const config = createDefaultScenarioConfig(richPosition);
+    config.property_decisions[0] = {
+      property_id: richPosition.properties[0].id,
+      action: "user_keeps",
+      equity_split_user: 100,
+    };
+    config.pension_splits[0] = {
+      pension_id: richPosition.pensions[0].id,
+      split_user: 0,
+    };
+
+    const scenario = computeScenario(richPosition, config, "GB-EAW");
+
+    expect(scenario.offsetting_tradeoff_detected).toBe(true);
+    expect(scenario.offsetting_tradeoff_strength).toBe("strong");
+    expect(scenario.specialist_advice_recommended).toBe(true);
+    expect(scenario.specialist_advice_reasons).toContain("large_offsetting_tradeoff");
+    expect(Math.abs(scenario.retirement_income_gap_annual)).toBeGreaterThanOrEqual(6000);
   });
 });

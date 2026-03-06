@@ -51,14 +51,14 @@ describe("Scenario editor route", () => {
     id: "scenario-1",
     name: "Scenario A",
     config: {},
-    results: { model_version: "v2_jurisdiction_pensions" },
+    results: { model_version: "v3_pension_fairness_guardrails" },
   };
     const { supabase } = createSupabaseMock(scenario);
 
     mockRequireDashboardAccess.mockResolvedValue({ user: { id: "user-1" }, supabase });
     mockGetOrCreateFinancialPosition.mockResolvedValue({ id: "position-1" });
     mockComputeBaseline.mockReturnValue({ id: "baseline-1" });
-    mockComputeScenario.mockReturnValue({ model_version: "v2_jurisdiction_pensions" });
+    mockComputeScenario.mockReturnValue({ model_version: "v3_pension_fairness_guardrails" });
 
     const result = (await ScenarioEditorPage({ params: Promise.resolve({ id: "scenario-1" }) })) as {
       props: { scenario: { id: string } };
@@ -73,7 +73,7 @@ describe("Scenario editor route", () => {
     mockRequireDashboardAccess.mockResolvedValue({ user: { id: "user-1" }, supabase });
     mockGetOrCreateFinancialPosition.mockResolvedValue({ id: "position-1" });
     mockComputeBaseline.mockReturnValue({ id: "baseline-1" });
-    mockComputeScenario.mockReturnValue({ model_version: "v2_jurisdiction_pensions" });
+    mockComputeScenario.mockReturnValue({ model_version: "v3_pension_fairness_guardrails" });
 
     await expect(ScenarioEditorPage({ params: Promise.resolve({ id: "missing" }) })).rejects.toThrow("notFound");
     expect(mockNotFound).toHaveBeenCalled();

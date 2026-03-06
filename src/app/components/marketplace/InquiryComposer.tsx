@@ -6,16 +6,38 @@ import type { ScenarioRecord } from "@/lib/domain/types";
 
 type Props = {
   profileId: string;
-  scenarios: Array<Pick<ScenarioRecord, "id" | "name">>;
+  scenarios: Array<Pick<ScenarioRecord, "id" | "name" | "results">>;
+  jurisdictionCode: string;
 };
 
-export default function InquiryComposer({ profileId, scenarios }: Props) {
+export function requiresMarketplaceOffsettingRiskAcknowledgement(
+  scenarios: Array<Pick<ScenarioRecord, "id" | "results">>,
+  selectedScenarioIds: string[],
+  jurisdictionCode: string
+) {
+  const normalizedJurisdictionCode = jurisdictionCode.trim().toUpperCase();
+  if (normalizedJurisdictionCode !== "GB-EAW") {
+    return false;
+  }
+
+  return scenarios
+    .filter((scenario) => selectedScenarioIds.includes(scenario.id))
+    .some((scenario) => scenario.results.offsetting_tradeoff_detected || scenario.results.specialist_advice_recommended);
+}
+
+export default function InquiryComposer({ profileId, scenarios, jurisdictionCode }: Props) {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [selectedScenarioIds, setSelectedScenarioIds] = useState<string[]>([]);
   const [finishedModellingConfirmed, setFinishedModellingConfirmed] = useState(false);
+  const [offsettingRiskAcknowledged, setOffsettingRiskAcknowledged] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const requiresOffsettingRiskAck = requiresMarketplaceOffsettingRiskAcknowledgement(
+    scenarios,
+    selectedScenarioIds,
+    jurisdictionCode
+  );
 
   function toggleScenario(id: string) {
     setSelectedScenarioIds((current) => (current.includes(id) ? current.filter((item) => item !== id) : [...current, id]));
@@ -29,6 +51,10 @@ export default function InquiryComposer({ profileId, scenarios }: Props) {
     }
     if (!finishedModellingConfirmed) {
       setStatus("Confirm you have finished modelling relevant scenarios before sharing.");
+      return;
+    }
+    if (requiresOffsettingRiskAck && !offsettingRiskAcknowledged) {
+      setStatus("Acknowledge pension trade-off risk before sharing this snapshot.");
       return;
     }
 
@@ -46,6 +72,7 @@ export default function InquiryComposer({ profileId, scenarios }: Props) {
           message,
           selected_scenario_ids: selectedScenarioIds,
           finished_modelling_confirmed: true,
+          offsetting_risk_acknowledged: offsettingRiskAcknowledged,
         }),
       });
 
@@ -59,6 +86,7 @@ export default function InquiryComposer({ profileId, scenarios }: Props) {
       setMessage("");
       setSelectedScenarioIds([]);
       setFinishedModellingConfirmed(false);
+      setOffsettingRiskAcknowledged(false);
       router.push(`/dashboard/marketplace/inquiries/${payload.inquiry.id}`);
       router.refresh();
     } catch {
@@ -85,38 +113,62 @@ export default function InquiryComposer({ profileId, scenarios }: Props) {
       <fieldset className="marketplace-composer-scenarios">
         <legend>Scenarios to share</legend>
         {scenarios.length === 0 ? <p className="dashboard-status">Create at least one scenario before sending.</p> : null}
-        {scenarios.map((scenario) => (
-          <label key={scenario.id} className="dashboard-status">
+        {scenarios.map((scenario) => {
+          const selected = selectedScenarioIds.includes(scenario.id);
+          return (
+          <label key={scenario.id} className={`marketplace-scenario-option${selected ? " is-selected" : ""}`}>
             <input
               type="checkbox"
-              checked={selectedScenarioIds.includes(scenario.id)}
+              className="dashboard-check-input"
+              checked={selected}
               onChange={() => toggleScenario(scenario.id)}
               disabled={saving}
-            />{" "}
-            {scenario.name}
+            />
+            <span>{scenario.name}</span>
           </label>
-        ))}
+          );
+        })}
       </fieldset>
 
-      <label className="dashboard-status">
+      <label className="dashboard-checklist-item">
         <input
           type="checkbox"
+          className="dashboard-check-input"
           checked={finishedModellingConfirmed}
           onChange={(event) => setFinishedModellingConfirmed(event.target.checked)}
           disabled={saving}
-        />{" "}
-        I have finished modelling the relevant scenarios for this firm.
+        />
+        <span>I have finished modelling the relevant scenarios for this firm.</span>
       </label>
+
+      {requiresOffsettingRiskAck ? (
+        <section className="marketplace-risk-gate">
+          <p className="dashboard-panel-eyebrow">Required Confirmation</p>
+          <p className="dashboard-status">
+            Selected scenarios include pension trade-off risk indicators for England and Wales.
+          </p>
+          <label className="dashboard-checklist-item">
+            <input
+              type="checkbox"
+              className="dashboard-check-input"
+              checked={offsettingRiskAcknowledged}
+              onChange={(event) => setOffsettingRiskAcknowledged(event.target.checked)}
+              disabled={saving}
+            />
+            <span>I understand this submission includes pension trade-off assumptions and the firm receives a locked snapshot.</span>
+          </label>
+        </section>
+      ) : null}
 
       <p className="dashboard-status">
         The firm will receive a locked snapshot of the selected scenarios and your current financial context. You can keep modelling
         afterwards, but updates are not auto-sent.
       </p>
 
-      <button type="submit" className="dashboard-btn-ghost" disabled={saving}>
+      <button type="submit" className="dashboard-btn-ghost" disabled={saving || (requiresOffsettingRiskAck && !offsettingRiskAcknowledged)}>
         {saving ? "Sending..." : "Send inquiry"}
       </button>
-      {status ? <p className="dashboard-status">{status}</p> : null}
+      {status ? <p className="dashboard-status is-error">{status}</p> : null}
     </form>
   );
 }

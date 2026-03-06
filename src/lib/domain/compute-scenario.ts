@@ -7,6 +7,8 @@ import type {
   ScenarioConfig,
   ScenarioResults,
 } from "@/lib/domain/types";
+import { SCENARIO_MODEL_VERSION } from "@/lib/domain/types";
+import { analyzePensionFairness } from "@/lib/domain/pension-fairness";
 
 type PartyBreakdown = {
   property_value: number;
@@ -131,7 +133,18 @@ function applyDebtToParty(party: PartyBreakdown, debt: { outstanding: number; mo
   party.debt_monthly += debt.monthlyPayment * share;
 }
 
-function toResults(state: BaselineState, baseline: BaselineState): ScenarioResults {
+type ScenarioResultsCore = Omit<
+  ScenarioResults,
+  | "retirement_income_gap_annual"
+  | "retirement_income_gap_monthly"
+  | "retirement_income_parity_ratio"
+  | "offsetting_tradeoff_detected"
+  | "offsetting_tradeoff_strength"
+  | "specialist_advice_recommended"
+  | "specialist_advice_reasons"
+>;
+
+function toResultsCore(state: BaselineState, baseline: BaselineState): ScenarioResultsCore {
   const userAssets = state.user.property_value + state.user.pensions + state.user.savings;
   const userLiabilities = state.user.property_mortgage + state.user.debts;
   const userNet = userAssets - userLiabilities;
@@ -157,7 +170,7 @@ function toResults(state: BaselineState, baseline: BaselineState): ScenarioResul
 
   return {
     label: "modelled_outcome",
-    model_version: "v2_jurisdiction_pensions",
+    model_version: SCENARIO_MODEL_VERSION,
     user_total_assets: round(userAssets),
     user_total_liabilities: round(userLiabilities),
     user_net_position: round(userNet),
@@ -191,6 +204,33 @@ function toResults(state: BaselineState, baseline: BaselineState): ScenarioResul
     delta_user_assets: round(userAssets - baselineUserAssets),
     delta_user_monthly: round(userMonthlySurplus - baselineUserMonthlySurplus),
     delta_user_net_position: round(userNet - baselineUserNet),
+  };
+}
+
+function applyFairness(
+  core: ScenarioResultsCore,
+  input: {
+    position: FinancialPosition;
+    baseline: ScenarioResultsCore;
+    jurisdictionCode: string;
+  }
+): ScenarioResults {
+  const fairness = analyzePensionFairness({
+    position: input.position,
+    baseline: input.baseline,
+    scenario: core,
+    jurisdictionCode: input.jurisdictionCode,
+  });
+
+  return {
+    ...core,
+    retirement_income_gap_annual: fairness.retirement_income_gap_annual,
+    retirement_income_gap_monthly: fairness.retirement_income_gap_monthly,
+    retirement_income_parity_ratio: fairness.retirement_income_parity_ratio,
+    offsetting_tradeoff_detected: fairness.offsetting_tradeoff_detected,
+    offsetting_tradeoff_strength: fairness.offsetting_tradeoff_strength,
+    specialist_advice_recommended: fairness.specialist_advice_recommended,
+    specialist_advice_reasons: fairness.complex_case_reasons,
   };
 }
 
@@ -339,13 +379,20 @@ function pensionBaselineContribution(
 }
 
 export function computeBaseline(position: FinancialPosition, jurisdictionCode: string): ScenarioResults {
-  const baseline = computeInitialBaseline(position, normalizeJurisdiction(jurisdictionCode));
-  return toResults(baseline, baseline);
+  const normalizedJurisdictionCode = normalizeJurisdiction(jurisdictionCode);
+  const baseline = computeInitialBaseline(position, normalizedJurisdictionCode);
+  const core = toResultsCore(baseline, baseline);
+  return applyFairness(core, {
+    position,
+    baseline: core,
+    jurisdictionCode: normalizedJurisdictionCode,
+  });
 }
 
 export function computeScenario(position: FinancialPosition, config: ScenarioConfig, jurisdictionCode: string): ScenarioResults {
   const normalizedJurisdictionCode = normalizeJurisdiction(jurisdictionCode);
   const baseline = computeInitialBaseline(position, normalizedJurisdictionCode);
+  const baselineCore = toResultsCore(baseline, baseline);
   const state: BaselineState = {
     user: { ...baseline.user },
     partner: { ...baseline.partner },
@@ -511,5 +558,10 @@ export function computeScenario(position: FinancialPosition, config: ScenarioCon
     state.user.maintenance_received += childMonthly;
   }
 
-  return toResults(state, baseline);
+  const scenarioCore = toResultsCore(state, baseline);
+  return applyFairness(scenarioCore, {
+    position,
+    baseline: baselineCore,
+    jurisdictionCode: normalizedJurisdictionCode,
+  });
 }

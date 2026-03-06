@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { computeBaseline, computeScenario } from "@/lib/domain/compute-scenario";
 import { badRequest, requirePaidApiUser, serverError } from "@/lib/server/api";
 import { marketplaceInquiryCreateSchema } from "@/lib/marketplace/schemas";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
@@ -67,14 +68,42 @@ export async function POST(req: Request) {
   }
 
   const position = await getOrCreateFinancialPosition(context.supabase, context.user.id);
+  const jurisdictionCode = context.profile?.jurisdiction ?? "GB-EAW";
+  const normalizedJurisdictionCode = jurisdictionCode.trim().toUpperCase();
   const scenarios = await listScenarios(context.supabase, context.user.id, {
     position,
-    jurisdictionCode: context.profile?.jurisdiction ?? "GB-EAW",
+    jurisdictionCode,
   });
   const selectedScenarioIds = Array.from(new Set(parsed.data.selected_scenario_ids));
   const selectedScenarios = scenarios.filter((scenario) => selectedScenarioIds.includes(scenario.id));
   if (selectedScenarios.length !== selectedScenarioIds.length) {
     return badRequest("One or more selected scenarios are invalid");
+  }
+
+  const baseline = computeBaseline(position, jurisdictionCode);
+  const selectedScenariosAtSendTime = selectedScenarios.map((scenario) => {
+    const recomputedResults = computeScenario(position, scenario.config, jurisdictionCode);
+    return {
+      ...scenario,
+      results: recomputedResults,
+    };
+  });
+  const offsettingRiskSummary = selectedScenariosAtSendTime.map((scenario) => ({
+    scenario_id: scenario.id,
+    scenario_name: scenario.name,
+    retirement_income_gap_annual: scenario.results.retirement_income_gap_annual,
+    retirement_income_parity_ratio: scenario.results.retirement_income_parity_ratio,
+    offsetting_tradeoff_detected: scenario.results.offsetting_tradeoff_detected,
+    offsetting_tradeoff_strength: scenario.results.offsetting_tradeoff_strength,
+    specialist_advice_recommended: scenario.results.specialist_advice_recommended,
+    specialist_advice_reasons: scenario.results.specialist_advice_reasons,
+  }));
+
+  const hasOffsettingRisk =
+    normalizedJurisdictionCode === "GB-EAW" &&
+    offsettingRiskSummary.some((summary) => summary.offsetting_tradeoff_detected || summary.specialist_advice_recommended);
+  if (hasOffsettingRisk && !parsed.data.offsetting_risk_acknowledged) {
+    return badRequest("Offsetting risk acknowledgement is required before sharing this inquiry");
   }
 
   const contextSnapshot = {
@@ -86,9 +115,12 @@ export async function POST(req: Request) {
     financial_abuse_acknowledged_at: context.profile?.financial_abuse_acknowledged_at ?? null,
     financial_abuse_ack_version: context.profile?.financial_abuse_ack_version ?? null,
     finished_modelling_confirmed: parsed.data.finished_modelling_confirmed,
+    offsetting_risk_acknowledged: parsed.data.offsetting_risk_acknowledged,
+    offsetting_risk_summary: offsettingRiskSummary,
+    baseline_results: baseline,
     selected_scenario_ids: selectedScenarioIds,
     financial_position: position,
-    scenarios: selectedScenarios.map((scenario) => ({
+    scenarios: selectedScenariosAtSendTime.map((scenario) => ({
       id: scenario.id,
       name: scenario.name,
       config: scenario.config,

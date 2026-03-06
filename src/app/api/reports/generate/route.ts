@@ -4,6 +4,7 @@ import { z } from "zod";
 import { computeBaseline, computeScenario } from "@/lib/domain/compute-scenario";
 import { interpretScenarioAgreements } from "@/lib/domain/interpret-scenario-agreements";
 import { generateScenarioObservations } from "@/lib/domain/observations";
+import { SCENARIO_MODEL_VERSION } from "@/lib/domain/types";
 import { getJurisdictionProfile } from "@/lib/legal/jurisdictions";
 import { badRequest, requireApiUser, serverError } from "@/lib/server/api";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
@@ -12,6 +13,7 @@ import { supabaseAdmin } from "@/lib/supabase/admin";
 
 const payloadSchema = z.object({
   scenario_ids: z.array(z.string().uuid()).min(1).max(3),
+  offsetting_risk_acknowledged: z.boolean(),
 });
 
 export async function POST(req: Request) {
@@ -43,7 +45,9 @@ export async function POST(req: Request) {
   }
 
   const position = await getOrCreateFinancialPosition(context.supabase, context.user.id);
-  const baseline = computeBaseline(position, context.profile?.jurisdiction ?? "GB-EAW");
+  const jurisdictionCode = context.profile?.jurisdiction ?? "GB-EAW";
+  const normalizedJurisdictionCode = jurisdictionCode.trim().toUpperCase();
+  const baseline = computeBaseline(position, jurisdictionCode);
   const locale = context.profile?.currency_code === "USD" ? "en-US" : context.profile?.currency_code === "CAD" ? "en-CA" : "en-GB";
   const generatedAt = new Date().toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
   const jurisdictionProfile = getJurisdictionProfile(context.profile?.jurisdiction);
@@ -54,16 +58,16 @@ export async function POST(req: Request) {
     .eq("user_id", context.user.id);
 
   const normalizedScenarios = scenarios.map((scenario) =>
-    scenario.results?.model_version === "v2_jurisdiction_pensions"
+    scenario.results?.model_version === SCENARIO_MODEL_VERSION
       ? scenario
       : {
           ...scenario,
-          results: computeScenario(position, scenario.config, context.profile?.jurisdiction ?? "GB-EAW"),
+          results: computeScenario(position, scenario.config, jurisdictionCode),
         }
   );
 
   const staleScenarioIds = normalizedScenarios
-    .filter((scenario, index) => scenarios[index]?.results?.model_version !== "v2_jurisdiction_pensions")
+    .filter((scenario, index) => scenarios[index]?.results?.model_version !== SCENARIO_MODEL_VERSION)
     .map((scenario) => scenario.id);
   if (staleScenarioIds.length > 0) {
     for (const scenario of normalizedScenarios) {
@@ -76,6 +80,13 @@ export async function POST(req: Request) {
     }
   }
 
+  const hasOffsettingRisk = normalizedScenarios.some(
+    (scenario) => scenario.results.offsetting_tradeoff_detected || scenario.results.specialist_advice_recommended
+  );
+  if (normalizedJurisdictionCode === "GB-EAW" && hasOffsettingRisk && !parsed.data.offsetting_risk_acknowledged) {
+    return badRequest("Offsetting risk acknowledgement is required before generating this report");
+  }
+
   const observations: Record<string, string[]> = {};
   const agreementInterpretations: Record<string, ReturnType<typeof interpretScenarioAgreements>> = {};
   for (const scenario of normalizedScenarios) {
@@ -85,7 +96,7 @@ export async function POST(req: Request) {
       context.profile?.currency_code ?? "GBP"
     );
     agreementInterpretations[scenario.id] = interpretScenarioAgreements({
-      jurisdictionCode: context.profile?.jurisdiction ?? "GB-EAW",
+      jurisdictionCode,
       config: scenario.config,
       terms: agreementTerms ?? [],
     });

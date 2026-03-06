@@ -1075,6 +1075,41 @@
   gap: 8px;
 }
 
+.dashboard-checklist-item {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+  border: 1px solid var(--bg-divider);
+  background: var(--bg-panel);
+  padding: 10px 12px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.dashboard-check-input {
+  margin-top: 1px;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-raspberry);
+  flex-shrink: 0;
+}
+
+.dashboard-report-risk-gate {
+  border: 1px solid rgb(194 24 91 / 0.36);
+  background: linear-gradient(180deg, rgb(194 24 91 / 0.1), rgb(194 24 91 / 0.04));
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-report-risk-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
 .dashboard-report-error-row {
   display: flex;
   align-items: center;
@@ -1317,6 +1352,90 @@
   gap: 10px;
 }
 
+.marketplace-composer-scenarios {
+  border: 1px solid var(--bg-divider);
+  background: var(--bg-panel);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.marketplace-composer-scenarios legend {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0 6px;
+}
+
+.marketplace-scenario-option {
+  display: flex !important;
+  align-items: center;
+  gap: 10px !important;
+  border: 1px solid var(--bg-divider);
+  background: var(--bg-elevated);
+  padding: 8px 10px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.marketplace-scenario-option.is-selected {
+  border-color: rgb(194 24 91 / 0.55);
+  background: rgb(194 24 91 / 0.12);
+}
+
+.marketplace-risk-gate {
+  border: 1px solid rgb(194 24 91 / 0.36);
+  background: linear-gradient(180deg, rgb(194 24 91 / 0.1), rgb(194 24 91 / 0.04));
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.marketplace-snapshot-card {
+  border: 1px solid var(--bg-divider);
+  background: linear-gradient(180deg, rgb(194 24 91 / 0.08), var(--bg-panel));
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.marketplace-snapshot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.marketplace-snapshot-grid p,
+.marketplace-snapshot-risk p {
+  margin: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.marketplace-snapshot-grid span {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--text-subtle);
+}
+
+.marketplace-snapshot-grid strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.marketplace-snapshot-risk {
+  border-top: 1px solid var(--bg-divider);
+  padding-top: 8px;
+  display: grid;
+  gap: 6px;
+}
+
 .marketplace-toggle-row {
   display: flex !important;
   gap: 8px !important;
@@ -1460,6 +1579,71 @@
 
 .dashboard-scenario-breakdown-chip-value.is-zero {
   color: var(--text-subtle);
+}
+
+.dashboard-scenario-risk-panel {
+  border: 1px solid rgb(194 24 91 / 0.38);
+  background: linear-gradient(180deg, rgb(194 24 91 / 0.12), rgb(194 24 91 / 0.04));
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-scenario-risk-head {
+  display: grid;
+  gap: 3px;
+}
+
+.dashboard-scenario-risk-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dashboard-scenario-risk-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.dashboard-scenario-risk-metrics p {
+  margin: 0;
+  border: 1px solid var(--bg-divider);
+  background: var(--bg-panel);
+  padding: 8px;
+  display: grid;
+  gap: 2px;
+}
+
+.dashboard-scenario-risk-metrics span {
+  font-size: 11px;
+  color: var(--text-subtle);
+  text-transform: uppercase;
+  letter-spacing: 1.4px;
+}
+
+.dashboard-scenario-risk-metrics strong {
+  font-family: var(--font-headline);
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.dashboard-risk-chip {
+  border: 1px solid rgb(194 24 91 / 0.42);
+  background: rgb(194 24 91 / 0.14);
+  color: var(--text-primary);
+  padding: 5px 9px;
+  font-size: 12px;
+}
+
+.dashboard-scenario-risk-note {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-subtle);
+  font-style: italic;
 }
 
 .dashboard-scenario-body {
@@ -1784,6 +1968,11 @@
   .dashboard-scenario-content {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .marketplace-snapshot-grid,
+  .dashboard-scenario-risk-metrics {
+    grid-template-columns: 1fr;
   }
 }
 

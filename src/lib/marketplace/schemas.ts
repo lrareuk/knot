@@ -59,6 +59,7 @@ export const marketplaceInquiryCreateSchema = z.object({
   message: z.string().trim().min(20).max(2000),
   selected_scenario_ids: z.array(z.string().uuid()).min(1).max(5),
   finished_modelling_confirmed: z.literal(true),
+  offsetting_risk_acknowledged: z.boolean(),
 });
 
 export const marketplaceInquiryStatusPatchSchema = z.object({

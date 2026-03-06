@@ -42,6 +42,12 @@ export default function OnboardingPensionsPage() {
   return (
     <div className="onboarding-module-body">
       <ModuleHeader title={PENSIONS_MODULE.title} description={PENSIONS_MODULE.description} />
+      {jurisdiction === "GB-EAW" ? (
+        <p className="onboarding-field-help">
+          In England and Wales, pension and property trade-offs can look balanced in capital but diverge in retirement income.
+          Add realistic projected annual pension income where possible.
+        </p>
+      ) : null}
 
       <div className="onboarding-card-list">
         {pensions.map((pension, index) => {

@@ -8,7 +8,10 @@ export default async function ComparePage() {
   const { user, profile, supabase } = await requireDashboardAccess();
   const position = await getOrCreateFinancialPosition(supabase, user.id);
   const baseline = computeBaseline(position, profile.jurisdiction);
-  const scenarios = await listScenarios(supabase, user.id);
+  const scenarios = await listScenarios(supabase, user.id, {
+    position,
+    jurisdictionCode: profile.jurisdiction,
+  });
 
   return (
     <CompareView

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { computeScenario } from "@/lib/domain/compute-scenario";
 import { scenarioConfigSchema } from "@/lib/domain/schemas";
+import { SCENARIO_MODEL_VERSION } from "@/lib/domain/types";
 import { requireApiUser, serverError } from "@/lib/server/api";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 
@@ -29,7 +30,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  if (data.results?.model_version === "v2_jurisdiction_pensions") {
+  if (data.results?.model_version === SCENARIO_MODEL_VERSION) {
     return NextResponse.json({ scenario: data });
   }
 

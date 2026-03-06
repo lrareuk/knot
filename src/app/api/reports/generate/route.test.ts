@@ -53,7 +53,7 @@ import { POST } from "@/app/api/reports/generate/route";
 
 const scenarioId = "11111111-1111-4111-8111-111111111111";
 
-function createUserSupabaseMock() {
+function createUserSupabaseMock(results: Record<string, unknown> = {}) {
   const scenariosIn = vi.fn().mockResolvedValue({
     data: [
       {
@@ -61,7 +61,7 @@ function createUserSupabaseMock() {
         user_id: "user-1",
         name: "Scenario A",
         config: {},
-        results: { model_version: "v2_jurisdiction_pensions", user_net_position: 1000 },
+        results: { model_version: "v3_pension_fairness_guardrails", user_net_position: 1000, ...results },
         created_at: "2026-02-27T10:00:00.000Z",
         updated_at: "2026-02-27T10:00:00.000Z",
       },
@@ -131,7 +131,7 @@ describe("POST /api/reports/generate", () => {
     vi.clearAllMocks();
     mockGetOrCreateFinancialPosition.mockResolvedValue({});
     mockComputeBaseline.mockReturnValue({});
-    mockComputeScenario.mockReturnValue({ model_version: "v2_jurisdiction_pensions" });
+    mockComputeScenario.mockReturnValue({ model_version: "v3_pension_fairness_guardrails" });
     mockGenerateScenarioObservations.mockReturnValue([]);
     mockRenderToBuffer.mockResolvedValue(new Uint8Array([1, 2, 3]));
   });
@@ -152,7 +152,7 @@ describe("POST /api/reports/generate", () => {
       new Request("http://localhost/api/report/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenario_ids: [scenarioId] }),
+        body: JSON.stringify({ scenario_ids: [scenarioId], offsetting_risk_acknowledged: true }),
       })
     );
 
@@ -166,5 +166,31 @@ describe("POST /api/reports/generate", () => {
     expect(payload.report?.id).toBe("report-1");
     expect(payload.report_id).toBe("report-1");
     expect(payload.download_url).toBe("https://cdn.test/report.pdf");
+  });
+
+  it("rejects report generation when E&W offsetting risk exists without acknowledgement", async () => {
+    const supabase = createUserSupabaseMock({
+      offsetting_tradeoff_detected: true,
+      specialist_advice_recommended: false,
+    });
+
+    mockRequireApiUser.mockResolvedValue({
+      response: null,
+      user: { id: "user-1" },
+      profile: { jurisdiction: "GB-EAW", currency_code: "GBP" },
+      supabase,
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/report/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenario_ids: [scenarioId], offsetting_risk_acknowledged: false }),
+      })
+    );
+
+    const payload = (await response.json()) as { error?: string };
+    expect(response.status).toBe(400);
+    expect(payload.error).toBe("Offsetting risk acknowledgement is required before generating this report");
   });
 });

@@ -26,21 +26,60 @@ export default async function MarketplaceInquiryPage({ params }: { params: Promi
     : [];
   const snapshotCreatedAt = typeof snapshot.created_at === "string" ? snapshot.created_at : null;
   const snapshotJurisdiction = typeof snapshot.jurisdiction === "string" ? snapshot.jurisdiction : null;
+  const offsettingRiskAcknowledged = snapshot.offsetting_risk_acknowledged === true;
+  const offsettingRiskSummary = Array.isArray(snapshot.offsetting_risk_summary)
+    ? snapshot.offsetting_risk_summary.filter((item): item is {
+        scenario_name: string;
+        offsetting_tradeoff_detected: boolean;
+        specialist_advice_recommended: boolean;
+        offsetting_tradeoff_strength: "none" | "moderate" | "strong";
+      } => {
+        if (typeof item !== "object" || item === null) return false;
+        const record = item as Record<string, unknown>;
+        return (
+          typeof record.scenario_name === "string" &&
+          typeof record.offsetting_tradeoff_detected === "boolean" &&
+          typeof record.specialist_advice_recommended === "boolean" &&
+          typeof record.offsetting_tradeoff_strength === "string"
+        );
+      })
+    : [];
 
   return (
     <div className="dashboard-page">
       <section className="dashboard-settings-section">
         <h2 className="dashboard-scenario-name">Inquiry thread</h2>
         <p className="dashboard-status">Inquiry id: {inquiry.id}</p>
-        <div className="dashboard-status">
-          <p>
-            Shared snapshot: {snapshotCreatedAt ? new Date(snapshotCreatedAt).toLocaleString() : "Unknown time"}
-            {snapshotJurisdiction ? ` · ${snapshotJurisdiction}` : ""}
-          </p>
-          <p>
-            Scenarios shared:{" "}
-            {snapshotScenarios.length > 0 ? snapshotScenarios.map((scenario) => scenario.name).join(", ") : "None listed"}
-          </p>
+        <div className="marketplace-snapshot-card">
+          <p className="dashboard-panel-eyebrow">Locked Snapshot</p>
+          <div className="marketplace-snapshot-grid">
+            <p>
+              <span>Shared at</span>
+              <strong>{snapshotCreatedAt ? new Date(snapshotCreatedAt).toLocaleString() : "Unknown time"}</strong>
+            </p>
+            <p>
+              <span>Jurisdiction</span>
+              <strong>{snapshotJurisdiction ?? "Unknown"}</strong>
+            </p>
+            <p>
+              <span>Scenarios shared</span>
+              <strong>{snapshotScenarios.length > 0 ? snapshotScenarios.map((scenario) => scenario.name).join(", ") : "None listed"}</strong>
+            </p>
+          </div>
+          {offsettingRiskSummary.length > 0 ? (
+            <div className="marketplace-snapshot-risk">
+              <p>
+                Pension offsetting risk acknowledgement: <strong>{offsettingRiskAcknowledged ? "Yes" : "No"}</strong>
+              </p>
+              {offsettingRiskSummary.map((summary) => (
+                <p key={summary.scenario_name}>
+                  {summary.scenario_name}: trade-off {summary.offsetting_tradeoff_detected ? "detected" : "not detected"} (
+                  {summary.offsetting_tradeoff_strength}), specialist advice{" "}
+                  {summary.specialist_advice_recommended ? "recommended" : "not flagged"}.
+                </p>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <ChatThread inquiryId={inquiry.id} currentUserId={user.id} initialStatus={inquiry.status} mode="client" />

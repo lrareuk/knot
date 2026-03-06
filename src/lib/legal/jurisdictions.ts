@@ -27,7 +27,7 @@ const ENGLAND_AND_WALES: JurisdictionProfile = {
   region_type: "country_constituent",
   default_currency: "GBP",
   property_framework:
-    "Discretionary fairness framework under the Matrimonial Causes Act 1973 with needs/sharing principles; pension rights are commonly treated as future income resources and can be shared by pension orders.",
+    "Discretionary fairness framework under the Matrimonial Causes Act 1973 with needs/sharing principles; pension rights are commonly treated as future income resources and can be shared by pension orders. Pension offsetting against property can create materially different retirement outcomes.",
   maintenance_framework: "Needs-led spousal maintenance with broad judicial discretion on amount and duration.",
   child_support_reference: {
     label: "UK Child Maintenance Service",
@@ -35,6 +35,7 @@ const ENGLAND_AND_WALES: JurisdictionProfile = {
   },
   key_caveats: [
     "Court outcomes are discretionary and fact-sensitive.",
+    "Offsetting pensions against property can appear capital-balanced while producing unequal retirement incomes.",
     "Needs, non-matrimonial property treatment, and child arrangements can materially change outcomes.",
   ],
   last_reviewed_at: LAST_REVIEWED_AT,

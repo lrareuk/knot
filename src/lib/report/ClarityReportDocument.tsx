@@ -125,6 +125,29 @@ function delta(value: number, currencyCode: "GBP" | "USD" | "CAD") {
   return `${value > 0 ? "+" : "−"}${money(Math.abs(value), currencyCode)}`;
 }
 
+function percentage(value: number | null) {
+  if (value === null) {
+    return "—";
+  }
+
+  return `${Math.round(value * 100)}%`;
+}
+
+function fairnessReasonLabel(reason: string) {
+  switch (reason) {
+    case "defined_benefit_present":
+      return "Defined benefit pension present";
+    case "missing_income_projection":
+      return "Missing pension income projection";
+    case "large_offsetting_tradeoff":
+      return "Large house-for-pension trade-off";
+    case "large_retirement_income_gap":
+      return "Large retirement income gap";
+    default:
+      return reason;
+  }
+}
+
 function PageHeader() {
   return (
     <View style={styles.headerBar} fixed>
@@ -251,6 +274,38 @@ export function ClarityReportDocument({
                   {delta(scenario.results.delta_user_monthly, currencyCode)}
                 </Text>
               </View>
+            </View>
+
+            <View style={styles.card}>
+              <Text style={styles.cardHeader}>Pension fairness and offsetting checks</Text>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableLabel}>Offsetting trade-off detected</Text>
+                <Text style={styles.tableCell}>{scenario.results.offsetting_tradeoff_detected ? "Yes" : "No"}</Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableLabel}>Offsetting trade-off strength</Text>
+                <Text style={styles.tableCell}>{scenario.results.offsetting_tradeoff_strength}</Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableLabel}>Retirement income gap (annual)</Text>
+                <Text style={styles.tableCell}>{money(scenario.results.retirement_income_gap_annual, currencyCode)}</Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableLabel}>Retirement income parity</Text>
+                <Text style={styles.tableCell}>{percentage(scenario.results.retirement_income_parity_ratio)}</Text>
+              </View>
+              <View style={styles.tableRow}>
+                <Text style={styles.tableLabel}>Specialist pension advice recommended</Text>
+                <Text style={styles.tableCell}>{scenario.results.specialist_advice_recommended ? "Yes" : "No"}</Text>
+              </View>
+              {scenario.results.specialist_advice_reasons.map((reason) => (
+                <Text key={reason} style={styles.listItem}>
+                  • {fairnessReasonLabel(reason)}
+                </Text>
+              ))}
+              <Text style={styles.disclaimer}>
+                Pension offsetting checks are modelling support only. They do not replace legal or actuarial advice.
+              </Text>
             </View>
 
             <View style={styles.card}>

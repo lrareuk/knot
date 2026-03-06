@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import ScenarioEditor from "@/app/components/dashboard/ScenarioEditor";
 import { computeBaseline, computeScenario } from "@/lib/domain/compute-scenario";
+import { SCENARIO_MODEL_VERSION } from "@/lib/domain/types";
 import { requireDashboardAccess } from "@/lib/server/auth";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 
@@ -22,7 +23,7 @@ export default async function ScenarioEditorPage({ params }: { params: Promise<{
   }
 
   const scenario =
-    scenarioRecord.results?.model_version === "v2_jurisdiction_pensions"
+    scenarioRecord.results?.model_version === SCENARIO_MODEL_VERSION
       ? scenarioRecord
       : {
           ...scenarioRecord,

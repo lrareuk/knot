@@ -4,7 +4,7 @@ import type { ScenarioResults } from "@/lib/domain/types";
 
 const baseResult: ScenarioResults = {
   label: "modelled_outcome",
-  model_version: "v2_jurisdiction_pensions",
+  model_version: "v3_pension_fairness_guardrails",
   user_total_assets: 100000,
   user_total_liabilities: 30000,
   user_net_position: 70000,
@@ -36,6 +36,13 @@ const baseResult: ScenarioResults = {
   delta_user_assets: -1000,
   delta_user_monthly: -200,
   delta_user_net_position: -15000,
+  retirement_income_gap_annual: 0,
+  retirement_income_gap_monthly: 0,
+  retirement_income_parity_ratio: null,
+  offsetting_tradeoff_detected: false,
+  offsetting_tradeoff_strength: "none",
+  specialist_advice_recommended: false,
+  specialist_advice_reasons: [],
 };
 
 describe("generateScenarioObservations", () => {

@@ -86,6 +86,21 @@ function formatCompactCurrency(value: number, currencyCode: "GBP" | "USD" | "CAD
   return `${sign}${absolute.toLocaleString("en-US")}`;
 }
 
+function fairnessReasonLabel(reason: string) {
+  switch (reason) {
+    case "defined_benefit_present":
+      return "Defined benefit pension present";
+    case "missing_income_projection":
+      return "Missing pension income projection";
+    case "large_offsetting_tradeoff":
+      return "Large house-for-pension trade-off";
+    case "large_retirement_income_gap":
+      return "Large retirement income gap";
+    default:
+      return reason;
+  }
+}
+
 function DeltaPill({ value, currencyCode }: { value: number; currencyCode: "GBP" | "USD" | "CAD" }) {
   if (value === 0) {
     return null;
@@ -328,6 +343,11 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
   };
 
   const maintenanceNet = results.user_maintenance_received - results.user_maintenance_paid;
+  const showPensionRiskPanel =
+    normalizedJurisdictionCode === "GB-EAW" &&
+    (results.offsetting_tradeoff_detected || results.specialist_advice_recommended);
+  const retirementParityLabel =
+    results.retirement_income_parity_ratio === null ? "—" : `${Math.round(results.retirement_income_parity_ratio * 100)}%`;
 
   const breakdownItems = [
     { label: "Property", value: results.user_property_equity },
@@ -429,6 +449,42 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
               </div>
             ))}
           </div>
+
+          {showPensionRiskPanel ? (
+            <section className="dashboard-scenario-risk-panel" aria-label="Pension trade-off risk">
+              <div className="dashboard-scenario-risk-head">
+                <p className="dashboard-panel-eyebrow">Pension Fairness Check</p>
+                <h3 className="dashboard-scenario-risk-title">Pension trade-off risk (England & Wales)</h3>
+              </div>
+              {results.offsetting_tradeoff_detected ? (
+                <p className="dashboard-status">
+                  This setup shows a potential house-now vs pension-later trade-off. Strength: {results.offsetting_tradeoff_strength}.
+                </p>
+              ) : null}
+              <div className="dashboard-scenario-risk-metrics">
+                <p>
+                  <span>Retirement income gap</span>
+                  <strong>{formatCurrency(results.retirement_income_gap_annual, currencyCode)} / year</strong>
+                </p>
+                <p>
+                  <span>Retirement income parity</span>
+                  <strong>{retirementParityLabel}</strong>
+                </p>
+              </div>
+              {results.specialist_advice_reasons.length > 0 ? (
+                <div className="dashboard-chip-row dashboard-scenario-risk-chip-row">
+                  {results.specialist_advice_reasons.map((reason) => (
+                    <span key={reason} className="dashboard-risk-chip">
+                      {fairnessReasonLabel(reason)}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              <p className="dashboard-scenario-risk-note">
+                This is modelling support only and may require specialist pension advice.
+              </p>
+            </section>
+          ) : null}
         </div>
       </section>
 
@@ -564,7 +620,7 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
                   })}
                   <p className="dashboard-scenario-helper">
                     {normalizedJurisdictionCode === "GB-EAW"
-                      ? "In England and Wales, pensions are modelled as future income resources rather than immediate capital."
+                      ? "In England and Wales, pensions are modelled as future income resources. House-for-pension offsets can appear capital-neutral while creating retirement-income gaps."
                       : "In Scotland, pension sharing can affect both matrimonial-property capital and projected future income."}
                   </p>
                 </Section>

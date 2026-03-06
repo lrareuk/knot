@@ -4,7 +4,7 @@ import type { ScenarioRecord, ScenarioResults } from "@/lib/domain/types";
 
 const baseline: ScenarioResults = {
   label: "modelled_outcome",
-  model_version: "v2_jurisdiction_pensions",
+  model_version: "v3_pension_fairness_guardrails",
   user_total_assets: 100000,
   user_total_liabilities: 20000,
   user_net_position: 80000,
@@ -36,6 +36,13 @@ const baseline: ScenarioResults = {
   delta_user_assets: 0,
   delta_user_monthly: 0,
   delta_user_net_position: 0,
+  retirement_income_gap_annual: 0,
+  retirement_income_gap_monthly: 0,
+  retirement_income_parity_ratio: null,
+  offsetting_tradeoff_detected: false,
+  offsetting_tradeoff_strength: "none",
+  specialist_advice_recommended: false,
+  specialist_advice_reasons: [],
 };
 
 function scenario(id: string, name: string, overrides: Partial<ScenarioResults>): ScenarioRecord {
@@ -62,9 +69,21 @@ function scenario(id: string, name: string, overrides: Partial<ScenarioResults>)
 describe("comparisonMetricGroups", () => {
   it("builds grouped rows and computes best scenario flags", () => {
     const groups = comparisonMetricGroups(baseline, [
-      scenario("1", "Scenario A", { user_net_position: 70000, user_total_debts: 9000, user_monthly_surplus_deficit: 650 }),
-      scenario("2", "Scenario B", { user_net_position: 85000, user_total_debts: 12000, user_monthly_surplus_deficit: 900 }),
-    ]);
+      scenario("1", "Scenario A", {
+        user_net_position: 70000,
+        user_total_debts: 9000,
+        user_monthly_surplus_deficit: 650,
+        retirement_income_gap_annual: 9000,
+        retirement_income_parity_ratio: 0.55,
+      }),
+      scenario("2", "Scenario B", {
+        user_net_position: 85000,
+        user_total_debts: 12000,
+        user_monthly_surplus_deficit: 900,
+        retirement_income_gap_annual: 3000,
+        retirement_income_parity_ratio: 0.9,
+      }),
+    ], "GB-EAW");
 
     expect(groups.map((group) => group.key)).toEqual(["assets", "liabilities", "monthly"]);
 
@@ -74,5 +93,13 @@ describe("comparisonMetricGroups", () => {
     const debtRow = groups.flatMap((group) => group.rows).find((row) => row.key === "debts");
     expect(debtRow?.better).toBe("lower");
     expect(debtRow?.scenarios.find((item) => item.id === "1")?.isBest).toBe(true);
+
+    const gapRow = groups.flatMap((group) => group.rows).find((row) => row.key === "retirement_income_gap_annual");
+    expect(gapRow?.better).toBe("lower");
+    expect(gapRow?.scenarios.find((item) => item.id === "2")?.isBest).toBe(true);
+
+    const parityRow = groups.flatMap((group) => group.rows).find((row) => row.key === "retirement_income_parity");
+    expect(parityRow?.better).toBe("higher");
+    expect(parityRow?.scenarios.find((item) => item.id === "2")?.isBest).toBe(true);
   });
 });

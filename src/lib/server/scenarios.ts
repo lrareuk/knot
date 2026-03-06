@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeScenario } from "@/lib/domain/compute-scenario";
 import { createDefaultScenarioConfig } from "@/lib/domain/defaults";
+import { SCENARIO_MODEL_VERSION } from "@/lib/domain/types";
 import type { FinancialPosition, ScenarioRecord } from "@/lib/domain/types";
 
 type ListScenariosOptions = {
@@ -9,7 +10,7 @@ type ListScenariosOptions = {
 };
 
 function isScenarioCurrent(scenario: ScenarioRecord) {
-  return scenario.results?.model_version === "v2_jurisdiction_pensions";
+  return scenario.results?.model_version === SCENARIO_MODEL_VERSION;
 }
 
 export async function listScenarios(

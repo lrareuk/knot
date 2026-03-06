@@ -30,6 +30,22 @@ type GeneratedReport = {
   downloadUrl: string;
 };
 
+export function requiresReportOffsettingRiskAcknowledgement(
+  scenarios: ScenarioRecord[],
+  selectedScenarioIds: string[],
+  jurisdictionCode: string
+) {
+  const normalizedJurisdictionCode = jurisdictionCode.trim().toUpperCase();
+  if (normalizedJurisdictionCode !== "GB-EAW") {
+    return false;
+  }
+
+  const selectedScenarios = scenarios.filter((scenario) => selectedScenarioIds.includes(scenario.id));
+  return selectedScenarios.some(
+    (scenario) => scenario.results.offsetting_tradeoff_detected || scenario.results.specialist_advice_recommended
+  );
+}
+
 export default function ReportGenerator({
   scenarios,
   preselectedScenarioIds = [],
@@ -50,6 +66,21 @@ export default function ReportGenerator({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState<GeneratedReport | null>(null);
+  const [offsettingRiskAcknowledged, setOffsettingRiskAcknowledged] = useState(false);
+
+  const requiresOffsettingRiskAck = useMemo(
+    () => requiresReportOffsettingRiskAcknowledgement(scenarios, selected, jurisdictionProfile?.code ?? ""),
+    [jurisdictionProfile?.code, scenarios, selected]
+  );
+  const flaggedSelectedCount = useMemo(
+    () =>
+      scenarios.filter(
+        (scenario) =>
+          selected.includes(scenario.id) &&
+          (scenario.results.offsetting_tradeoff_detected || scenario.results.specialist_advice_recommended)
+      ).length,
+    [scenarios, selected]
+  );
 
   const toggleScenario = (id: string) => {
     setSelected((current) => {
@@ -74,6 +105,10 @@ export default function ReportGenerator({
       setError("Select at least one scenario.");
       return;
     }
+    if (requiresOffsettingRiskAck && !offsettingRiskAcknowledged) {
+      setError("Acknowledge pension trade-off risk before generating this report.");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -82,7 +117,10 @@ export default function ReportGenerator({
     const response = await fetch("/api/report/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ scenario_ids: selected }),
+      body: JSON.stringify({
+        scenario_ids: selected,
+        offsetting_risk_acknowledged: offsettingRiskAcknowledged,
+      }),
     });
 
     const payload = (await response.json().catch(() => ({}))) as {
@@ -167,11 +205,34 @@ export default function ReportGenerator({
       </section>
 
       <div className="dashboard-report-actions">
+        {requiresOffsettingRiskAck ? (
+          <section className="dashboard-report-risk-gate">
+            <p className="dashboard-panel-eyebrow">Required Confirmation</p>
+            <p className="dashboard-report-risk-title">
+              {flaggedSelectedCount} selected {flaggedSelectedCount === 1 ? "scenario is" : "scenarios are"} flagged for pension
+              trade-off risk.
+            </p>
+            <p className="dashboard-status">
+              House and pension offsets can appear balanced in current capital while creating different retirement incomes.
+            </p>
+            <label className="dashboard-checklist-item">
+              <input
+                type="checkbox"
+                className="dashboard-check-input"
+                checked={offsettingRiskAcknowledged}
+                onChange={(event) => setOffsettingRiskAcknowledged(event.target.checked)}
+                disabled={loading}
+              />
+              <span>I understand this scenario may rely on pension offsetting assumptions and may need specialist pension advice.</span>
+            </label>
+          </section>
+        ) : null}
+
         <button
           type="button"
           className={`dashboard-btn dashboard-btn-lg${loading ? " is-loading" : ""}`}
           onClick={generate}
-          disabled={loading || selected.length === 0}
+          disabled={loading || selected.length === 0 || (requiresOffsettingRiskAck && !offsettingRiskAcknowledged)}
         >
           {loading ? "Generating..." : "Generate report"}
         </button>
