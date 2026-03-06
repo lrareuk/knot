@@ -81,8 +81,8 @@ export default function OnboardingSafetyPage() {
       </header>
 
       <section className="onboarding-review-card">
-        <h2>What financial abuse/manipulation can include</h2>
-        <ul className="onboarding-stack-md" style={{ paddingLeft: 20 }}>
+        <h2 className="onboarding-review-card-section-title">What financial abuse/manipulation can include</h2>
+        <ul className="onboarding-checklist onboarding-stack-md">
           <li>Controlling access to money, bank accounts, cards, or essential spending.</li>
           <li>Pressuring someone to hide, change, or withhold financial information.</li>
           <li>Monitoring accounts, coercing debt, or making financial threats.</li>
@@ -90,18 +90,20 @@ export default function OnboardingSafetyPage() {
       </section>
 
       <section className="onboarding-review-card onboarding-stack-md">
-        <label className="dashboard-status">
-          <input type="checkbox" checked={understandAbuse} onChange={(event) => setUnderstandAbuse(event.target.checked)} /> I
-          understand what financial abuse/manipulation can look like.
-        </label>
-        <label className="dashboard-status">
-          <input type="checkbox" checked={understandRisk} onChange={(event) => setUnderstandRisk(event.target.checked)} /> I
-          understand modelling may be inaccurate if information is coerced or manipulated.
-        </label>
-        <label className="dashboard-status">
-          <input type="checkbox" checked={confirmProceed} onChange={(event) => setConfirmProceed(event.target.checked)} /> I
-          accept this risk and want to continue onboarding.
-        </label>
+        <div className="onboarding-checkbox-list">
+          <label className="onboarding-checkbox-option">
+            <input type="checkbox" checked={understandAbuse} onChange={(event) => setUnderstandAbuse(event.target.checked)} />
+            <span>I understand what financial abuse/manipulation can look like.</span>
+          </label>
+          <label className="onboarding-checkbox-option">
+            <input type="checkbox" checked={understandRisk} onChange={(event) => setUnderstandRisk(event.target.checked)} />
+            <span>I understand modelling may be inaccurate if information is coerced or manipulated.</span>
+          </label>
+          <label className="onboarding-checkbox-option">
+            <input type="checkbox" checked={confirmProceed} onChange={(event) => setConfirmProceed(event.target.checked)} />
+            <span>I accept this risk and want to continue onboarding.</span>
+          </label>
+        </div>
 
         <button type="button" className="onboarding-review-submit" disabled={!canSubmit} onClick={() => void submitAcknowledgement()}>
           {saving ? "Saving..." : "Accept and continue"}
@@ -112,4 +114,3 @@ export default function OnboardingSafetyPage() {
     </main>
   );
 }
-

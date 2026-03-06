@@ -365,18 +365,30 @@ export default function OnboardingReviewPage() {
             </div>
           </header>
 
-          <p>
+          <p className="onboarding-review-card-copy">
             Have you signed a prenup, postnup, or separation agreement that may affect your financial position?
           </p>
-          <div className="dashboard-inline-actions">
-            <button type="button" className="dashboard-btn-ghost" onClick={() => void saveDisclosure(true)} disabled={disclosureSaving}>
+          <div className="onboarding-inline-actions">
+            <button
+              type="button"
+              className={`onboarding-inline-button ${hasRelevantAgreements === true ? "is-active" : ""}`}
+              onClick={() => void saveDisclosure(true)}
+              disabled={disclosureSaving}
+              aria-pressed={hasRelevantAgreements === true}
+            >
               Yes
             </button>
-            <button type="button" className="dashboard-btn-ghost" onClick={() => void saveDisclosure(false)} disabled={disclosureSaving}>
+            <button
+              type="button"
+              className={`onboarding-inline-button ${hasRelevantAgreements === false ? "is-active" : ""}`}
+              onClick={() => void saveDisclosure(false)}
+              disabled={disclosureSaving}
+              aria-pressed={hasRelevantAgreements === false}
+            >
               No
             </button>
             {hasRelevantAgreements ? (
-              <button type="button" className="dashboard-btn-ghost" onClick={() => router.push("/settings")}>
+              <button type="button" className="onboarding-inline-button" onClick={() => router.push("/settings")}>
                 Add details in settings
               </button>
             ) : null}

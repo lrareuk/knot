@@ -44,7 +44,7 @@ export default function OnboardingShell({ userId, firstName, currencyCode, juris
   const position = useFinancialStore((state) => state.position);
   const [isGuidanceOpen, setGuidanceOpen] = useState(false);
 
-  const isReviewPage = pathname === "/onboarding/review";
+  const isStandalonePage = pathname === "/onboarding/review" || pathname === "/onboarding/safety";
 
   useEffect(() => {
     void fetchPosition(userId);
@@ -62,7 +62,7 @@ export default function OnboardingShell({ userId, firstName, currencyCode, juris
     return <LoadingShell firstName={firstName} />;
   }
 
-  if (isReviewPage) {
+  if (isStandalonePage) {
     return (
       <OnboardingUIProvider value={{ openGuidance: () => setGuidanceOpen(true), currencyCode, jurisdiction }}>
         <div className="onboarding-theme onboarding-shell">{children}</div>
