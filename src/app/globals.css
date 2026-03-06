@@ -1874,10 +1874,13 @@ tbody tr:nth-child(even) {
 
 .onboarding-module-body {
   display: grid;
+  gap: 18px;
 }
 
 .onboarding-module-header {
-  margin-bottom: 22px;
+  margin-bottom: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgb(244 241 234 / 0.1);
 }
 
 .onboarding-module-header-top {
@@ -1896,16 +1899,17 @@ tbody tr:nth-child(even) {
 
 .onboarding-module-title {
   font-family: var(--font-headline);
-  font-size: 26px;
+  font-size: 38px;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.8px;
   color: var(--text-primary);
+  line-height: 1.05;
 }
 
 .onboarding-module-description {
-  max-width: 540px;
-  font-size: 15px;
-  line-height: 1.6;
+  max-width: 640px;
+  font-size: 17px;
+  line-height: 1.5;
   color: var(--text-muted);
 }
 
@@ -2048,38 +2052,45 @@ tbody tr:nth-child(even) {
 
 .onboarding-field-label {
   display: block;
-  margin-bottom: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.1px;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: #aaa49e;
 }
 
 .onboarding-field-input {
   width: 100%;
   height: 44px;
-  border: 1px solid var(--bg-divider);
-  background: var(--bg-panel);
+  border: 1px solid rgb(244 241 234 / 0.12);
+  background: linear-gradient(180deg, rgb(35 35 35 / 0.9), rgb(28 28 28 / 0.9));
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 16px;
   font-weight: 400;
   padding: 0 12px;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.onboarding-field-input:hover {
+  border-color: rgb(244 241 234 / 0.2);
 }
 
 .onboarding-field-input:focus-visible {
   border-color: var(--accent-raspberry);
+  background: linear-gradient(180deg, rgb(38 38 38 / 0.95), rgb(30 30 30 / 0.95));
 }
 
 .onboarding-field-input::placeholder {
-  color: var(--text-subtle);
+  color: rgb(154 149 144 / 0.75);
 }
 
 .onboarding-field-help {
   margin-top: 6px;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.45;
   color: var(--text-subtle);
 }
 
@@ -2135,8 +2146,8 @@ tbody tr:nth-child(even) {
 .onboarding-select {
   width: 100%;
   height: 44px;
-  border: 1px solid var(--bg-divider);
-  background: var(--bg-panel);
+  border: 1px solid rgb(244 241 234 / 0.12);
+  background: linear-gradient(180deg, rgb(35 35 35 / 0.9), rgb(28 28 28 / 0.9));
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 16px;
@@ -2144,11 +2155,16 @@ tbody tr:nth-child(even) {
   padding: 0 36px 0 14px;
   appearance: none;
   cursor: pointer;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.onboarding-select:hover {
+  border-color: rgb(244 241 234 / 0.2);
 }
 
 .onboarding-select:focus-visible {
   border-color: var(--accent-raspberry);
+  background: linear-gradient(180deg, rgb(38 38 38 / 0.95), rgb(30 30 30 / 0.95));
 }
 
 .onboarding-select option {
@@ -2203,8 +2219,8 @@ tbody tr:nth-child(even) {
 .onboarding-item-card {
   margin-bottom: 0;
   border: 1px solid var(--bg-divider);
-  background: var(--bg-panel);
-  padding: 16px;
+  background: linear-gradient(180deg, rgb(33 33 33 / 0.85), rgb(27 27 27 / 0.9));
+  padding: 16px 16px 14px;
   animation: onboarding-item-enter 0.3s ease-out;
 }
 
@@ -2284,8 +2300,9 @@ tbody tr:nth-child(even) {
 
 .onboarding-two-col-grid {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-columns: 1fr 1fr;
+  align-items: start;
 }
 
 .onboarding-computed-field {
@@ -2331,50 +2348,48 @@ tbody tr:nth-child(even) {
 }
 
 .onboarding-income-grid {
-  position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  align-items: start;
+  gap: 16px;
+  align-items: stretch;
 }
 
 .onboarding-income-divider {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: calc(50% + 7px);
-  width: 1px;
-  background: var(--bg-divider);
-  transform: translateX(-50%);
+  display: none;
 }
 
 .onboarding-income-column {
   display: flex;
   flex-direction: column;
+  border: 1px solid var(--bg-divider);
+  background: linear-gradient(180deg, rgb(34 34 34 / 0.85), rgb(26 26 26 / 0.92));
+  padding: 14px;
+  gap: 4px;
 }
 
 .onboarding-income-heading {
   margin-bottom: 0;
-  padding-bottom: 12px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--bg-divider);
   font-family: var(--font-headline);
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 2px;
+  letter-spacing: 2.6px;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: #a8a29c;
 }
 
 .onboarding-income-fields {
   margin-top: 10px;
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .onboarding-income-footer {
   margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid var(--bg-divider);
+  border: 1px solid var(--bg-divider);
+  background: linear-gradient(180deg, rgb(34 34 34 / 0.78), rgb(26 26 26 / 0.9));
+  padding: 14px;
 }
 
 .onboarding-fade-field {
@@ -2425,23 +2440,26 @@ tbody tr:nth-child(even) {
 
 .onboarding-continue-wrap {
   margin-top: 24px;
+  display: grid;
+  justify-items: stretch;
 }
 
 .onboarding-continue-button,
 .onboarding-review-submit {
   width: 100%;
-  height: 46px;
+  height: 50px;
   border: 0;
-  background: var(--accent-raspberry);
+  background: linear-gradient(90deg, #bd1658 0%, #cc1a63 65%, #d71f69 100%);
   color: var(--text-primary);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   text-transform: uppercase;
   position: relative;
   overflow: hidden;
   cursor: pointer;
-  transition: background-color 0.2s ease, opacity 0.2s ease;
+  box-shadow: 0 10px 24px rgb(194 24 91 / 0.24);
+  transition: transform 0.18s ease, filter 0.18s ease, opacity 0.2s ease;
 }
 
 .onboarding-continue-button::before,
@@ -2458,7 +2476,8 @@ tbody tr:nth-child(even) {
 
 .onboarding-continue-button:hover,
 .onboarding-review-submit:hover {
-  background: var(--accent-raspberry-strong);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
 }
 
 .onboarding-continue-button:hover::before,
@@ -2470,6 +2489,9 @@ tbody tr:nth-child(even) {
 .onboarding-review-submit:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+  transform: none;
+  filter: none;
+  box-shadow: none;
 }
 
 .onboarding-continue-button:disabled::before,
@@ -2876,6 +2898,14 @@ tbody tr:nth-child(even) {
   .onboarding-main {
     max-width: none;
     padding: 14px 12px 20px;
+  }
+
+  .onboarding-module-title {
+    font-size: 32px;
+  }
+
+  .onboarding-module-description {
+    font-size: 15px;
   }
 
   .onboarding-mobile-progress {
