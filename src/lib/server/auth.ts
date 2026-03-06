@@ -31,19 +31,29 @@ export async function requireAuthContext() {
   };
 }
 
-export async function requireDashboardAccess() {
+export async function requireActiveAuthContext() {
   const context = await requireAuthContext();
   if (context.profile.account_state !== "active") {
     redirect("/login");
   }
+  if (context.profile.recovery_key_required) {
+    redirect("/recovery-key");
+  }
+  return context;
+}
+
+export async function requirePaidActiveAuthContext() {
+  const context = await requireActiveAuthContext();
   if (!context.profile.paid) {
     redirect("/signup/payment");
   }
+  return context;
+}
+
+export async function requireDashboardAccess() {
+  const context = await requirePaidActiveAuthContext();
   if (!context.profile.onboarding_done) {
     redirect("/onboarding");
-  }
-  if (context.profile.recovery_key_required) {
-    redirect("/recovery-key");
   }
   return context;
 }

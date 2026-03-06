@@ -21,6 +21,7 @@ export default function OnboardingPensionsPage() {
   const position = useFinancialStore((state) => state.position);
   const setPensions = useFinancialStore((state) => state.setPensions);
   const isUnitedKingdomJurisdiction = jurisdiction.startsWith("GB-");
+  const isScottishJurisdiction = jurisdiction === "GB-SCT";
 
   useEffect(() => {
     if (position && position.pensions.length === 0) {
@@ -116,7 +117,7 @@ export default function OnboardingPensionsPage() {
 
               <div className={`onboarding-fade-field ${showAnnualAmount ? "" : "is-hidden"}`}>
                 <CurrencyInput
-                  label="Annual amount"
+                  label="Current annual amount"
                   value={pension.annual_amount}
                   onChange={(value) => updatePension(pension.id, { annual_amount: value })}
                   showEstimate
@@ -142,8 +143,44 @@ export default function OnboardingPensionsPage() {
                   <p className="onboarding-field-help">
                     Add your latest annual estimate from your pension statement or government benefits account.
                   </p>
-                ) : null}
+                  ) : null}
               </div>
+
+              <CurrencyInput
+                label="Projected annual retirement income"
+                value={pension.projected_annual_income}
+                onChange={(value) => updatePension(pension.id, { projected_annual_income: value })}
+                help="Your best estimate of annual income this pension could provide in retirement."
+                showEstimate
+                isEstimated={pension.is_estimated.projected_annual_income}
+                onEstimateToggle={() =>
+                  updatePension(pension.id, {
+                    is_estimated: {
+                      ...pension.is_estimated,
+                      projected_annual_income: !pension.is_estimated.projected_annual_income,
+                    },
+                  })
+                }
+              />
+
+              {isScottishJurisdiction ? (
+                <CurrencyInput
+                  label="Relevant-date matrimonial value (Scotland)"
+                  value={pension.scottish_relevant_date_value}
+                  onChange={(value) => updatePension(pension.id, { scottish_relevant_date_value: value })}
+                  help="If known, enter the pension value attributable to matrimonial property at the relevant date."
+                  showEstimate
+                  isEstimated={pension.is_estimated.scottish_relevant_date_value}
+                  onEstimateToggle={() =>
+                    updatePension(pension.id, {
+                      is_estimated: {
+                        ...pension.is_estimated,
+                        scottish_relevant_date_value: !pension.is_estimated.scottish_relevant_date_value,
+                      },
+                    })
+                  }
+                />
+              ) : null}
 
               <Toggle
                 label="Matrimonial?"

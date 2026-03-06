@@ -26,7 +26,8 @@ const ENGLAND_AND_WALES: JurisdictionProfile = {
   country: "GB",
   region_type: "country_constituent",
   default_currency: "GBP",
-  property_framework: "Discretionary fairness framework under the Matrimonial Causes Act 1973 with needs/sharing principles.",
+  property_framework:
+    "Discretionary fairness framework under the Matrimonial Causes Act 1973 with needs/sharing principles; pension rights are commonly treated as future income resources and can be shared by pension orders.",
   maintenance_framework: "Needs-led spousal maintenance with broad judicial discretion on amount and duration.",
   child_support_reference: {
     label: "UK Child Maintenance Service",
@@ -45,7 +46,8 @@ const SCOTLAND: JurisdictionProfile = {
   country: "GB",
   region_type: "country_constituent",
   default_currency: "GBP",
-  property_framework: "Fair sharing of matrimonial property under Scots law, adjusted for statutory factors.",
+  property_framework:
+    "Fair sharing of matrimonial property under Scots law, adjusted for statutory factors, with pension rights valued at the relevant date where matrimonial.",
   maintenance_framework: "Needs-based spousal support with broad judicial discretion and limited-duration trends.",
   child_support_reference: {
     label: "UK Child Maintenance Service",
@@ -53,7 +55,7 @@ const SCOTLAND: JurisdictionProfile = {
   },
   key_caveats: [
     "Court outcomes are discretionary and fact-sensitive.",
-    "Valuation date and matrimonial/non-matrimonial classification can materially change outcomes.",
+    "Valuation at the relevant date and matrimonial/non-matrimonial classification can materially change outcomes.",
   ],
   last_reviewed_at: LAST_REVIEWED_AT,
 };

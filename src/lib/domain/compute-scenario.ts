@@ -12,6 +12,7 @@ type PartyBreakdown = {
   property_value: number;
   property_mortgage: number;
   pensions: number;
+  pension_income_annual: number;
   savings: number;
   debts: number;
   debt_monthly: number;
@@ -36,6 +37,7 @@ function emptyParty(): PartyBreakdown {
     property_value: 0,
     property_mortgage: 0,
     pensions: 0,
+    pension_income_annual: 0,
     savings: 0,
     debts: 0,
     debt_monthly: 0,
@@ -86,6 +88,32 @@ function safeNumber(value: number | null | undefined) {
   return value ?? 0;
 }
 
+function normalizeJurisdiction(jurisdictionCode: string | null | undefined) {
+  if (typeof jurisdictionCode !== "string") {
+    return "";
+  }
+  return jurisdictionCode.trim().toUpperCase();
+}
+
+function pensionCapitalValue(
+  pension: FinancialPosition["pensions"][number],
+  jurisdictionCode: string
+) {
+  if (jurisdictionCode === "GB-EAW") {
+    return 0;
+  }
+
+  if (jurisdictionCode === "GB-SCT") {
+    return safeNumber(pension.scottish_relevant_date_value ?? pension.current_value);
+  }
+
+  return safeNumber(pension.current_value);
+}
+
+function pensionAnnualIncomeValue(pension: FinancialPosition["pensions"][number]) {
+  return safeNumber(pension.projected_annual_income ?? pension.annual_amount);
+}
+
 function applyPropertyToParty(
   party: PartyBreakdown,
   property: { currentValue: number; mortgage: number; monthlyCost?: number },
@@ -129,6 +157,7 @@ function toResults(state: BaselineState, baseline: BaselineState): ScenarioResul
 
   return {
     label: "modelled_outcome",
+    model_version: "v2_jurisdiction_pensions",
     user_total_assets: round(userAssets),
     user_total_liabilities: round(userLiabilities),
     user_net_position: round(userNet),
@@ -139,6 +168,8 @@ function toResults(state: BaselineState, baseline: BaselineState): ScenarioResul
     user_monthly_income: round(state.user.income),
     user_monthly_expenditure: round(userMonthlyExpenditure),
     user_monthly_surplus_deficit: round(userMonthlySurplus),
+    user_pension_income_annual: round(state.user.pension_income_annual),
+    user_pension_income_monthly_equivalent: round(state.user.pension_income_annual / 12),
     user_maintenance_paid: round(state.user.maintenance_paid),
     user_maintenance_received: round(state.user.maintenance_received),
 
@@ -152,6 +183,8 @@ function toResults(state: BaselineState, baseline: BaselineState): ScenarioResul
     partner_monthly_income: round(state.partner.income),
     partner_monthly_expenditure: round(partnerMonthlyExpenditure),
     partner_monthly_surplus_deficit: round(partnerMonthlySurplus),
+    partner_pension_income_annual: round(state.partner.pension_income_annual),
+    partner_pension_income_monthly_equivalent: round(state.partner.pension_income_annual / 12),
     partner_maintenance_paid: round(state.partner.maintenance_paid),
     partner_maintenance_received: round(state.partner.maintenance_received),
 
@@ -161,7 +194,7 @@ function toResults(state: BaselineState, baseline: BaselineState): ScenarioResul
   };
 }
 
-function computeInitialBaseline(position: FinancialPosition): BaselineState {
+function computeInitialBaseline(position: FinancialPosition, jurisdictionCode: string): BaselineState {
   const state: BaselineState = {
     user: emptyParty(),
     partner: emptyParty(),
@@ -189,8 +222,12 @@ function computeInitialBaseline(position: FinancialPosition): BaselineState {
 
   for (const pension of position.pensions) {
     const holderShares = sharesFromHolder(pension.holder === "user" ? "user" : "partner");
-    state.user.pensions += safeNumber(pension.current_value) * holderShares.user;
-    state.partner.pensions += safeNumber(pension.current_value) * holderShares.partner;
+    const capitalValue = pensionCapitalValue(pension, jurisdictionCode);
+    const annualIncomeValue = pensionAnnualIncomeValue(pension);
+    state.user.pensions += capitalValue * holderShares.user;
+    state.partner.pensions += capitalValue * holderShares.partner;
+    state.user.pension_income_annual += annualIncomeValue * holderShares.user;
+    state.partner.pension_income_annual += annualIncomeValue * holderShares.partner;
   }
 
   for (const savings of position.savings) {
@@ -279,13 +316,36 @@ function debtBaselineContribution(debt: DebtItem): {
   };
 }
 
-export function computeBaseline(position: FinancialPosition): ScenarioResults {
-  const baseline = computeInitialBaseline(position);
+function pensionBaselineContribution(
+  pension: FinancialPosition["pensions"][number],
+  jurisdictionCode: string
+): {
+  user: { capital: number; annualIncome: number };
+  partner: { capital: number; annualIncome: number };
+} {
+  const shares = sharesFromHolder(pension.holder === "user" ? "user" : "partner");
+  const capital = pensionCapitalValue(pension, jurisdictionCode);
+  const annualIncome = pensionAnnualIncomeValue(pension);
+  return {
+    user: {
+      capital: capital * shares.user,
+      annualIncome: annualIncome * shares.user,
+    },
+    partner: {
+      capital: capital * shares.partner,
+      annualIncome: annualIncome * shares.partner,
+    },
+  };
+}
+
+export function computeBaseline(position: FinancialPosition, jurisdictionCode: string): ScenarioResults {
+  const baseline = computeInitialBaseline(position, normalizeJurisdiction(jurisdictionCode));
   return toResults(baseline, baseline);
 }
 
-export function computeScenario(position: FinancialPosition, config: ScenarioConfig): ScenarioResults {
-  const baseline = computeInitialBaseline(position);
+export function computeScenario(position: FinancialPosition, config: ScenarioConfig, jurisdictionCode: string): ScenarioResults {
+  const normalizedJurisdictionCode = normalizeJurisdiction(jurisdictionCode);
+  const baseline = computeInitialBaseline(position, normalizedJurisdictionCode);
   const state: BaselineState = {
     user: { ...baseline.user },
     partner: { ...baseline.partner },
@@ -358,13 +418,19 @@ export function computeScenario(position: FinancialPosition, config: ScenarioCon
       continue;
     }
 
-    const baselineShares = sharesFromHolder(pension.holder === "user" ? "user" : "partner");
-    state.user.pensions -= safeNumber(pension.current_value) * baselineShares.user;
-    state.partner.pensions -= safeNumber(pension.current_value) * baselineShares.partner;
+    const baselineContribution = pensionBaselineContribution(pension, normalizedJurisdictionCode);
+    state.user.pensions -= baselineContribution.user.capital;
+    state.partner.pensions -= baselineContribution.partner.capital;
+    state.user.pension_income_annual -= baselineContribution.user.annualIncome;
+    state.partner.pension_income_annual -= baselineContribution.partner.annualIncome;
 
     const split = splitByPercent(splitDecision.split_user);
-    state.user.pensions += safeNumber(pension.current_value) * split.user;
-    state.partner.pensions += safeNumber(pension.current_value) * split.partner;
+    const splitCapital = pensionCapitalValue(pension, normalizedJurisdictionCode);
+    const splitAnnualIncome = pensionAnnualIncomeValue(pension);
+    state.user.pensions += splitCapital * split.user;
+    state.partner.pensions += splitCapital * split.partner;
+    state.user.pension_income_annual += splitAnnualIncome * split.user;
+    state.partner.pension_income_annual += splitAnnualIncome * split.partner;
   }
 
   for (const splitDecision of config.savings_splits) {

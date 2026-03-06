@@ -4,6 +4,7 @@ import type { ScenarioRecord, ScenarioResults } from "@/lib/domain/types";
 
 const baseline: ScenarioResults = {
   label: "modelled_outcome",
+  model_version: "v2_jurisdiction_pensions",
   user_total_assets: 100000,
   user_total_liabilities: 20000,
   user_net_position: 80000,
@@ -14,6 +15,8 @@ const baseline: ScenarioResults = {
   user_monthly_income: 3500,
   user_monthly_expenditure: 2800,
   user_monthly_surplus_deficit: 700,
+  user_pension_income_annual: 0,
+  user_pension_income_monthly_equivalent: 0,
   user_maintenance_paid: 0,
   user_maintenance_received: 0,
   partner_total_assets: 0,
@@ -26,6 +29,8 @@ const baseline: ScenarioResults = {
   partner_monthly_income: 0,
   partner_monthly_expenditure: 0,
   partner_monthly_surplus_deficit: 0,
+  partner_pension_income_annual: 0,
+  partner_pension_income_monthly_equivalent: 0,
   partner_maintenance_paid: 0,
   partner_maintenance_received: 0,
   delta_user_assets: 0,

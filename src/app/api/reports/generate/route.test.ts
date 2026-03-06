@@ -4,6 +4,7 @@ const {
   mockRequireApiUser,
   mockGetOrCreateFinancialPosition,
   mockComputeBaseline,
+  mockComputeScenario,
   mockGenerateScenarioObservations,
   mockRenderToBuffer,
   mockSupabaseAdmin,
@@ -11,6 +12,7 @@ const {
   mockRequireApiUser: vi.fn(),
   mockGetOrCreateFinancialPosition: vi.fn(),
   mockComputeBaseline: vi.fn(),
+  mockComputeScenario: vi.fn(),
   mockGenerateScenarioObservations: vi.fn(),
   mockRenderToBuffer: vi.fn(),
   mockSupabaseAdmin: vi.fn(),
@@ -28,6 +30,7 @@ vi.mock("@/lib/server/financial-position", () => ({
 
 vi.mock("@/lib/domain/compute-scenario", () => ({
   computeBaseline: mockComputeBaseline,
+  computeScenario: mockComputeScenario,
 }));
 
 vi.mock("@/lib/domain/observations", () => ({
@@ -51,23 +54,48 @@ import { POST } from "@/app/api/reports/generate/route";
 const scenarioId = "11111111-1111-4111-8111-111111111111";
 
 function createUserSupabaseMock() {
-  const inFn = vi.fn().mockResolvedValue({
+  const scenariosIn = vi.fn().mockResolvedValue({
     data: [
       {
         id: scenarioId,
         user_id: "user-1",
         name: "Scenario A",
         config: {},
-        results: { user_net_position: 1000 },
+        results: { model_version: "v2_jurisdiction_pensions", user_net_position: 1000 },
         created_at: "2026-02-27T10:00:00.000Z",
         updated_at: "2026-02-27T10:00:00.000Z",
       },
     ],
     error: null,
   });
-  const eq = vi.fn().mockReturnValue({ in: inFn });
-  const select = vi.fn().mockReturnValue({ eq });
-  const from = vi.fn().mockReturnValue({ select });
+  const scenariosEq = vi.fn().mockReturnValue({ in: scenariosIn });
+  const scenariosSelect = vi.fn().mockReturnValue({ eq: scenariosEq });
+
+  const scenariosUpdateFinalEq = vi.fn().mockResolvedValue({ error: null });
+  const scenariosUpdateEq = vi.fn().mockReturnValue({ eq: scenariosUpdateFinalEq });
+  const scenariosUpdate = vi.fn().mockReturnValue({ eq: scenariosUpdateEq });
+
+  const agreementsEq = vi.fn().mockResolvedValue({ data: [], error: null });
+  const agreementsSelect = vi.fn().mockReturnValue({ eq: agreementsEq });
+
+  const from = vi.fn((table: string) => {
+    if (table === "scenarios") {
+      return {
+        select: scenariosSelect,
+        update: scenariosUpdate,
+      };
+    }
+
+    if (table === "legal_agreement_terms") {
+      return {
+        select: agreementsSelect,
+      };
+    }
+
+    return {
+      select: vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ data: null, error: null }) }),
+    };
+  });
 
   return { from };
 }
@@ -103,6 +131,7 @@ describe("POST /api/reports/generate", () => {
     vi.clearAllMocks();
     mockGetOrCreateFinancialPosition.mockResolvedValue({});
     mockComputeBaseline.mockReturnValue({});
+    mockComputeScenario.mockReturnValue({ model_version: "v2_jurisdiction_pensions" });
     mockGenerateScenarioObservations.mockReturnValue([]);
     mockRenderToBuffer.mockResolvedValue(new Uint8Array([1, 2, 3]));
   });
@@ -111,7 +140,12 @@ describe("POST /api/reports/generate", () => {
     const supabase = createUserSupabaseMock();
     const admin = createAdminSupabaseMock();
 
-    mockRequireApiUser.mockResolvedValue({ response: null, user: { id: "user-1" }, supabase });
+    mockRequireApiUser.mockResolvedValue({
+      response: null,
+      user: { id: "user-1" },
+      profile: { jurisdiction: "GB-EAW", currency_code: "GBP" },
+      supabase,
+    });
     mockSupabaseAdmin.mockReturnValue(admin);
 
     const response = await POST(

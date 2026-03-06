@@ -25,6 +25,8 @@ const position: FinancialPosition = {
       is_matrimonial: true,
       pension_type: "defined_contribution",
       annual_amount: null,
+      projected_annual_income: null,
+      scottish_relevant_date_value: null,
     },
   ],
   savings: [
@@ -72,12 +74,32 @@ const position: FinancialPosition = {
 };
 
 describe("computeBaseline", () => {
-  it("allocates ownership-based baseline totals", () => {
-    const baseline = computeBaseline(position);
+  it("treats pensions as future income in England and Wales", () => {
+    const baseline = computeBaseline(position, "GB-EAW");
+
+    expect(baseline.user_total_pensions).toBe(0);
+    expect(baseline.user_pension_income_annual).toBe(0);
+    expect(baseline.user_total_savings).toBe(10000);
+  });
+
+  it("allocates Scottish relevant-date pension value as matrimonial capital in Scotland", () => {
+    const scotlandPosition: FinancialPosition = {
+      ...position,
+      pensions: [
+        {
+          ...position.pensions[0],
+          scottish_relevant_date_value: 80000,
+          projected_annual_income: 12000,
+        },
+      ],
+    };
+    const baseline = computeBaseline(scotlandPosition, "GB-SCT");
 
     expect(baseline.user_property_equity).toBe(150000);
     expect(baseline.partner_property_equity).toBe(150000);
-    expect(baseline.user_total_pensions).toBe(100000);
+    expect(baseline.user_total_pensions).toBe(80000);
+    expect(baseline.user_pension_income_annual).toBe(12000);
+    expect(baseline.user_pension_income_monthly_equivalent).toBe(1000);
     expect(baseline.user_total_savings).toBe(10000);
     expect(baseline.partner_total_savings).toBe(10000);
     expect(baseline.user_total_debts).toBe(5000);
@@ -103,7 +125,7 @@ describe("computeScenario", () => {
 
     config.income_changes.user_new_net_monthly = 3200;
 
-    const scenario = computeScenario(position, config);
+    const scenario = computeScenario(position, config, "GB-EAW");
 
     expect(scenario.user_total_savings).toBeGreaterThan(10000);
     expect(scenario.user_maintenance_received).toBe(500);
@@ -123,10 +145,34 @@ describe("computeScenario", () => {
 
     config.housing_change.user_new_rent = 900;
 
-    const scenario = computeScenario(position, config);
+    const scenario = computeScenario(position, config, "GB-SCT");
 
     expect(scenario.user_property_equity).toBe(300000);
     expect(scenario.partner_property_equity).toBe(0);
     expect(scenario.user_monthly_expenditure).toBeGreaterThan(0);
+  });
+
+  it("splits projected pension income in England and Wales without adding pension capital", () => {
+    const eawPosition: FinancialPosition = {
+      ...position,
+      pensions: [
+        {
+          ...position.pensions[0],
+          projected_annual_income: 12000,
+          current_value: 100000,
+        },
+      ],
+    };
+    const config = createDefaultScenarioConfig(eawPosition);
+    config.pension_splits[0] = {
+      pension_id: eawPosition.pensions[0]!.id,
+      split_user: 25,
+    };
+
+    const scenario = computeScenario(eawPosition, config, "GB-EAW");
+    expect(scenario.user_total_pensions).toBe(0);
+    expect(scenario.partner_total_pensions).toBe(0);
+    expect(scenario.user_pension_income_annual).toBe(3000);
+    expect(scenario.partner_pension_income_annual).toBe(9000);
   });
 });

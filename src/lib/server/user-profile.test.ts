@@ -19,6 +19,8 @@ describe("ensureAndFetchUserProfile", () => {
       currency_code: "USD",
       currency_overridden: true,
       has_relevant_agreements: true,
+      financial_abuse_acknowledged_at: "2026-03-06T00:00:00.000Z",
+      financial_abuse_ack_version: "2026-03-06",
       account_state: "active" as const,
       recovery_key_required: false,
       recovery_key_generated_at: null,
@@ -46,6 +48,8 @@ describe("ensureAndFetchUserProfile", () => {
       paid: true,
       onboarding_done: true,
       jurisdiction: "scotland",
+      financial_abuse_acknowledged_at: null,
+      financial_abuse_ack_version: null,
       account_state: "active" as const,
       recovery_key_required: false,
       recovery_key_generated_at: null,
@@ -79,6 +83,8 @@ describe("ensureAndFetchUserProfile", () => {
       currency_code: "GBP",
       currency_overridden: false,
       has_relevant_agreements: null,
+      financial_abuse_acknowledged_at: null,
+      financial_abuse_ack_version: null,
     });
   });
 });

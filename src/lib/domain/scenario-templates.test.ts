@@ -44,6 +44,8 @@ const POSITION: FinancialPosition = {
       is_matrimonial: true,
       pension_type: "defined_contribution",
       annual_amount: null,
+      projected_annual_income: null,
+      scottish_relevant_date_value: null,
     },
     {
       id: "pension-partner",
@@ -53,6 +55,8 @@ const POSITION: FinancialPosition = {
       is_matrimonial: true,
       pension_type: "defined_contribution",
       annual_amount: null,
+      projected_annual_income: null,
+      scottish_relevant_date_value: null,
     },
   ],
   savings: [

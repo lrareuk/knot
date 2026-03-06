@@ -8,6 +8,7 @@ type Props = {
   position: FinancialPosition;
   scenarios: ScenarioRecord[];
   currencyCode: "GBP" | "USD" | "CAD";
+  jurisdictionCode: string;
 };
 
 function safeNumber(value: number | null | undefined) {
@@ -18,12 +19,26 @@ function safeNumber(value: number | null | undefined) {
   return value ?? 0;
 }
 
-function sumPensions(position: FinancialPosition) {
+function sumPensionCapital(position: FinancialPosition, jurisdictionCode: string) {
+  const normalizedJurisdiction = jurisdictionCode.trim().toUpperCase();
+  if (normalizedJurisdiction === "GB-EAW") {
+    return 0;
+  }
+
   return position.pensions.reduce((total, pension) => {
-    const value = safeNumber(pension.current_value);
-    const annual = pension.pension_type === "defined_benefit" || pension.pension_type === "state" ? safeNumber(pension.annual_amount) : 0;
-    return total + value + annual;
+    if (normalizedJurisdiction === "GB-SCT") {
+      return total + safeNumber(pension.scottish_relevant_date_value ?? pension.current_value);
+    }
+
+    return total + safeNumber(pension.current_value);
   }, 0);
+}
+
+function sumProjectedPensionIncome(position: FinancialPosition) {
+  return position.pensions.reduce(
+    (total, pension) => total + safeNumber(pension.projected_annual_income ?? pension.annual_amount),
+    0
+  );
 }
 
 function sumExpenditure(position: FinancialPosition) {
@@ -64,12 +79,13 @@ function MetricCard({
   );
 }
 
-export default function OverviewView({ position, scenarios, currencyCode }: Props) {
+export default function OverviewView({ position, scenarios, currencyCode, jurisdictionCode }: Props) {
   const propertyEquity = position.properties.reduce(
     (total, property) => total + (safeNumber(property.current_value) - safeNumber(property.mortgage_outstanding)),
     0
   );
-  const pensions = sumPensions(position);
+  const pensions = sumPensionCapital(position, jurisdictionCode);
+  const projectedPensionIncome = sumProjectedPensionIncome(position);
   const savings = position.savings.reduce((total, item) => total + safeNumber(item.current_value), 0);
   const debts = position.debts.reduce((total, debt) => total + safeNumber(debt.outstanding), 0);
 
@@ -107,9 +123,19 @@ export default function OverviewView({ position, scenarios, currencyCode }: Prop
           currencyCode={currencyCode}
           negative={propertyEquity < 0}
         />
-        <MetricCard label="Pensions" value={pensions} count={position.pensions.length} currencyCode={currencyCode} />
+        <MetricCard
+          label={jurisdictionCode.trim().toUpperCase() === "GB-EAW" ? "Pension capital in net assets" : "Pensions"}
+          value={pensions}
+          count={position.pensions.length}
+          currencyCode={currencyCode}
+        />
         <MetricCard label="Savings" value={savings} count={position.savings.length} currencyCode={currencyCode} />
         <MetricCard label="Debts" value={debts} count={position.debts.length} currencyCode={currencyCode} negative />
+      </section>
+
+      <section className="dashboard-settings-section">
+        <h2 className="dashboard-scenario-name">Projected pension income</h2>
+        <p className="dashboard-status">{formatCurrency(projectedPensionIncome, currencyCode)} per year (combined estimate)</p>
       </section>
 
       <section className="dashboard-cashflow-panel" aria-label="Monthly cash flow">

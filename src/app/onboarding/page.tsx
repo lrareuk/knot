@@ -19,6 +19,10 @@ export default async function OnboardingRootPage() {
     redirect("/signup/payment");
   }
 
+  if (!profile.financial_abuse_acknowledged_at) {
+    redirect("/onboarding/safety");
+  }
+
   const rawPosition = await getOrCreateFinancialPosition(supabase, user.id);
   const position = normalizeFinancialPosition(rawPosition, user.id);
   redirect(firstIncompleteModuleRoute(position));

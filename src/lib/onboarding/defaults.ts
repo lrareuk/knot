@@ -59,6 +59,8 @@ export function createDefaultPension(index: number): PensionItem {
     pension_type: "defined_contribution",
     current_value: null,
     annual_amount: null,
+    projected_annual_income: null,
+    scottish_relevant_date_value: null,
     is_matrimonial: true,
     is_estimated: {},
   };

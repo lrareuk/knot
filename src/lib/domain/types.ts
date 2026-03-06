@@ -33,6 +33,10 @@ export type PensionItem = {
   pension_type: PensionType;
   annual_amount: number | null;
   annual_amount_estimated?: boolean;
+  projected_annual_income: number | null;
+  projected_annual_income_estimated?: boolean;
+  scottish_relevant_date_value: number | null;
+  scottish_relevant_date_value_estimated?: boolean;
 };
 
 export type SavingsType = "cash" | "isa" | "investment" | "crypto" | "other";
@@ -164,6 +168,7 @@ export type ScenarioConfig = {
 
 export type ScenarioResults = {
   label: "modelled_outcome";
+  model_version: "v2_jurisdiction_pensions";
   user_total_assets: number;
   user_total_liabilities: number;
   user_net_position: number;
@@ -174,6 +179,8 @@ export type ScenarioResults = {
   user_monthly_income: number;
   user_monthly_expenditure: number;
   user_monthly_surplus_deficit: number;
+  user_pension_income_annual: number;
+  user_pension_income_monthly_equivalent: number;
   user_maintenance_paid: number;
   user_maintenance_received: number;
 
@@ -187,6 +194,8 @@ export type ScenarioResults = {
   partner_monthly_income: number;
   partner_monthly_expenditure: number;
   partner_monthly_surplus_deficit: number;
+  partner_pension_income_annual: number;
+  partner_pension_income_monthly_equivalent: number;
   partner_maintenance_paid: number;
   partner_maintenance_received: number;
 

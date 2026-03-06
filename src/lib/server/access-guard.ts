@@ -3,17 +3,28 @@ export type AccessInput = {
   isAuthenticated: boolean;
   paid: boolean;
   onboardingDone: boolean;
+  financialAbuseAcknowledged: boolean;
   accountState: "active" | "panic_hidden";
   recoveryKeyRequired: boolean;
   hasSignupName: boolean;
 };
 
 export function resolveAccessRedirect(input: AccessInput): string | null {
-  const { pathname, isAuthenticated, paid, onboardingDone, accountState, recoveryKeyRequired, hasSignupName } = input;
+  const {
+    pathname,
+    isAuthenticated,
+    paid,
+    onboardingDone,
+    financialAbuseAcknowledged,
+    accountState,
+    recoveryKeyRequired,
+    hasSignupName,
+  } = input;
   const isSignupPaymentPath = pathname === "/signup/payment" || pathname.startsWith("/signup/payment/");
   const isSignupPaymentSuccessPath = pathname === "/signup/payment/success";
   const isAuthEntryPath = pathname === "/signup" || pathname === "/signup/email" || pathname === "/login" || pathname === "/login/reset";
   const isRecoveryKeyPath = pathname === "/recovery-key" || pathname.startsWith("/recovery-key/");
+  const isOnboardingSafetyPath = pathname === "/onboarding/safety";
   const isSettingsPath = pathname.startsWith("/settings");
   const isAdminPath = pathname.startsWith("/admin");
 
@@ -72,7 +83,10 @@ export function resolveAccessRedirect(input: AccessInput): string | null {
 
   if (pathname.startsWith("/onboarding")) {
     if (!paid) return "/signup/payment";
-    if (recoveryKeyRequired) return "/recovery-key";
+    if (!onboardingDone && !financialAbuseAcknowledged && !isOnboardingSafetyPath) return "/onboarding/safety";
+    // During first-run onboarding, users may still require a recovery key but
+    // must be allowed to complete onboarding first.
+    if (onboardingDone && recoveryKeyRequired) return "/recovery-key";
     return null;
   }
 

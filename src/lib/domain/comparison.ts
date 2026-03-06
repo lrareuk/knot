@@ -20,7 +20,28 @@ const GROUP_LABELS: Record<ComparisonMetricRow["group"], string> = {
   monthly: "Monthly",
 };
 
-const ROWS: RowSpec[] = [
+function rowsForJurisdiction(jurisdictionCode?: string): RowSpec[] {
+  const normalized = (jurisdictionCode ?? "").trim().toUpperCase();
+  const pensionRow: RowSpec =
+    normalized === "GB-EAW"
+      ? {
+          key: "pension_income_annual",
+          label: "Projected pension income (annual)",
+          group: "monthly",
+          better: "higher",
+          baselineValue: (baseline) => baseline.user_pension_income_annual,
+          scenarioValue: (scenario) => scenario.results.user_pension_income_annual,
+        }
+      : {
+          key: "pensions",
+          label: "Pensions",
+          group: "assets",
+          better: "higher",
+          baselineValue: (baseline) => baseline.user_total_pensions,
+          scenarioValue: (scenario) => scenario.results.user_total_pensions,
+        };
+
+  return [
   {
     key: "net",
     label: "Net position",
@@ -37,14 +58,7 @@ const ROWS: RowSpec[] = [
     baselineValue: (baseline) => baseline.user_property_equity,
     scenarioValue: (scenario) => scenario.results.user_property_equity,
   },
-  {
-    key: "pensions",
-    label: "Pensions",
-    group: "assets",
-    better: "higher",
-    baselineValue: (baseline) => baseline.user_total_pensions,
-    scenarioValue: (scenario) => scenario.results.user_total_pensions,
-  },
+  pensionRow,
   {
     key: "savings",
     label: "Savings",
@@ -93,7 +107,8 @@ const ROWS: RowSpec[] = [
     baselineValue: (baseline) => baseline.user_monthly_surplus_deficit,
     scenarioValue: (scenario) => scenario.results.user_monthly_surplus_deficit,
   },
-];
+  ];
+}
 
 function findBestValue(row: RowSpec, values: number[]) {
   if (values.length === 0) {
@@ -108,9 +123,10 @@ function findBestValue(row: RowSpec, values: number[]) {
 
 export function comparisonMetricGroups(
   baseline: ScenarioResults,
-  scenarios: ScenarioRecord[]
+  scenarios: ScenarioRecord[],
+  jurisdictionCode?: string
 ): ComparisonMetricGroup[] {
-  const rows: ComparisonMetricRow[] = ROWS.map((row) => {
+  const rows: ComparisonMetricRow[] = rowsForJurisdiction(jurisdictionCode).map((row) => {
     const baselineValue = row.baselineValue(baseline);
     const values = scenarios.map((scenario) => row.scenarioValue(scenario));
     const bestValue = findBestValue(row, values);

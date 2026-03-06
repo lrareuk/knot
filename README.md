@@ -63,3 +63,7 @@ This app uses Stripe Checkout Sessions with `ui_mode=custom` on `/signup/payment
 - `PANIC_RECOVERY_MASTER_KEY_SECRET` (optional; falls back to `SUPPORT_RECOVERY_API_KEY`)
 - `RESEND_API_KEY` (required for sending admin master key emails)
 - `SUPPORT_FROM_EMAIL` (optional sender address for master key emails; defaults to `support@untie.lrare.co.uk`)
+
+## Marketplace env vars
+
+- `MARKETPLACE_ADMIN_EMAILS` (comma-separated allowlist for marketplace moderation APIs/UI)

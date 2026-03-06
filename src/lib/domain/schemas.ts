@@ -30,6 +30,10 @@ const pensionSchema = z.object({
   pension_type: z.enum(["defined_contribution", "defined_benefit", "state"]),
   annual_amount: z.number().nullable(),
   annual_amount_estimated: z.boolean().optional(),
+  projected_annual_income: z.number().nullable(),
+  projected_annual_income_estimated: z.boolean().optional(),
+  scottish_relevant_date_value: z.number().nullable(),
+  scottish_relevant_date_value_estimated: z.boolean().optional(),
 });
 
 const savingsSchema = z.object({

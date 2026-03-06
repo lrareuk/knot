@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOnboardingUI } from "@/components/onboarding/OnboardingUIContext";
-import { createClient } from "@/lib/supabase";
 import { formatMoney } from "@/lib/onboarding/currency";
 import { getFinancialTotals } from "@/lib/onboarding/totals";
 import { getModuleStatus } from "@/lib/onboarding/progress";
@@ -56,10 +55,16 @@ function summaryForModule(position: FinancialPosition, moduleName: ModuleName, c
 
   if (moduleName === "pensions") {
     return position.pensions
-      .filter((pension) => pension.current_value !== null || pension.annual_amount !== null)
+      .filter(
+        (pension) =>
+          pension.current_value !== null ||
+          pension.annual_amount !== null ||
+          pension.projected_annual_income !== null ||
+          pension.scottish_relevant_date_value !== null
+      )
       .slice(0, 3)
       .map((pension) => {
-        const value = pension.current_value ?? pension.annual_amount;
+        const value = pension.projected_annual_income ?? pension.current_value ?? pension.annual_amount;
         return `${pension.label || "Pension"}: ${formatMoney(value, currencyCode)}`;
       });
   }
@@ -137,7 +142,7 @@ function ReviewLoadingState() {
 
 export default function OnboardingReviewPage() {
   const router = useRouter();
-  const { currencyCode } = useOnboardingUI();
+  const { currencyCode, jurisdiction } = useOnboardingUI();
   const position = useFinancialStore((state) => state.position);
   const [isCompleting, setCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -176,7 +181,18 @@ export default function OnboardingReviewPage() {
     if (!position) {
       return null;
     }
-    return getFinancialTotals(position);
+    return getFinancialTotals(position, jurisdiction);
+  }, [jurisdiction, position]);
+  const normalizedJurisdictionCode = jurisdiction.trim().toUpperCase();
+  const pensionIncomeAnnual = useMemo(() => {
+    if (!position) {
+      return 0;
+    }
+
+    return position.pensions.reduce(
+      (sum, pension) => sum + (pension.projected_annual_income ?? pension.annual_amount ?? 0),
+      0
+    );
   }, [position]);
 
   if (!position || !totals) {
@@ -196,20 +212,11 @@ export default function OnboardingReviewPage() {
     setCompleting(true);
     setError(null);
 
-    const supabase = createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+    const response = await fetch("/api/onboarding/complete", { method: "POST" });
+    const payload = (await response.json().catch(() => ({}))) as { error?: string };
 
-    const targetUserId = user?.id ?? position.user_id;
-
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ onboarding_done: true })
-      .eq("id", targetUserId);
-
-    if (updateError) {
-      setError("Unable to complete onboarding right now. Please try again.");
+    if (!response.ok) {
+      setError(payload.error ?? "Unable to complete onboarding right now. Please try again.");
       setCompleting(false);
       return;
     }
@@ -311,8 +318,13 @@ export default function OnboardingReviewPage() {
           <strong>{formatMoney(totals.totalPropertyEquity, currencyCode)}</strong>
         </div>
         <div className="onboarding-review-total-row">
-          <span>Total pensions</span>
-          <strong>{formatMoney(totals.totalPensions, currencyCode)}</strong>
+          <span>{normalizedJurisdictionCode === "GB-EAW" ? "Projected annual pension income" : "Total pensions"}</span>
+          <strong>
+            {formatMoney(
+              normalizedJurisdictionCode === "GB-EAW" ? pensionIncomeAnnual : totals.totalPensions,
+              currencyCode
+            )}
+          </strong>
         </div>
         <div className="onboarding-review-total-row">
           <span>Total savings</span>

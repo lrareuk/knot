@@ -13,6 +13,8 @@ export type UserProfileRecord = {
   currency_code: "GBP" | "USD" | "CAD";
   currency_overridden: boolean;
   has_relevant_agreements: boolean | null;
+  financial_abuse_acknowledged_at: string | null;
+  financial_abuse_ack_version: string | null;
   account_state: AccessAccountState;
   recovery_key_required: boolean;
   recovery_key_generated_at: string | null;
@@ -76,6 +78,14 @@ function normalizeProfile(profile: UserProfileRecord | LegacyUserProfileRecord):
     "has_relevant_agreements" in profile && typeof profile.has_relevant_agreements === "boolean"
       ? profile.has_relevant_agreements
       : null;
+  const financialAbuseAcknowledgedAt =
+    "financial_abuse_acknowledged_at" in profile && typeof profile.financial_abuse_acknowledged_at === "string"
+      ? profile.financial_abuse_acknowledged_at
+      : null;
+  const financialAbuseAckVersion =
+    "financial_abuse_ack_version" in profile && typeof profile.financial_abuse_ack_version === "string"
+      ? profile.financial_abuse_ack_version
+      : null;
 
   return {
     ...profile,
@@ -83,12 +93,14 @@ function normalizeProfile(profile: UserProfileRecord | LegacyUserProfileRecord):
     currency_code: currencyCode,
     currency_overridden: currencyOverridden,
     has_relevant_agreements: hasRelevantAgreements,
+    financial_abuse_acknowledged_at: financialAbuseAcknowledgedAt,
+    financial_abuse_ack_version: financialAbuseAckVersion,
   };
 }
 
 export async function ensureAndFetchUserProfile(supabase: SupabaseClient, user: User) {
   const fullSelectColumns =
-    "id,email,first_name,paid,onboarding_done,jurisdiction,currency_code,currency_overridden,has_relevant_agreements,account_state,recovery_key_required,recovery_key_generated_at,recovery_key_version";
+    "id,email,first_name,paid,onboarding_done,jurisdiction,currency_code,currency_overridden,has_relevant_agreements,financial_abuse_acknowledged_at,financial_abuse_ack_version,account_state,recovery_key_required,recovery_key_generated_at,recovery_key_version";
   const legacySelectColumns =
     "id,email,first_name,paid,onboarding_done,jurisdiction,account_state,recovery_key_required,recovery_key_generated_at,recovery_key_version";
 
@@ -129,6 +141,8 @@ export async function ensureAndFetchUserProfile(supabase: SupabaseClient, user: 
     ...legacyInsertPayload,
     currency_code: initialCurrency,
     currency_overridden: false,
+    financial_abuse_acknowledged_at: null,
+    financial_abuse_ack_version: null,
   });
 
   if (insertFullError && isMissingColumnError(insertFullError)) {

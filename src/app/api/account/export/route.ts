@@ -11,7 +11,7 @@ export async function GET() {
     context.supabase
       .from("users")
       .select(
-        "id,email,first_name,jurisdiction,currency_code,currency_overridden,has_relevant_agreements,onboarding_done,paid,created_at,updated_at"
+        "id,email,first_name,jurisdiction,currency_code,currency_overridden,has_relevant_agreements,financial_abuse_acknowledged_at,financial_abuse_ack_version,onboarding_done,paid,created_at,updated_at"
       )
       .eq("id", context.user.id)
       .single(),

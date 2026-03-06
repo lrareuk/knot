@@ -7,8 +7,15 @@ import { listScenarios } from "@/lib/server/scenarios";
 export default async function ComparePage() {
   const { user, profile, supabase } = await requireDashboardAccess();
   const position = await getOrCreateFinancialPosition(supabase, user.id);
-  const baseline = computeBaseline(position);
+  const baseline = computeBaseline(position, profile.jurisdiction);
   const scenarios = await listScenarios(supabase, user.id);
 
-  return <CompareView baseline={baseline} scenarios={scenarios} currencyCode={profile.currency_code} />;
+  return (
+    <CompareView
+      baseline={baseline}
+      scenarios={scenarios}
+      currencyCode={profile.currency_code}
+      jurisdictionCode={profile.jurisdiction}
+    />
+  );
 }

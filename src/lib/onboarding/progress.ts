@@ -35,7 +35,12 @@ function hasAnyPropertyData(position: FinancialPosition): boolean {
 
 function hasAnyPensionData(position: FinancialPosition): boolean {
   return position.pensions.some(
-    (pension) => pension.label.trim().length > 0 || hasValue(pension.current_value) || hasValue(pension.annual_amount)
+    (pension) =>
+      pension.label.trim().length > 0 ||
+      hasValue(pension.current_value) ||
+      hasValue(pension.annual_amount) ||
+      hasValue(pension.projected_annual_income) ||
+      hasValue(pension.scottish_relevant_date_value)
   );
 }
 
@@ -92,7 +97,13 @@ export function isModuleComplete(moduleName: ModuleName, position: FinancialPosi
     case "income":
       return hasValue(position.income.user_net_monthly);
     case "pensions":
-      return position.pensions.some((pension) => hasValue(pension.current_value) || hasValue(pension.annual_amount));
+      return position.pensions.some(
+        (pension) =>
+          hasValue(pension.current_value) ||
+          hasValue(pension.annual_amount) ||
+          hasValue(pension.projected_annual_income) ||
+          hasValue(pension.scottish_relevant_date_value)
+      );
     case "savings":
       return position.savings.some((savings) => hasValue(savings.current_value));
     case "debts":

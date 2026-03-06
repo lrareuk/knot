@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { renderToBuffer } from "@react-pdf/renderer";
 import { z } from "zod";
-import { computeBaseline } from "@/lib/domain/compute-scenario";
+import { computeBaseline, computeScenario } from "@/lib/domain/compute-scenario";
 import { interpretScenarioAgreements } from "@/lib/domain/interpret-scenario-agreements";
 import { generateScenarioObservations } from "@/lib/domain/observations";
 import { getJurisdictionProfile } from "@/lib/legal/jurisdictions";
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   }
 
   const position = await getOrCreateFinancialPosition(context.supabase, context.user.id);
-  const baseline = computeBaseline(position);
+  const baseline = computeBaseline(position, context.profile?.jurisdiction ?? "GB-EAW");
   const locale = context.profile?.currency_code === "USD" ? "en-US" : context.profile?.currency_code === "CAD" ? "en-CA" : "en-GB";
   const generatedAt = new Date().toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" });
   const jurisdictionProfile = getJurisdictionProfile(context.profile?.jurisdiction);
@@ -53,9 +53,32 @@ export async function POST(req: Request) {
     .select("id,agreement_id,user_id,term_type,term_payload,impact_direction,confidence,citation,source_document_id,created_at,updated_at")
     .eq("user_id", context.user.id);
 
+  const normalizedScenarios = scenarios.map((scenario) =>
+    scenario.results?.model_version === "v2_jurisdiction_pensions"
+      ? scenario
+      : {
+          ...scenario,
+          results: computeScenario(position, scenario.config, context.profile?.jurisdiction ?? "GB-EAW"),
+        }
+  );
+
+  const staleScenarioIds = normalizedScenarios
+    .filter((scenario, index) => scenarios[index]?.results?.model_version !== "v2_jurisdiction_pensions")
+    .map((scenario) => scenario.id);
+  if (staleScenarioIds.length > 0) {
+    for (const scenario of normalizedScenarios) {
+      if (!staleScenarioIds.includes(scenario.id)) continue;
+      await context.supabase
+        .from("scenarios")
+        .update({ results: scenario.results })
+        .eq("id", scenario.id)
+        .eq("user_id", context.user.id);
+    }
+  }
+
   const observations: Record<string, string[]> = {};
   const agreementInterpretations: Record<string, ReturnType<typeof interpretScenarioAgreements>> = {};
-  for (const scenario of scenarios) {
+  for (const scenario of normalizedScenarios) {
     observations[scenario.id] = generateScenarioObservations(
       scenario.name,
       scenario.results,
@@ -72,7 +95,7 @@ export async function POST(req: Request) {
     ClarityReportDocument({
       generatedAt,
       baseline,
-      scenarios,
+      scenarios: normalizedScenarios,
       observations,
       agreementInterpretations,
       jurisdictionProfile,

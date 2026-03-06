@@ -21,10 +21,14 @@ export interface PensionItem {
   pension_type: "defined_contribution" | "defined_benefit" | "state";
   current_value: number | null;
   annual_amount: number | null;
+  projected_annual_income: number | null;
+  scottish_relevant_date_value: number | null;
   is_matrimonial: boolean;
   is_estimated: {
     current_value?: boolean;
     annual_amount?: boolean;
+    projected_annual_income?: boolean;
+    scottish_relevant_date_value?: boolean;
   };
 }
 

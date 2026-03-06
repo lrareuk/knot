@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { hasFinancialAbuseAcknowledgement } from "@/lib/onboarding/safety";
 import { requireApiUser, serverError } from "@/lib/server/api";
 
 export async function POST() {
@@ -9,6 +10,10 @@ export async function POST() {
 
   if (context.profile?.has_relevant_agreements === null) {
     return NextResponse.json({ error: "Agreement disclosure is required before completing onboarding" }, { status: 400 });
+  }
+
+  if (!hasFinancialAbuseAcknowledgement(context.profile?.financial_abuse_acknowledged_at)) {
+    return NextResponse.json({ error: "Financial abuse acknowledgement is required before completing onboarding" }, { status: 400 });
   }
 
   const { error } = await context.supabase

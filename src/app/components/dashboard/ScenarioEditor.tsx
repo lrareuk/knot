@@ -195,7 +195,11 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
   const queuedSaveRef = useRef<{ name: string; config: ScenarioConfig } | null>(null);
   const saveInFlightRef = useRef(false);
 
-  const results = useMemo(() => computeScenario(position, config), [config, position]);
+  const normalizedJurisdictionCode = useMemo(() => jurisdictionCode.trim().toUpperCase(), [jurisdictionCode]);
+  const results = useMemo(
+    () => computeScenario(position, config, normalizedJurisdictionCode),
+    [config, normalizedJurisdictionCode, position]
+  );
   const agreementWarnings = useMemo(
     () =>
       interpretScenarioAgreements({
@@ -327,7 +331,10 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
 
   const breakdownItems = [
     { label: "Property", value: results.user_property_equity },
-    { label: "Pensions", value: results.user_total_pensions },
+    {
+      label: normalizedJurisdictionCode === "GB-EAW" ? "Pension income (annual)" : "Pensions",
+      value: normalizedJurisdictionCode === "GB-EAW" ? results.user_pension_income_annual : results.user_total_pensions,
+    },
     { label: "Savings", value: results.user_total_savings },
     { label: "Debts", value: -results.user_total_debts },
     { label: "Maintenance", value: maintenanceNet },
@@ -515,7 +522,7 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
               return (
                 <Section
                   key={sectionKey}
-                  title="Pension splits"
+                  title="Pension benefit sharing"
                   count={`${config.pension_splits.length} ${config.pension_splits.length === 1 ? "pension" : "pensions"}`}
                   expanded={expanded}
                   onToggle={setExpanded}
@@ -525,22 +532,41 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
                     if (!pension) {
                       return null;
                     }
+                    const usesScottishFallback =
+                      normalizedJurisdictionCode === "GB-SCT" &&
+                      pension.scottish_relevant_date_value === null &&
+                      pension.current_value > 0;
 
                     return (
-                      <SplitSlider
-                        key={split.pension_id}
-                        label={pension.label || "Pension"}
-                        total={pension.current_value}
-                        percent={split.split_user}
-                        currencyCode={currencyCode}
-                        onChange={(value) => {
-                          const pensionSplits = [...config.pension_splits];
-                          pensionSplits[index] = { ...split, split_user: value };
-                          setConfigDirty({ ...config, pension_splits: pensionSplits });
-                        }}
-                      />
+                      <div key={split.pension_id}>
+                        <SplitSlider
+                          label={pension.label || "Pension"}
+                          total={
+                            normalizedJurisdictionCode === "GB-EAW"
+                              ? (pension.projected_annual_income ?? pension.annual_amount ?? 0)
+                              : (pension.scottish_relevant_date_value ?? pension.current_value)
+                          }
+                          percent={split.split_user}
+                          currencyCode={currencyCode}
+                          onChange={(value) => {
+                            const pensionSplits = [...config.pension_splits];
+                            pensionSplits[index] = { ...split, split_user: value };
+                            setConfigDirty({ ...config, pension_splits: pensionSplits });
+                          }}
+                        />
+                        {usesScottishFallback ? (
+                          <p className="dashboard-scenario-helper">
+                            Using current value as an estimated relevant-date matrimonial value for this pension.
+                          </p>
+                        ) : null}
+                      </div>
                     );
                   })}
+                  <p className="dashboard-scenario-helper">
+                    {normalizedJurisdictionCode === "GB-EAW"
+                      ? "In England and Wales, pensions are modelled as future income resources rather than immediate capital."
+                      : "In Scotland, pension sharing can affect both matrimonial-property capital and projected future income."}
+                  </p>
                 </Section>
               );
             }

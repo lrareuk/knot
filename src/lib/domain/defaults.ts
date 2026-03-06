@@ -57,6 +57,8 @@ export function createEmptyPension(): PensionItem {
     is_matrimonial: true,
     pension_type: "defined_contribution",
     annual_amount: null,
+    projected_annual_income: null,
+    scottish_relevant_date_value: null,
   };
 }
 

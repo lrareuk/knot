@@ -9,9 +9,10 @@ type Props = {
   baseline: ScenarioResults;
   scenarios: ScenarioRecord[];
   currencyCode: "GBP" | "USD" | "CAD";
+  jurisdictionCode: string;
 };
 
-export default function CompareView({ baseline, scenarios, currencyCode }: Props) {
+export default function CompareView({ baseline, scenarios, currencyCode, jurisdictionCode }: Props) {
   const [selectedScenarioIds, setSelectedScenarioIds] = useState<string[]>(() => scenarios.slice(0, 2).map((scenario) => scenario.id));
 
   const selectedScenarios = useMemo(
@@ -81,7 +82,12 @@ export default function CompareView({ baseline, scenarios, currencyCode }: Props
         })}
       </section>
 
-      <ComparisonTable baseline={baseline} scenarios={selectedScenarios} currencyCode={currencyCode} />
+      <ComparisonTable
+        baseline={baseline}
+        scenarios={selectedScenarios}
+        currencyCode={currencyCode}
+        jurisdictionCode={jurisdictionCode}
+      />
 
       <div className="dashboard-compare-actions">
         <Link href={reportHref} className="dashboard-btn">

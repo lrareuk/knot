@@ -2,6 +2,7 @@ import ReportGenerator from "@/app/components/report/ReportGenerator";
 import { getJurisdictionProfile } from "@/lib/legal/jurisdictions";
 import type { LegalAgreementTerm } from "@/lib/legal/types";
 import { requireDashboardAccess } from "@/lib/server/auth";
+import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 import { listScenarios } from "@/lib/server/scenarios";
 
 export default async function ReportPage({
@@ -10,7 +11,11 @@ export default async function ReportPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { user, profile, supabase } = await requireDashboardAccess();
-  const scenarios = await listScenarios(supabase, user.id);
+  const position = await getOrCreateFinancialPosition(supabase, user.id);
+  const scenarios = await listScenarios(supabase, user.id, {
+    position,
+    jurisdictionCode: profile.jurisdiction,
+  });
   const { data: terms } = await supabase
     .from("legal_agreement_terms")
     .select("id,agreement_id,user_id,term_type,term_payload,impact_direction,confidence,citation,source_document_id,created_at,updated_at")

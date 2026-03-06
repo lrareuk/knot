@@ -9,6 +9,7 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: false,
         paid: false,
         onboardingDone: false,
+        financialAbuseAcknowledged: true,
         accountState: "active",
         recoveryKeyRequired: false,
         hasSignupName: false,
@@ -23,6 +24,7 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: false,
         paid: false,
         onboardingDone: false,
+        financialAbuseAcknowledged: true,
         accountState: "active",
         recoveryKeyRequired: false,
         hasSignupName: false,
@@ -37,6 +39,7 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: false,
         paid: false,
         onboardingDone: false,
+        financialAbuseAcknowledged: true,
         accountState: "active",
         recoveryKeyRequired: false,
         hasSignupName: false,
@@ -51,6 +54,7 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: false,
         paid: false,
         onboardingDone: false,
+        financialAbuseAcknowledged: true,
         accountState: "active",
         recoveryKeyRequired: false,
         hasSignupName: false,
@@ -65,6 +69,7 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: false,
         onboardingDone: false,
+        financialAbuseAcknowledged: true,
         accountState: "active",
         recoveryKeyRequired: false,
         hasSignupName: false,
@@ -79,6 +84,7 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: false,
+        financialAbuseAcknowledged: true,
         accountState: "active",
         recoveryKeyRequired: false,
         hasSignupName: false,
@@ -93,6 +99,7 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: false,
+        financialAbuseAcknowledged: true,
         accountState: "active",
         recoveryKeyRequired: false,
         hasSignupName: false,
@@ -107,6 +114,7 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: true,
+        financialAbuseAcknowledged: true,
         accountState: "active",
         recoveryKeyRequired: false,
         hasSignupName: false,
@@ -121,11 +129,87 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: true,
+        financialAbuseAcknowledged: true,
         accountState: "active",
         recoveryKeyRequired: false,
         hasSignupName: false,
       })
     ).toBeNull();
+  });
+
+  it("allows onboarding routes while onboarding is incomplete even if recovery key is still required", () => {
+    expect(
+      resolveAccessRedirect({
+        pathname: "/onboarding/dates",
+        isAuthenticated: true,
+        paid: true,
+        onboardingDone: false,
+        financialAbuseAcknowledged: true,
+        accountState: "active",
+        recoveryKeyRequired: true,
+        hasSignupName: false,
+      })
+    ).toBeNull();
+  });
+
+  it("redirects incomplete onboarding to safety page when financial abuse acknowledgement is missing", () => {
+    expect(
+      resolveAccessRedirect({
+        pathname: "/onboarding/dates",
+        isAuthenticated: true,
+        paid: true,
+        onboardingDone: false,
+        financialAbuseAcknowledged: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
+        hasSignupName: false,
+      })
+    ).toBe("/onboarding/safety");
+  });
+
+  it("allows safety page while onboarding is incomplete and acknowledgement is missing", () => {
+    expect(
+      resolveAccessRedirect({
+        pathname: "/onboarding/safety",
+        isAuthenticated: true,
+        paid: true,
+        onboardingDone: false,
+        financialAbuseAcknowledged: false,
+        accountState: "active",
+        recoveryKeyRequired: false,
+        hasSignupName: false,
+      })
+    ).toBeNull();
+  });
+
+  it("redirects onboarding routes to recovery-key after onboarding is complete when key setup is still required", () => {
+    expect(
+      resolveAccessRedirect({
+        pathname: "/onboarding/dates",
+        isAuthenticated: true,
+        paid: true,
+        onboardingDone: true,
+        financialAbuseAcknowledged: true,
+        accountState: "active",
+        recoveryKeyRequired: true,
+        hasSignupName: false,
+      })
+    ).toBe("/recovery-key");
+  });
+
+  it("redirects recovery-key route to onboarding until onboarding is complete", () => {
+    expect(
+      resolveAccessRedirect({
+        pathname: "/recovery-key",
+        isAuthenticated: true,
+        paid: true,
+        onboardingDone: false,
+        financialAbuseAcknowledged: true,
+        accountState: "active",
+        recoveryKeyRequired: true,
+        hasSignupName: false,
+      })
+    ).toBe("/onboarding");
   });
 
   it("redirects authenticated hidden users to login", () => {
@@ -135,6 +219,7 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: true,
+        financialAbuseAcknowledged: true,
         accountState: "panic_hidden",
         recoveryKeyRequired: false,
         hasSignupName: false,
@@ -149,6 +234,7 @@ describe("resolveAccessRedirect", () => {
         isAuthenticated: true,
         paid: true,
         onboardingDone: true,
+        financialAbuseAcknowledged: true,
         accountState: "active",
         recoveryKeyRequired: true,
         hasSignupName: false,

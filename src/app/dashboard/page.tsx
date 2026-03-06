@@ -7,7 +7,17 @@ export default async function DashboardPage() {
   const { user, profile, supabase } = await requireDashboardAccess();
 
   const position = await getOrCreateFinancialPosition(supabase, user.id);
-  const scenarios = await listScenarios(supabase, user.id);
+  const scenarios = await listScenarios(supabase, user.id, {
+    position,
+    jurisdictionCode: profile.jurisdiction,
+  });
 
-  return <OverviewView position={position} scenarios={scenarios} currencyCode={profile.currency_code} />;
+  return (
+    <OverviewView
+      position={position}
+      scenarios={scenarios}
+      currencyCode={profile.currency_code}
+      jurisdictionCode={profile.jurisdiction}
+    />
+  );
 }

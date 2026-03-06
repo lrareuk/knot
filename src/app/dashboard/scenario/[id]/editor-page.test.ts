@@ -1,12 +1,19 @@
 import { describe, expect, it, vi } from "vitest";
 
-const { mockNotFound, mockRequireDashboardAccess, mockGetOrCreateFinancialPosition, mockComputeBaseline } = vi.hoisted(() => ({
+const {
+  mockNotFound,
+  mockRequireDashboardAccess,
+  mockGetOrCreateFinancialPosition,
+  mockComputeBaseline,
+  mockComputeScenario,
+} = vi.hoisted(() => ({
   mockNotFound: vi.fn(() => {
     throw new Error("notFound");
   }),
   mockRequireDashboardAccess: vi.fn(),
   mockGetOrCreateFinancialPosition: vi.fn(),
   mockComputeBaseline: vi.fn(),
+  mockComputeScenario: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -23,6 +30,7 @@ vi.mock("@/lib/server/financial-position", () => ({
 
 vi.mock("@/lib/domain/compute-scenario", () => ({
   computeBaseline: mockComputeBaseline,
+  computeScenario: mockComputeScenario,
 }));
 
 import ScenarioEditorPage from "@/app/dashboard/scenario/[id]/page";
@@ -39,12 +47,18 @@ function createSupabaseMock(scenario: unknown) {
 
 describe("Scenario editor route", () => {
   it("renders the canonical singular scenario route", async () => {
-    const scenario = { id: "scenario-1", name: "Scenario A" };
+  const scenario = {
+    id: "scenario-1",
+    name: "Scenario A",
+    config: {},
+    results: { model_version: "v2_jurisdiction_pensions" },
+  };
     const { supabase } = createSupabaseMock(scenario);
 
     mockRequireDashboardAccess.mockResolvedValue({ user: { id: "user-1" }, supabase });
     mockGetOrCreateFinancialPosition.mockResolvedValue({ id: "position-1" });
     mockComputeBaseline.mockReturnValue({ id: "baseline-1" });
+    mockComputeScenario.mockReturnValue({ model_version: "v2_jurisdiction_pensions" });
 
     const result = (await ScenarioEditorPage({ params: Promise.resolve({ id: "scenario-1" }) })) as {
       props: { scenario: { id: string } };
@@ -59,6 +73,7 @@ describe("Scenario editor route", () => {
     mockRequireDashboardAccess.mockResolvedValue({ user: { id: "user-1" }, supabase });
     mockGetOrCreateFinancialPosition.mockResolvedValue({ id: "position-1" });
     mockComputeBaseline.mockReturnValue({ id: "baseline-1" });
+    mockComputeScenario.mockReturnValue({ model_version: "v2_jurisdiction_pensions" });
 
     await expect(ScenarioEditorPage({ params: Promise.resolve({ id: "missing" }) })).rejects.toThrow("notFound");
     expect(mockNotFound).toHaveBeenCalled();

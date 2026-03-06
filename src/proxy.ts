@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { deserializeSignupState, SIGNUP_STATE_COOKIE } from "@/lib/auth/signup-state";
 import { resolveAccessRedirect } from "@/lib/server/access-guard";
 import { ensureAndFetchUserProfile } from "@/lib/server/user-profile";
+import { hasFinancialAbuseAcknowledgement } from "@/lib/onboarding/safety";
 
 const PUBLIC_PATHS = new Set(["/", "/legal", "/login", "/login/reset", "/signup", "/signup/email"]);
 
@@ -137,6 +138,7 @@ export async function proxy(req: NextRequest) {
       isAuthenticated: false,
       paid: false,
       onboardingDone: false,
+      financialAbuseAcknowledged: false,
       accountState: "active",
       recoveryKeyRequired: false,
       hasSignupName,
@@ -159,12 +161,14 @@ export async function proxy(req: NextRequest) {
   const onboardingDone = profile.onboarding_done;
   const accountState = profile.account_state;
   const recoveryKeyRequired = profile.recovery_key_required;
+  const financialAbuseAcknowledged = hasFinancialAbuseAcknowledgement(profile.financial_abuse_acknowledged_at);
 
   const redirectPath = resolveAccessRedirect({
     pathname,
     isAuthenticated: true,
     paid,
     onboardingDone,
+    financialAbuseAcknowledged,
     accountState,
     recoveryKeyRequired,
     hasSignupName,

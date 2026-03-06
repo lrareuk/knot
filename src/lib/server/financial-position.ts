@@ -4,10 +4,15 @@ import type { FinancialPosition } from "@/lib/domain/types";
 
 export function normalizeFinancialPosition(raw: Partial<FinancialPosition> | null | undefined): FinancialPosition {
   const fallback = createDefaultFinancialPosition();
+  const pensions = (raw?.pensions ?? fallback.pensions).map((pension) => ({
+    ...pension,
+    projected_annual_income: pension.projected_annual_income ?? null,
+    scottish_relevant_date_value: pension.scottish_relevant_date_value ?? null,
+  }));
 
   return {
     properties: raw?.properties ?? fallback.properties,
-    pensions: raw?.pensions ?? fallback.pensions,
+    pensions,
     savings: raw?.savings ?? fallback.savings,
     debts: raw?.debts ?? fallback.debts,
     income: raw?.income ?? fallback.income,

@@ -17,7 +17,13 @@ function hasPropertyData(position: FinancialPosition): boolean {
 }
 
 function hasPensionData(position: FinancialPosition): boolean {
-  return position.pensions.some((pension) => pension.current_value !== null || pension.annual_amount !== null);
+  return position.pensions.some(
+    (pension) =>
+      pension.current_value !== null ||
+      pension.annual_amount !== null ||
+      pension.projected_annual_income !== null ||
+      pension.scottish_relevant_date_value !== null
+  );
 }
 
 function hasSavingsData(position: FinancialPosition): boolean {
@@ -30,20 +36,27 @@ function hasDebtData(position: FinancialPosition): boolean {
 
 export default function RunningTotals() {
   const position = useFinancialStore((state) => state.position);
-  const { currencyCode } = useOnboardingUI();
+  const { currencyCode, jurisdiction } = useOnboardingUI();
 
   if (!position) {
     return null;
   }
 
-  const totals = getFinancialTotals(position);
+  const normalizedJurisdictionCode = jurisdiction.trim().toUpperCase();
+  const totals = getFinancialTotals(position, normalizedJurisdictionCode);
+  const pensionIncomeAnnual = position.pensions.reduce(
+    (sum, pension) => sum + (pension.projected_annual_income ?? pension.annual_amount ?? 0),
+    0
+  );
 
   const rows = [
     hasPropertyData(position)
       ? { label: "Property equity", value: totals.totalPropertyEquity }
       : null,
     hasPensionData(position)
-      ? { label: "Pensions", value: totals.totalPensions }
+      ? normalizedJurisdictionCode === "GB-EAW"
+        ? { label: "Pension annual income (projected)", value: pensionIncomeAnnual }
+        : { label: "Pensions", value: totals.totalPensions }
       : null,
     hasSavingsData(position)
       ? { label: "Savings", value: totals.totalSavings }

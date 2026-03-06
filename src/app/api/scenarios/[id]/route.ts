@@ -29,7 +29,19 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ scenario: data });
+  if (data.results?.model_version === "v2_jurisdiction_pensions") {
+    return NextResponse.json({ scenario: data });
+  }
+
+  const position = await getOrCreateFinancialPosition(context.supabase, context.user.id);
+  const recomputedResults = computeScenario(position, data.config, context.profile?.jurisdiction ?? "GB-EAW");
+  await context.supabase
+    .from("scenarios")
+    .update({ results: recomputedResults })
+    .eq("id", id)
+    .eq("user_id", context.user.id);
+
+  return NextResponse.json({ scenario: { ...data, results: recomputedResults } });
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -59,7 +71,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (parsed.data.config) {
     const position = await getOrCreateFinancialPosition(context.supabase, context.user.id);
     updateData.config = parsed.data.config;
-    updateData.results = computeScenario(position, parsed.data.config);
+    updateData.results = computeScenario(position, parsed.data.config, context.profile?.jurisdiction ?? "GB-EAW");
   }
 
   const { data, error } = await context.supabase

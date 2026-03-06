@@ -4,6 +4,7 @@ import type { ScenarioResults } from "@/lib/domain/types";
 
 const baseResult: ScenarioResults = {
   label: "modelled_outcome",
+  model_version: "v2_jurisdiction_pensions",
   user_total_assets: 100000,
   user_total_liabilities: 30000,
   user_net_position: 70000,
@@ -14,6 +15,8 @@ const baseResult: ScenarioResults = {
   user_monthly_income: 3000,
   user_monthly_expenditure: 3200,
   user_monthly_surplus_deficit: -200,
+  user_pension_income_annual: 0,
+  user_pension_income_monthly_equivalent: 0,
   user_maintenance_paid: 0,
   user_maintenance_received: 0,
   partner_total_assets: 100000,
@@ -26,6 +29,8 @@ const baseResult: ScenarioResults = {
   partner_monthly_income: 3000,
   partner_monthly_expenditure: 3000,
   partner_monthly_surplus_deficit: 0,
+  partner_pension_income_annual: 0,
+  partner_pension_income_monthly_equivalent: 0,
   partner_maintenance_paid: 0,
   partner_maintenance_received: 0,
   delta_user_assets: -1000,

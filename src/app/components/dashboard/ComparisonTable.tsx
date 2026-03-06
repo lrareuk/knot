@@ -7,6 +7,7 @@ type Props = {
   baseline: ScenarioResults;
   scenarios: ScenarioRecord[];
   currencyCode: "GBP" | "USD" | "CAD";
+  jurisdictionCode: string;
 };
 
 type BetterDirection = "higher" | "lower";
@@ -33,7 +34,25 @@ function maintenanceLabel(value: number, currencyCode: "GBP" | "USD" | "CAD") {
   return `You pay ${formatCurrency(Math.abs(value), currencyCode)}/mo`;
 }
 
-function metricRows(baseline: ScenarioResults): MetricRow[] {
+function metricRows(baseline: ScenarioResults, jurisdictionCode: string): MetricRow[] {
+  const normalizedJurisdiction = jurisdictionCode.trim().toUpperCase();
+  const pensionRow: MetricRow =
+    normalizedJurisdiction === "GB-EAW"
+      ? {
+          key: "pension_income_annual",
+          label: "Projected pension income (annual)",
+          better: "higher",
+          baselineValue: baseline.user_pension_income_annual,
+          valueForScenario: (scenario) => scenario.results.user_pension_income_annual,
+        }
+      : {
+          key: "pensions",
+          label: "Pension value (yours)",
+          better: "higher",
+          baselineValue: baseline.user_total_pensions,
+          valueForScenario: (scenario) => scenario.results.user_total_pensions,
+        };
+
   return [
     {
       key: "net",
@@ -49,13 +68,7 @@ function metricRows(baseline: ScenarioResults): MetricRow[] {
       baselineValue: baseline.user_property_equity,
       valueForScenario: (scenario) => scenario.results.user_property_equity,
     },
-    {
-      key: "pensions",
-      label: "Pension value (yours)",
-      better: "higher",
-      baselineValue: baseline.user_total_pensions,
-      valueForScenario: (scenario) => scenario.results.user_total_pensions,
-    },
+    pensionRow,
     {
       key: "savings",
       label: "Savings (yours)",
@@ -126,8 +139,8 @@ function deltaText(delta: number, better: BetterDirection, currencyCode: "GBP" |
   return `${improved ? "↑" : "↓"} ${formatCurrency(Math.abs(delta), currencyCode)}`;
 }
 
-export default function ComparisonTable({ baseline, scenarios, currencyCode }: Props) {
-  const rows = metricRows(baseline);
+export default function ComparisonTable({ baseline, scenarios, currencyCode, jurisdictionCode }: Props) {
+  const rows = metricRows(baseline, jurisdictionCode);
 
   return (
     <div className="dashboard-compare-table-wrap">

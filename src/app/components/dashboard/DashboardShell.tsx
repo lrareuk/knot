@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Cog, Columns3, FileText, Grid2x2, Layers } from "lucide-react";
+import { Cog, Columns3, FileText, Grid2x2, Handshake, Layers } from "lucide-react";
 import { supabaseBrowser } from "@/lib/supabase/browser";
 
 type Props = {
@@ -38,6 +38,10 @@ function isSettings(pathname: string) {
   return pathname === "/settings";
 }
 
+function isMarketplace(pathname: string) {
+  return pathname === "/dashboard/marketplace" || pathname.startsWith("/dashboard/marketplace/");
+}
+
 const NAV_ITEMS: NavItem[] = [
   {
     href: "/dashboard",
@@ -62,6 +66,12 @@ const NAV_ITEMS: NavItem[] = [
     label: "Report",
     isActive: isReport,
     icon: <FileText strokeWidth={1.5} />,
+  },
+  {
+    href: "/dashboard/marketplace",
+    label: "Marketplace",
+    isActive: isMarketplace,
+    icon: <Handshake strokeWidth={1.5} />,
   },
   {
     href: "/settings",

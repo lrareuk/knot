@@ -134,7 +134,19 @@ function PageHeader() {
   );
 }
 
-function SummaryRows({ results, currencyCode }: { results: ScenarioResults; currencyCode: "GBP" | "USD" | "CAD" }) {
+function SummaryRows({
+  results,
+  currencyCode,
+  jurisdictionCode,
+}: {
+  results: ScenarioResults;
+  currencyCode: "GBP" | "USD" | "CAD";
+  jurisdictionCode: string | null | undefined;
+}) {
+  const normalizedJurisdictionCode = (jurisdictionCode ?? "").trim().toUpperCase();
+  const pensionLabel = normalizedJurisdictionCode === "GB-EAW" ? "Projected pension income (annual)" : "Pensions";
+  const pensionValue = normalizedJurisdictionCode === "GB-EAW" ? results.user_pension_income_annual : results.user_total_pensions;
+
   return (
     <View>
       <View style={styles.tableRow}>
@@ -146,8 +158,8 @@ function SummaryRows({ results, currencyCode }: { results: ScenarioResults; curr
         <Text style={styles.tableCell}>{money(results.user_property_equity, currencyCode)}</Text>
       </View>
       <View style={styles.tableRow}>
-        <Text style={styles.tableLabel}>Pensions</Text>
-        <Text style={styles.tableCell}>{money(results.user_total_pensions, currencyCode)}</Text>
+        <Text style={styles.tableLabel}>{pensionLabel}</Text>
+        <Text style={styles.tableCell}>{money(pensionValue, currencyCode)}</Text>
       </View>
       <View style={styles.tableRow}>
         <Text style={styles.tableLabel}>Savings</Text>
@@ -202,7 +214,11 @@ export function ClarityReportDocument({
           <Text style={styles.sectionHeading}>Section 1: Baseline financial position</Text>
           <View style={styles.card}>
             <Text style={styles.cardHeader}>Current position</Text>
-            <SummaryRows results={baseline} currencyCode={currencyCode} />
+            <SummaryRows
+              results={baseline}
+              currencyCode={currencyCode}
+              jurisdictionCode={jurisdictionProfile?.code ?? null}
+            />
           </View>
         </View>
       </Page>
@@ -214,7 +230,11 @@ export function ClarityReportDocument({
             <Text style={styles.sectionHeading}>Section 2: {scenario.name}</Text>
             <View style={styles.card}>
               <Text style={styles.cardHeader}>Scenario configuration outcome</Text>
-              <SummaryRows results={scenario.results} currencyCode={currencyCode} />
+              <SummaryRows
+                results={scenario.results}
+                currencyCode={currencyCode}
+                jurisdictionCode={jurisdictionProfile?.code ?? null}
+              />
             </View>
 
             <View style={styles.card}>

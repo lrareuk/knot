@@ -30,7 +30,7 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
 
   const position = await getOrCreateFinancialPosition(context.supabase, context.user.id);
   const sourceConfig = source.config as ScenarioConfig;
-  const results = computeScenario(position, sourceConfig);
+  const results = computeScenario(position, sourceConfig, context.profile?.jurisdiction ?? "GB-EAW");
   const nextName = `Scenario ${String.fromCharCode(65 + current.length)}`.slice(0, 40);
 
   const { data: created, error: createError } = await context.supabase

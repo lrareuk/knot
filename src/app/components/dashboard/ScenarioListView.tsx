@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import CreateScenarioButton from "@/app/components/dashboard/CreateScenarioButton";
@@ -162,8 +163,9 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
           <CreateScenarioButton className="dashboard-btn" label="Create your first scenario" />
         </section>
       ) : (
-        <section className="dashboard-scenarios-grid" aria-label="Scenario cards">
-          {scenarios.map((scenario) => {
+        <>
+          <section className="dashboard-scenarios-grid" aria-label="Scenario cards">
+            {scenarios.map((scenario) => {
             const isRenaming = renamingId === scenario.id;
             const isConfirmingDelete = confirmDeleteId === scenario.id;
             const isBusy = busyMap[scenario.id] || false;
@@ -296,8 +298,19 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
                 )}
               </article>
             );
-          })}
-        </section>
+            })}
+          </section>
+
+          <section className="dashboard-settings-section">
+            <h2 className="dashboard-scenario-name">Finished modelling?</h2>
+            <p className="dashboard-status">
+              When your scenarios are ready, you can share a locked snapshot with a marketplace professional.
+            </p>
+            <Link href="/dashboard/marketplace" className="dashboard-btn-ghost">
+              Explore marketplace
+            </Link>
+          </section>
+        </>
       )}
     </div>
   );

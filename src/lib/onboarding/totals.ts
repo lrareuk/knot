@@ -13,16 +13,24 @@ export type FinancialTotals = {
   monthlySurplusDeficit: number;
 };
 
-export function getFinancialTotals(position: FinancialPosition): FinancialTotals {
+export function getFinancialTotals(position: FinancialPosition, jurisdictionCode: string): FinancialTotals {
+  const normalizedJurisdiction = jurisdictionCode.trim().toUpperCase();
   const totalPropertyEquity = position.properties.reduce((sum, property) => {
     const computedEquity = toNumber(property.current_value) - toNumber(property.mortgage_outstanding);
     return sum + (property.equity ?? computedEquity);
   }, 0);
 
-  const totalPensions = position.pensions.reduce(
-    (sum, pension) => sum + (toNumber(pension.current_value) || toNumber(pension.annual_amount)),
-    0
-  );
+  const totalPensions =
+    normalizedJurisdiction === "GB-EAW"
+      ? 0
+      : position.pensions.reduce(
+          (sum, pension) =>
+            sum +
+            (normalizedJurisdiction === "GB-SCT"
+              ? toNumber(pension.scottish_relevant_date_value ?? pension.current_value)
+              : toNumber(pension.current_value)),
+          0
+        );
 
   const totalSavings = position.savings.reduce((sum, savings) => sum + toNumber(savings.current_value), 0);
   const totalDebts = position.debts.reduce((sum, debt) => sum + toNumber(debt.outstanding), 0);

@@ -69,10 +69,16 @@ function normalizePensionItem(item: unknown, index: number): PensionItem {
         : "defined_contribution",
     current_value: normalizeNumber(record.current_value),
     annual_amount: normalizeNumber(record.annual_amount),
+    projected_annual_income: normalizeNumber(record.projected_annual_income),
+    scottish_relevant_date_value: normalizeNumber(record.scottish_relevant_date_value),
     is_matrimonial: typeof record.is_matrimonial === "boolean" ? record.is_matrimonial : true,
     is_estimated: {
       current_value: typeof estimated.current_value === "boolean" ? estimated.current_value : undefined,
       annual_amount: typeof estimated.annual_amount === "boolean" ? estimated.annual_amount : undefined,
+      projected_annual_income:
+        typeof estimated.projected_annual_income === "boolean" ? estimated.projected_annual_income : undefined,
+      scottish_relevant_date_value:
+        typeof estimated.scottish_relevant_date_value === "boolean" ? estimated.scottish_relevant_date_value : undefined,
     },
   };
 }
