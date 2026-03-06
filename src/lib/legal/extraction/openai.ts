@@ -4,15 +4,31 @@ import type { AgreementTermExtractionInput, OcrProvider, TermExtractionProvider 
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1";
 const OPENAI_OCR_MODEL = process.env.OPENAI_OCR_MODEL ?? "gpt-4.1-mini";
 const OPENAI_EXTRACTION_MODEL = process.env.OPENAI_EXTRACTION_MODEL ?? "gpt-4.1-mini";
+const OPENAI_API_KEY_ENV_KEYS = ["OPENAI_API_KEY", "OPENAI_KEY"] as const;
 
 type ChatCompletionResponse = {
   choices?: Array<{ message?: { content?: string } }>;
 };
 
+function readOpenAiKeyFromEnv() {
+  for (const envKey of OPENAI_API_KEY_ENV_KEYS) {
+    const value = process.env[envKey]?.trim();
+    if (value) {
+      return value;
+    }
+  }
+
+  return null;
+}
+
+export function hasOpenAiApiKey() {
+  return Boolean(readOpenAiKeyFromEnv());
+}
+
 function requireOpenAiKey() {
-  const key = process.env.OPENAI_API_KEY;
+  const key = readOpenAiKeyFromEnv();
   if (!key) {
-    throw new Error("OPENAI_API_KEY is required for agreement extraction");
+    throw new Error("OpenAI API key is missing. Configure OPENAI_API_KEY (or OPENAI_KEY) and redeploy.");
   }
   return key;
 }

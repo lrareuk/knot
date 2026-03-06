@@ -1,21 +1,25 @@
 import pdfParse from "pdf-parse";
-import { OpenAiOcrProvider, OpenAiTermExtractionProvider } from "@/lib/legal/extraction/openai";
+import { hasOpenAiApiKey, OpenAiOcrProvider, OpenAiTermExtractionProvider } from "@/lib/legal/extraction/openai";
 import type { OcrProvider, TermExtractionProvider } from "@/lib/legal/types";
 
 const FALLBACK_OCR: OcrProvider = {
   async extractTextFromImage() {
-    throw new Error("OCR provider is unavailable. Configure OPENAI_API_KEY.");
+    throw new Error("OCR provider is unavailable. Configure OPENAI_API_KEY (or OPENAI_KEY).");
   },
 };
 
 const FALLBACK_TERM_EXTRACTOR: TermExtractionProvider = {
   async extractTerms() {
-    throw new Error("Extraction provider is unavailable. Configure OPENAI_API_KEY.");
+    throw new Error("Extraction provider is unavailable. Configure OPENAI_API_KEY (or OPENAI_KEY).");
   },
 };
 
+export function isOpenAiConfigured() {
+  return hasOpenAiApiKey();
+}
+
 export function getOcrProvider(): OcrProvider {
-  if (process.env.OPENAI_API_KEY) {
+  if (isOpenAiConfigured()) {
     return new OpenAiOcrProvider();
   }
 
@@ -23,7 +27,7 @@ export function getOcrProvider(): OcrProvider {
 }
 
 export function getTermExtractionProvider(): TermExtractionProvider {
-  if (process.env.OPENAI_API_KEY) {
+  if (isOpenAiConfigured()) {
     return new OpenAiTermExtractionProvider();
   }
 

@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
-import { extractPdfTextByPage, getOcrProvider, getTermExtractionProvider } from "@/lib/legal/extraction";
+import { extractPdfTextByPage, getOcrProvider, getTermExtractionProvider, isOpenAiConfigured } from "@/lib/legal/extraction";
 import { filterCitationBackedTerms } from "@/lib/legal/extraction/validate";
 import { badRequest, requireApiUser, serverError } from "@/lib/server/api";
 import { getAgreementForUser, getDocumentForUser } from "@/lib/server/legal-agreements";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 function shortErrorMessage(error: unknown) {
   if (!(error instanceof Error)) {
@@ -44,6 +47,10 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
     .eq("user_id", context.user.id);
 
   try {
+    if (!isOpenAiConfigured()) {
+      throw new Error("OpenAI API key is not configured on this deployment. Set OPENAI_API_KEY and redeploy.");
+    }
+
     const { data: fileData, error: fileError } = await context.supabase.storage.from("agreements").download(document.storage_path);
 
     if (fileError || !fileData) {
@@ -136,6 +143,14 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
     return NextResponse.json({ document: updatedDocument, extracted_terms_count: citationBackedTerms.length });
   } catch (error) {
     const errorMessage = shortErrorMessage(error);
+    const errorDetails = error instanceof Error ? { message: error.message, stack: error.stack } : { error };
+
+    console.error("Legal agreement extraction failed", {
+      agreementId: id,
+      documentId,
+      userId: context.user.id,
+      ...errorDetails,
+    });
 
     await context.supabase
       .from("legal_agreement_documents")
