@@ -8,7 +8,7 @@ import { computeScenario } from "@/lib/domain/compute-scenario";
 import { interpretScenarioAgreements } from "@/lib/domain/interpret-scenario-agreements";
 import { getJurisdictionProfile } from "@/lib/legal/jurisdictions";
 import type { FinancialPosition, ScenarioConfig, ScenarioRecord, ScenarioResults } from "@/lib/domain/types";
-import type { LegalAgreementTerm } from "@/lib/legal/types";
+import type { AgreementInterpretationSeverity, AgreementInterpretationWarning, LegalAgreementTerm } from "@/lib/legal/types";
 
 type Props = {
   scenario: ScenarioRecord;
@@ -31,6 +31,13 @@ type SplitSliderProps = {
 };
 
 const SECTION_ORDER: SectionKey[] = ["property", "pension", "savings", "debts", "maintenance", "housing", "income"];
+const SECTION_KEY_SET = new Set<SectionKey>(SECTION_ORDER);
+
+const MONEYHELPER_PENSIONS_DIVORCE_URL = "https://www.moneyhelper.org.uk/en/family-and-care/divorce-and-separation/pensions-and-divorce";
+const MONEYHELPER_PODE_APPOINTMENT_URL =
+  "https://www.moneyhelper.org.uk/en/family-and-care/divorce-and-separation/book-your-pensions-and-divorce-appointment";
+const GOV_UK_PENSION_INQUIRY_FORM_URL = "https://www.gov.uk/government/publications/pension-inquiry-form-br20";
+const FCA_REGISTER_URL = "https://register.fca.org.uk/s/";
 
 function parseNumber(value: string) {
   const parsed = Number(value);
@@ -86,6 +93,39 @@ function formatCompactCurrency(value: number, currencyCode: "GBP" | "USD" | "CAD
   return `${sign}${absolute.toLocaleString("en-US")}`;
 }
 
+function formatCitation(citation: AgreementInterpretationWarning["citation"]) {
+  const page = citation.page ? `page ${citation.page}` : null;
+  const section = citation.section ? `section ${citation.section}` : null;
+  return [page, section].filter(Boolean).join(", ");
+}
+
+function severityRank(severity: AgreementInterpretationSeverity) {
+  if (severity === "high") {
+    return 3;
+  }
+
+  if (severity === "warning") {
+    return 2;
+  }
+
+  return 1;
+}
+
+function highestSeverity(warnings: AgreementInterpretationWarning[]): AgreementInterpretationSeverity | null {
+  if (warnings.length === 0) {
+    return null;
+  }
+
+  return warnings.reduce<AgreementInterpretationSeverity>(
+    (current, warning) => (severityRank(warning.severity) > severityRank(current) ? warning.severity : current),
+    "info"
+  );
+}
+
+function isSectionKey(value: AgreementInterpretationWarning["affected_section"]): value is SectionKey {
+  return SECTION_KEY_SET.has(value as SectionKey);
+}
+
 function fairnessReasonLabel(reason: string) {
   switch (reason) {
     case "defined_benefit_present":
@@ -119,26 +159,63 @@ function Section({
   count,
   expanded,
   onToggle,
+  warningCount,
+  warningSeverity,
+  warnings,
   children,
 }: {
   title: string;
   count?: string;
   expanded: boolean;
   onToggle: () => void;
+  warningCount?: number;
+  warningSeverity?: AgreementInterpretationSeverity | null;
+  warnings?: AgreementInterpretationWarning[];
   children: ReactNode;
 }) {
+  const visibleWarnings = (warnings ?? []).slice(0, 2);
+
   return (
     <section className="dashboard-scenario-section">
       <button type="button" className="dashboard-scenario-section-header" onClick={onToggle} aria-expanded={expanded}>
         <div className="dashboard-scenario-section-heading">
           <span className="dashboard-scenario-section-title">{title}</span>
           {count ? <span className="dashboard-scenario-section-count">{count}</span> : null}
+          {warningCount && warningCount > 0 && warningSeverity ? (
+            <span className={`dashboard-scenario-section-alert is-${warningSeverity}`}>{warningCount} legal warning(s)</span>
+          ) : null}
         </div>
         <span className="dashboard-scenario-section-chevron">▾</span>
       </button>
 
       <div className="dashboard-scenario-section-body" data-open={expanded}>
-        <div className="dashboard-scenario-section-inner">{children}</div>
+        <div className="dashboard-scenario-section-inner">
+          {visibleWarnings.length > 0 ? (
+            <div className="dashboard-scenario-warning-stack">
+              {visibleWarnings.map((warning) => {
+                const citationMeta = formatCitation(warning.citation);
+                return (
+                  <article key={warning.key} className={`dashboard-status dashboard-warning-card is-${warning.severity}`}>
+                    <p>
+                      <strong>[{warning.severity.toUpperCase()}]</strong> {warning.message}
+                    </p>
+                    <p>
+                      Citation: &quot;{warning.citation.quote}&quot;
+                      {citationMeta ? ` (${citationMeta})` : ""}
+                    </p>
+                  </article>
+                );
+              })}
+              {warnings && warnings.length > visibleWarnings.length ? (
+                <p className="dashboard-scenario-helper">
+                  {warnings.length - visibleWarnings.length} more citation-backed legal warning(s) are listed in Agreement considerations
+                  below.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+          {children}
+        </div>
       </div>
     </section>
   );
@@ -162,12 +239,33 @@ function SplitSlider({ label, total, percent, currencyCode, onChange }: SplitSli
           type="range"
           min={0}
           max={100}
+          step={1}
           value={safePercent}
           className="dashboard-scenario-slider"
           style={sliderStyle}
           onChange={(event) => onChange(clampPercent(Number(event.target.value)))}
           aria-label={`${label} split percentage`}
+          aria-valuetext={`${safePercent}% to you, ${100 - safePercent}% to partner`}
         />
+      </div>
+
+      <div className="dashboard-scenario-slider-controls">
+        <label className="dashboard-scenario-slider-number-label">
+          You %
+          <input
+            type="number"
+            min={0}
+            max={100}
+            step={1}
+            value={safePercent}
+            className="dashboard-scenario-slider-number"
+            onChange={(event) => onChange(clampPercent(Number(event.target.value)))}
+            aria-label={`${label} percentage allocated to you`}
+          />
+        </label>
+        <button type="button" className="dashboard-btn-text dashboard-scenario-slider-reset" onClick={() => onChange(50)}>
+          Set 50/50
+        </button>
       </div>
 
       <div className="dashboard-scenario-slider-axis">
@@ -360,6 +458,43 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
     { label: "Maintenance", value: maintenanceNet },
   ];
 
+  const warningsBySection = useMemo(() => {
+    const grouped: Record<SectionKey, AgreementInterpretationWarning[]> = {
+      property: [],
+      pension: [],
+      savings: [],
+      debts: [],
+      maintenance: [],
+      housing: [],
+      income: [],
+    };
+
+    for (const warning of agreementWarnings) {
+      if (!isSectionKey(warning.affected_section)) {
+        continue;
+      }
+      grouped[warning.affected_section].push(warning);
+    }
+
+    return grouped;
+  }, [agreementWarnings]);
+
+  const generalWarnings = useMemo(
+    () => agreementWarnings.filter((warning) => warning.affected_section === "general"),
+    [agreementWarnings]
+  );
+
+  const warningSummary = useMemo(
+    () => ({
+      high: agreementWarnings.filter((warning) => warning.severity === "high").length,
+      warning: agreementWarnings.filter((warning) => warning.severity === "warning").length,
+      info: agreementWarnings.filter((warning) => warning.severity === "info").length,
+    }),
+    [agreementWarnings]
+  );
+
+  const hasAgreementTerms = agreementTerms.length > 0;
+
   return (
     <div className="dashboard-scenario-editor">
       <header className="dashboard-scenario-editor-header">
@@ -481,10 +616,52 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
                 </div>
               ) : null}
               <p className="dashboard-scenario-risk-note">
-                This is modelling support only and may require specialist pension advice.
+                This is modelling support only. Before relying on pension offsetting or sharing assumptions, take legal advice and
+                specialist pensions advice.
               </p>
+              <div className="dashboard-scenario-advice-links">
+                <a href={MONEYHELPER_PENSIONS_DIVORCE_URL} target="_blank" rel="noreferrer" className="inline-link">
+                  MoneyHelper: pensions and divorce guidance
+                </a>
+                <a href={MONEYHELPER_PODE_APPOINTMENT_URL} target="_blank" rel="noreferrer" className="inline-link">
+                  Book a pensions-on-divorce appointment
+                </a>
+                <a href={FCA_REGISTER_URL} target="_blank" rel="noreferrer" className="inline-link">
+                  Check adviser authorisation on the FCA Register
+                </a>
+              </div>
             </section>
           ) : null}
+        </div>
+      </section>
+
+      <section className="dashboard-scenario-agreement-summary">
+        <div className="dashboard-scenario-content">
+          <p className="dashboard-panel-eyebrow">Legal Agreement Guardrails</p>
+          {!hasAgreementTerms ? (
+            <p className="dashboard-status">
+              No extracted agreement terms are linked to this scenario yet. If you have a prenup, postnup, or separation agreement,
+              upload it in <a href="/settings" className="inline-link">Settings</a> so modelling checks can reference the clauses.
+            </p>
+          ) : agreementWarnings.length === 0 ? (
+            <p className="dashboard-status">
+              {agreementTerms.length} extracted term(s) loaded. No direct scenario conflicts detected from the current clause set.
+            </p>
+          ) : (
+            <>
+              <p className="dashboard-status">
+                {agreementWarnings.length} potential conflict(s) detected across your extracted terms. Review section-level warning badges
+                before relying on this scenario.
+              </p>
+              <div className="dashboard-chip-row">
+                {warningSummary.high > 0 ? <span className="dashboard-warning-pill is-high">{warningSummary.high} high</span> : null}
+                {warningSummary.warning > 0 ? (
+                  <span className="dashboard-warning-pill is-warning">{warningSummary.warning} warning</span>
+                ) : null}
+                {warningSummary.info > 0 ? <span className="dashboard-warning-pill is-info">{warningSummary.info} info</span> : null}
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -492,6 +669,8 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
         <div className="dashboard-scenario-content">
           {SECTION_ORDER.map((sectionKey) => {
             const expanded = expandedSections[sectionKey];
+            const sectionWarnings = warningsBySection[sectionKey];
+            const sectionWarningSeverity = highestSeverity(sectionWarnings);
             const setExpanded = () =>
               setExpandedSections((current) => ({
                 ...current,
@@ -506,6 +685,9 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
                   count={`${config.property_decisions.length} ${config.property_decisions.length === 1 ? "property" : "properties"}`}
                   expanded={expanded}
                   onToggle={setExpanded}
+                  warningCount={sectionWarnings.length}
+                  warningSeverity={sectionWarningSeverity}
+                  warnings={sectionWarnings}
                 >
                   {config.property_decisions.map((decision, index) => {
                     const property = propertyById.get(decision.property_id);
@@ -582,6 +764,9 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
                   count={`${config.pension_splits.length} ${config.pension_splits.length === 1 ? "pension" : "pensions"}`}
                   expanded={expanded}
                   onToggle={setExpanded}
+                  warningCount={sectionWarnings.length}
+                  warningSeverity={sectionWarningSeverity}
+                  warnings={sectionWarnings}
                 >
                   {config.pension_splits.map((split, index) => {
                     const pension = pensionById.get(split.pension_id);
@@ -623,6 +808,26 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
                       ? "In England and Wales, pensions are modelled as future income resources. House-for-pension offsets can appear capital-neutral while creating retirement-income gaps."
                       : "In Scotland, pension sharing can affect both matrimonial-property capital and projected future income."}
                   </p>
+                  {normalizedJurisdictionCode === "GB-EAW" ? (
+                    <div className="dashboard-scenario-guidance-box">
+                      <ul className="dashboard-scenario-guidance-list">
+                        <li>Pensions may be addressed through pension sharing, offsetting, or attachment arrangements.</li>
+                        <li>Check retirement-income impact, not only capital totals, before agreeing house-for-pension trade-offs.</li>
+                        <li>Use current scheme information and state pension details before finalising assumptions.</li>
+                      </ul>
+                      <p className="dashboard-scenario-helper">
+                        Guidance links:{" "}
+                        <a href={MONEYHELPER_PENSIONS_DIVORCE_URL} target="_blank" rel="noreferrer" className="inline-link">
+                          MoneyHelper pensions and divorce
+                        </a>
+                        ,{" "}
+                        <a href={GOV_UK_PENSION_INQUIRY_FORM_URL} target="_blank" rel="noreferrer" className="inline-link">
+                          GOV.UK BR20 state pension inquiry form
+                        </a>
+                        .
+                      </p>
+                    </div>
+                  ) : null}
                 </Section>
               );
             }
@@ -635,6 +840,9 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
                   count={`${config.savings_splits.length} ${config.savings_splits.length === 1 ? "item" : "items"}`}
                   expanded={expanded}
                   onToggle={setExpanded}
+                  warningCount={sectionWarnings.length}
+                  warningSeverity={sectionWarningSeverity}
+                  warnings={sectionWarnings}
                 >
                   {config.savings_splits.map((split, index) => {
                     const savings = savingsById.get(split.savings_id);
@@ -669,6 +877,9 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
                   count={`${config.debt_splits.length} ${config.debt_splits.length === 1 ? "debt" : "debts"}`}
                   expanded={expanded}
                   onToggle={setExpanded}
+                  warningCount={sectionWarnings.length}
+                  warningSeverity={sectionWarningSeverity}
+                  warnings={sectionWarnings}
                 >
                   {config.debt_splits.map((split, index) => {
                     const debt = debtById.get(split.debt_id);
@@ -700,7 +911,15 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
               const showChildAmount = config.child_maintenance.direction !== "none";
 
               return (
-                <Section key={sectionKey} title="Maintenance" expanded={expanded} onToggle={setExpanded}>
+                <Section
+                  key={sectionKey}
+                  title="Maintenance"
+                  expanded={expanded}
+                  onToggle={setExpanded}
+                  warningCount={sectionWarnings.length}
+                  warningSeverity={sectionWarningSeverity}
+                  warnings={sectionWarnings}
+                >
                   <div className="dashboard-scenario-control-row">
                     <label className="dashboard-scenario-field-label" htmlFor="spousal-maintenance-direction">
                       Spousal maintenance
@@ -819,7 +1038,15 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
 
             if (sectionKey === "housing") {
               return (
-                <Section key={sectionKey} title="Post-separation housing" expanded={expanded} onToggle={setExpanded}>
+                <Section
+                  key={sectionKey}
+                  title="Post-separation housing"
+                  expanded={expanded}
+                  onToggle={setExpanded}
+                  warningCount={sectionWarnings.length}
+                  warningSeverity={sectionWarningSeverity}
+                  warnings={sectionWarnings}
+                >
                   <div className="dashboard-scenario-control-row">
                     <label className="dashboard-scenario-field-label" htmlFor="housing-rent-user">
                       New monthly rent for you
@@ -874,7 +1101,15 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
             }
 
             return (
-              <Section key={sectionKey} title="Income changes" expanded={expanded} onToggle={setExpanded}>
+              <Section
+                key={sectionKey}
+                title="Income changes"
+                expanded={expanded}
+                onToggle={setExpanded}
+                warningCount={sectionWarnings.length}
+                warningSeverity={sectionWarningSeverity}
+                warnings={sectionWarnings}
+              >
                 <div className="dashboard-scenario-control-row">
                   <label className="dashboard-scenario-field-label" htmlFor="income-user">
                     Your new net monthly income
@@ -931,28 +1166,42 @@ export default function ScenarioEditor({ scenario, position, jurisdictionCode, c
           <section className="dashboard-scenario-section">
             <div className="dashboard-scenario-section-header">
               <div className="dashboard-scenario-section-heading">
-                <span className="dashboard-scenario-section-title">Agreement considerations</span>
-                <span className="dashboard-scenario-section-count">{agreementWarnings.length}</span>
+                <span className="dashboard-scenario-section-title">Agreement considerations and citations</span>
+                <span className="dashboard-scenario-section-count">
+                  {agreementWarnings.length} warning(s) · {agreementTerms.length} term(s)
+                </span>
               </div>
             </div>
 
             <div className="dashboard-scenario-section-inner">
-              {agreementWarnings.length === 0 ? (
+              {!hasAgreementTerms ? (
+                <p className="dashboard-scenario-helper">
+                  No agreement terms are linked yet. Add and extract terms in <a href="/settings" className="inline-link">Settings</a> to
+                  enable clause-aware checks.
+                </p>
+              ) : agreementWarnings.length === 0 ? (
                 <p className="dashboard-scenario-helper">No agreement conflicts were detected for this scenario.</p>
               ) : (
-                agreementWarnings.map((warning) => (
-                  <article key={warning.key} className="dashboard-status">
-                    <p>
-                      <strong>[{warning.severity.toUpperCase()}]</strong> {warning.message}
-                    </p>
-                    <p>
-                      Citation: &quot;{warning.citation.quote}&quot;
-                      {warning.citation.page ? ` (page ${warning.citation.page})` : ""}
-                      {warning.citation.section ? `, section ${warning.citation.section}` : ""}
-                    </p>
-                  </article>
-                ))
+                agreementWarnings.map((warning) => {
+                  const citationMeta = formatCitation(warning.citation);
+                  return (
+                    <article key={warning.key} className={`dashboard-status dashboard-warning-card is-${warning.severity}`}>
+                      <p>
+                        <strong>[{warning.severity.toUpperCase()}]</strong> {warning.message}
+                      </p>
+                      <p>
+                        Citation: &quot;{warning.citation.quote}&quot;
+                        {citationMeta ? ` (${citationMeta})` : ""}
+                      </p>
+                    </article>
+                  );
+                })
               )}
+              {generalWarnings.length > 0 ? (
+                <p className="dashboard-scenario-helper">
+                  {generalWarnings.length} warning(s) are broad clauses that may affect multiple sections.
+                </p>
+              ) : null}
             </div>
           </section>
 

@@ -15,6 +15,11 @@ import type { PensionItem } from "@/types/financial";
 import { MODULES } from "@/types/financial";
 
 const PENSIONS_MODULE = MODULES.find((module) => module.name === "pensions")!;
+const MONEYHELPER_PENSIONS_DIVORCE_URL = "https://www.moneyhelper.org.uk/en/family-and-care/divorce-and-separation/pensions-and-divorce";
+const MONEYHELPER_PODE_APPOINTMENT_URL =
+  "https://www.moneyhelper.org.uk/en/family-and-care/divorce-and-separation/book-your-pensions-and-divorce-appointment";
+const GOV_UK_PENSION_INQUIRY_FORM_URL = "https://www.gov.uk/government/publications/pension-inquiry-form-br20";
+const FCA_REGISTER_URL = "https://register.fca.org.uk/s/";
 
 export default function OnboardingPensionsPage() {
   const { jurisdiction } = useOnboardingUI();
@@ -47,6 +52,38 @@ export default function OnboardingPensionsPage() {
           In England and Wales, pension and property trade-offs can look balanced in capital but diverge in retirement income.
           Add realistic projected annual pension income where possible.
         </p>
+      ) : null}
+      {isUnitedKingdomJurisdiction ? (
+        <section className="onboarding-pension-guidance-card">
+          <p className="onboarding-field-help">
+            Divorce pension outcomes can be built through pension sharing, offsetting, or pension attachment arrangements. Model each
+            scenario carefully before relying on a settlement position.
+          </p>
+          <ul className="onboarding-checklist">
+            <li>Gather the latest value and income information for each scheme before setting shares.</li>
+            <li>Check retirement income impact, not only capital totals, when offsetting pension against property.</li>
+            <li>If needed, request state pension details via BR20 and check your forecast on GOV.UK.</li>
+          </ul>
+          <p className="onboarding-field-help">
+            Guidance and advice links:{" "}
+            <a href={MONEYHELPER_PENSIONS_DIVORCE_URL} target="_blank" rel="noreferrer" className="onboarding-inline-link">
+              MoneyHelper pensions and divorce
+            </a>
+            ,{" "}
+            <a href={MONEYHELPER_PODE_APPOINTMENT_URL} target="_blank" rel="noreferrer" className="onboarding-inline-link">
+              book pensions-on-divorce appointment
+            </a>
+            ,{" "}
+            <a href={GOV_UK_PENSION_INQUIRY_FORM_URL} target="_blank" rel="noreferrer" className="onboarding-inline-link">
+              GOV.UK BR20
+            </a>
+            ,{" "}
+            <a href={FCA_REGISTER_URL} target="_blank" rel="noreferrer" className="onboarding-inline-link">
+              FCA Register
+            </a>
+            .
+          </p>
+        </section>
       ) : null}
 
       <div className="onboarding-card-list">
@@ -139,7 +176,7 @@ export default function OnboardingPensionsPage() {
                 />
                 {pension.pension_type === "state" && isUnitedKingdomJurisdiction ? (
                   <p className="onboarding-field-help">
-                    Full new state pension is currently £221.20/week (£11,502/year). Check yours at{" "}
+                    State pension rates change each tax year. Check your personal forecast at{" "}
                     <a href="https://www.gov.uk/check-state-pension" target="_blank" rel="noreferrer" className="onboarding-inline-link">
                       gov.uk/check-state-pension
                     </a>
@@ -205,6 +242,13 @@ export default function OnboardingPensionsPage() {
       >
         + Add another pension
       </button>
+
+      {jurisdiction === "GB-EAW" ? (
+        <p className="onboarding-field-help">
+          Untie provides modelling only, not legal or regulated financial advice. Before committing to pension sharing or offsetting
+          terms, seek legal advice and specialist pensions advice where appropriate.
+        </p>
+      ) : null}
 
       <ContinueButton />
     </div>

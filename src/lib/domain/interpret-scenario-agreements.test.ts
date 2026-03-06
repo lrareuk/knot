@@ -67,4 +67,47 @@ describe("interpretScenarioAgreements", () => {
 
     expect(warnings.some((warning) => warning.key.startsWith("choice-of-law"))).toBe(true);
   });
+
+  it("still prompts review for pension exclusion even when pensions are not split between parties", () => {
+    const warnings = interpretScenarioAgreements({
+      jurisdictionCode: "GB-EAW",
+      config: {
+        ...baseConfig,
+        pension_splits: [{ pension_id: "pension-1", split_user: 100 }],
+        spousal_maintenance: { ...baseConfig.spousal_maintenance, direction: "none", monthly_amount: 0 },
+      },
+      terms: [term({ term_type: "pension_exclusion" })],
+    });
+
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]?.affected_section).toBe("pension");
+    expect(warnings[0]?.severity).toBe("info");
+  });
+
+  it("flags property minimum-ratio breaches", () => {
+    const warnings = interpretScenarioAgreements({
+      jurisdictionCode: "GB-EAW",
+      config: {
+        ...baseConfig,
+        property_decisions: [{ property_id: "property-1", action: "sell", equity_split_user: 20 }],
+        spousal_maintenance: { ...baseConfig.spousal_maintenance, direction: "none", monthly_amount: 0 },
+      },
+      terms: [term({ term_type: "asset_split_ratio", term_payload: { min_user_percent: 30 }, impact_direction: "neutral" })],
+    });
+
+    expect(warnings.some((warning) => warning.key.startsWith("asset-ratio-min"))).toBe(true);
+  });
+
+  it("infers pension relevance for other material terms when citations mention pensions", () => {
+    const warnings = interpretScenarioAgreements({
+      jurisdictionCode: "GB-EAW",
+      config: {
+        ...baseConfig,
+        spousal_maintenance: { ...baseConfig.spousal_maintenance, direction: "none", monthly_amount: 0 },
+      },
+      terms: [term({ term_type: "other_material_term", citation: { quote: "pension sharing order applies to pension X" } })],
+    });
+
+    expect(warnings[0]?.affected_section).toBe("pension");
+  });
 });
