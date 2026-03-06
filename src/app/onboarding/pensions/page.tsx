@@ -54,35 +54,35 @@ export default function OnboardingPensionsPage() {
         </p>
       ) : null}
       {isUnitedKingdomJurisdiction ? (
-        <section className="onboarding-pension-guidance-card">
-          <p className="onboarding-field-help">
+        <section className="onboarding-pension-guidance-card" role="note" aria-label="Pension guidance">
+          <header className="onboarding-pension-guidance-head">
+            <p className="onboarding-pension-guidance-kicker">Pension guidance</p>
+            <h2 className="onboarding-pension-guidance-title">Before you set pension shares</h2>
+          </header>
+          <p className="onboarding-pension-guidance-copy">
             Divorce pension outcomes can be built through pension sharing, offsetting, or pension attachment arrangements. Model each
             scenario carefully before relying on a settlement position.
           </p>
-          <ul className="onboarding-checklist">
+          <ul className="onboarding-pension-guidance-list">
             <li>Gather the latest value and income information for each scheme before setting shares.</li>
             <li>Check retirement income impact, not only capital totals, when offsetting pension against property.</li>
             <li>If needed, request state pension details via BR20 and check your forecast on GOV.UK.</li>
           </ul>
-          <p className="onboarding-field-help">
-            Guidance and advice links:{" "}
-            <a href={MONEYHELPER_PENSIONS_DIVORCE_URL} target="_blank" rel="noreferrer" className="onboarding-inline-link">
+          <p className="onboarding-pension-guidance-links-title">Guidance and advice</p>
+          <div className="onboarding-pension-guidance-links">
+            <a href={MONEYHELPER_PENSIONS_DIVORCE_URL} target="_blank" rel="noreferrer" className="onboarding-pension-guidance-link">
               MoneyHelper pensions and divorce
             </a>
-            ,{" "}
-            <a href={MONEYHELPER_PODE_APPOINTMENT_URL} target="_blank" rel="noreferrer" className="onboarding-inline-link">
-              book pensions-on-divorce appointment
+            <a href={MONEYHELPER_PODE_APPOINTMENT_URL} target="_blank" rel="noreferrer" className="onboarding-pension-guidance-link">
+              Book pensions-on-divorce appointment
             </a>
-            ,{" "}
-            <a href={GOV_UK_PENSION_INQUIRY_FORM_URL} target="_blank" rel="noreferrer" className="onboarding-inline-link">
+            <a href={GOV_UK_PENSION_INQUIRY_FORM_URL} target="_blank" rel="noreferrer" className="onboarding-pension-guidance-link">
               GOV.UK BR20
             </a>
-            ,{" "}
-            <a href={FCA_REGISTER_URL} target="_blank" rel="noreferrer" className="onboarding-inline-link">
+            <a href={FCA_REGISTER_URL} target="_blank" rel="noreferrer" className="onboarding-pension-guidance-link">
               FCA Register
             </a>
-            .
-          </p>
+          </div>
         </section>
       ) : null}
 

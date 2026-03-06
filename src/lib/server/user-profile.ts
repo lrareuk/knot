@@ -111,6 +111,22 @@ export async function ensureAndFetchUserProfile(supabase: SupabaseClient, user: 
     .maybeSingle<UserProfileRecord>();
 
   if (existingProfile) {
+    const existingFirstName = typeof existingProfile.first_name === "string" ? existingProfile.first_name.trim() : "";
+    const recoveredFirstName = metadataFirstName(user);
+    if (!existingFirstName && recoveredFirstName) {
+      const { error: updateFirstNameError } = await supabase
+        .from("users")
+        .update({ first_name: recoveredFirstName })
+        .eq("id", user.id);
+
+      if (!updateFirstNameError) {
+        return normalizeProfile({
+          ...existingProfile,
+          first_name: recoveredFirstName,
+        });
+      }
+    }
+
     return normalizeProfile(existingProfile);
   }
 

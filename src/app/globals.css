@@ -3004,24 +3004,24 @@ tbody tr:nth-child(even) {
 
 /* Onboarding visual refresh */
 .onboarding-theme {
-  --onb-bg: #0d1118;
-  --onb-surface: #141a24;
-  --onb-surface-soft: #1a2230;
-  --onb-border: rgb(244 241 234 / 0.1);
-  --onb-border-strong: rgb(244 241 234 / 0.2);
-  --onb-text: #f4f1ea;
-  --onb-muted: #bcb6ae;
-  --onb-subtle: #8e887f;
-  --onb-accent: #c91a62;
-  --onb-accent-strong: #e82577;
-  --onb-accent-soft: rgb(201 26 98 / 0.15);
-  --onb-success: #7aac8d;
-  --onb-warning: #d4a843;
+  --onb-bg: var(--bg-primary);
+  --onb-surface: var(--bg-panel);
+  --onb-surface-soft: var(--bg-elevated);
+  --onb-border: var(--bg-divider);
+  --onb-border-strong: var(--border-strong);
+  --onb-text: var(--text-primary);
+  --onb-muted: var(--text-muted);
+  --onb-subtle: var(--text-subtle);
+  --onb-accent: var(--accent-raspberry);
+  --onb-accent-strong: var(--accent-raspberry-strong);
+  --onb-accent-soft: rgb(194 24 91 / 0.15);
+  --onb-success: var(--positive);
+  --onb-warning: var(--warning);
   --onb-radius: 14px;
   --onb-shadow: 0 18px 40px rgb(0 0 0 / 0.34);
   background:
-    radial-gradient(circle at 18% 0%, rgb(201 26 98 / 0.09), transparent 40%),
-    radial-gradient(circle at 100% 100%, rgb(85 129 181 / 0.08), transparent 36%),
+    radial-gradient(circle at 18% 0%, rgb(194 24 91 / 0.09), transparent 40%),
+    radial-gradient(circle at 100% 100%, rgb(196 106 94 / 0.08), transparent 36%),
     var(--onb-bg);
   color: var(--onb-text);
 }
@@ -3049,7 +3049,7 @@ tbody tr:nth-child(even) {
   height: calc(100vh - 36px);
   border: 1px solid var(--onb-border);
   border-radius: 18px;
-  background: linear-gradient(180deg, rgb(20 26 36 / 0.94), rgb(15 20 29 / 0.96));
+  background: linear-gradient(180deg, rgb(30 30 30 / 0.94), rgb(24 24 24 / 0.96));
   box-shadow: var(--onb-shadow);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -3166,7 +3166,7 @@ tbody tr:nth-child(even) {
 .onboarding-main-inner.onboarding-module {
   border: 1px solid var(--onb-border);
   border-radius: 22px;
-  background: linear-gradient(180deg, rgb(20 26 36 / 0.86), rgb(14 19 28 / 0.92));
+  background: linear-gradient(180deg, rgb(30 30 30 / 0.88), rgb(22 22 22 / 0.93));
   box-shadow: var(--onb-shadow);
   padding: 28px;
 }
@@ -3262,7 +3262,7 @@ tbody tr:nth-child(even) {
   height: 48px;
   border: 1px solid var(--onb-border);
   border-radius: 12px;
-  background: linear-gradient(180deg, rgb(33 41 55 / 0.85), rgb(24 31 43 / 0.88));
+  background: linear-gradient(180deg, rgb(36 36 36 / 0.88), rgb(30 30 30 / 0.92));
   color: var(--onb-text);
   transition: border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
 }
@@ -3283,7 +3283,7 @@ tbody tr:nth-child(even) {
 }
 
 .onboarding-select option {
-  background: #1d2532;
+  background: #1e1e1e;
 }
 
 .onboarding-currency-prefix {
@@ -3333,7 +3333,7 @@ tbody tr:nth-child(even) {
 
 .onboarding-toggle-option {
   min-height: 44px;
-  background: rgb(20 26 36 / 0.75);
+  background: rgb(30 30 30 / 0.78);
   color: var(--onb-muted);
 }
 
@@ -3346,10 +3346,130 @@ tbody tr:nth-child(even) {
   gap: 14px;
 }
 
+.onboarding-pension-guidance-card {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--onb-accent) 34%, var(--onb-border));
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 10% -10%, rgb(232 37 119 / 0.18), transparent 56%),
+    radial-gradient(circle at 100% 100%, rgb(196 106 94 / 0.14), transparent 52%),
+    linear-gradient(160deg, rgb(38 38 38 / 0.96), rgb(24 24 24 / 0.96));
+  padding: 20px 22px;
+  box-shadow: 0 14px 34px rgb(0 0 0 / 0.28);
+  display: grid;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.onboarding-pension-guidance-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, rgb(232 37 119 / 0.8), rgb(196 106 94 / 0.55));
+}
+
+.onboarding-pension-guidance-head {
+  display: grid;
+  gap: 4px;
+}
+
+.onboarding-pension-guidance-kicker {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #f1bfd5;
+}
+
+.onboarding-pension-guidance-title {
+  margin: 0;
+  font-family: var(--font-headline);
+  font-size: clamp(20px, 2.1vw, 24px);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--onb-text);
+}
+
+.onboarding-pension-guidance-copy {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--onb-muted);
+  max-width: 72ch;
+}
+
+.onboarding-pension-guidance-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 9px;
+}
+
+.onboarding-pension-guidance-list li {
+  position: relative;
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--onb-muted);
+}
+
+.onboarding-pension-guidance-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--onb-accent-strong) 76%, #fff 24%);
+  box-shadow: 0 0 0 3px rgb(232 37 119 / 0.18);
+}
+
+.onboarding-pension-guidance-links-title {
+  margin: 2px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--onb-subtle);
+}
+
+.onboarding-pension-guidance-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.onboarding-pension-guidance-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  border: 1px solid var(--onb-border-strong);
+  border-radius: 999px;
+  background: rgb(18 18 18 / 0.58);
+  color: #ffdbe9;
+  padding: 0 12px;
+  font-size: 12px;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.onboarding-pension-guidance-link:hover {
+  border-color: rgb(232 37 119 / 0.62);
+  background: rgb(232 37 119 / 0.12);
+  color: #ffe9f2;
+  transform: translateY(-1px);
+}
+
 .onboarding-item-card {
   border: 1px solid var(--onb-border);
   border-radius: 16px;
-  background: linear-gradient(180deg, rgb(24 31 43 / 0.86), rgb(18 24 34 / 0.9));
+  background: linear-gradient(180deg, rgb(34 34 34 / 0.86), rgb(24 24 24 / 0.9));
   padding: 15px;
 }
 
@@ -3380,7 +3500,7 @@ tbody tr:nth-child(even) {
 .onboarding-item-card-confirm {
   border: 1px solid var(--onb-border);
   border-radius: 10px;
-  background: rgb(12 17 24 / 0.7);
+  background: rgb(18 18 18 / 0.72);
 }
 
 .onboarding-item-card-confirm-copy {
@@ -3402,7 +3522,7 @@ tbody tr:nth-child(even) {
 .onboarding-computed-field {
   border: 1px solid var(--onb-border);
   border-radius: 12px;
-  background: rgb(12 17 24 / 0.66);
+  background: rgb(18 18 18 / 0.7);
 }
 
 .onboarding-computed-label {
@@ -3434,7 +3554,7 @@ tbody tr:nth-child(even) {
 .onboarding-income-footer {
   border: 1px solid var(--onb-border);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgb(24 31 43 / 0.8), rgb(18 24 34 / 0.87));
+  background: linear-gradient(180deg, rgb(34 34 34 / 0.82), rgb(24 24 24 / 0.88));
   padding: 14px;
 }
 
@@ -3531,7 +3651,7 @@ tbody tr:nth-child(even) {
 
 .onboarding-guidance-drawer {
   border-left: 1px solid var(--onb-border);
-  background: #131a25;
+  background: #181818;
 }
 
 .onboarding-guidance-close {
@@ -3543,7 +3663,7 @@ tbody tr:nth-child(even) {
 .onboarding-loading-line,
 .onboarding-loading-block {
   border-radius: 10px;
-  background: linear-gradient(90deg, rgb(26 35 49 / 0.6), rgb(40 50 66 / 0.65), rgb(26 35 49 / 0.6));
+  background: linear-gradient(90deg, rgb(34 34 34 / 0.6), rgb(49 49 49 / 0.66), rgb(34 34 34 / 0.6));
 }
 
 .onboarding-review-page {
@@ -3568,7 +3688,7 @@ tbody tr:nth-child(even) {
 .onboarding-review-totals {
   border: 1px solid var(--onb-border);
   border-radius: 16px;
-  background: linear-gradient(180deg, rgb(24 31 43 / 0.82), rgb(17 22 31 / 0.9));
+  background: linear-gradient(180deg, rgb(34 34 34 / 0.84), rgb(23 23 23 / 0.9));
 }
 
 .onboarding-review-progress-banner {
@@ -3582,7 +3702,7 @@ tbody tr:nth-child(even) {
 .onboarding-review-complete-banner {
   background:
     linear-gradient(180deg, rgb(122 172 141 / 0.11), transparent 52%),
-    linear-gradient(180deg, rgb(24 31 43 / 0.88), rgb(17 22 31 / 0.92));
+    linear-gradient(180deg, rgb(34 34 34 / 0.88), rgb(23 23 23 / 0.92));
   padding: 16px;
 }
 
@@ -3601,7 +3721,7 @@ tbody tr:nth-child(even) {
 .onboarding-review-banner-metrics article {
   border: 1px solid var(--onb-border);
   border-radius: 12px;
-  background: rgb(14 19 28 / 0.66);
+  background: rgb(24 24 24 / 0.72);
   padding: 10px;
 }
 
@@ -3665,7 +3785,7 @@ tbody tr:nth-child(even) {
 .onboarding-checkbox-option {
   border: 1px solid var(--onb-border);
   border-radius: 12px;
-  background: rgb(14 19 28 / 0.75);
+  background: rgb(24 24 24 / 0.78);
   color: var(--onb-muted);
 }
 
@@ -3677,7 +3797,7 @@ tbody tr:nth-child(even) {
   min-height: 38px;
   border: 1px solid var(--onb-border);
   border-radius: 10px;
-  background: rgb(13 18 26 / 0.78);
+  background: rgb(24 24 24 / 0.78);
   color: var(--onb-muted);
 }
 
@@ -3741,6 +3861,11 @@ tbody tr:nth-child(even) {
   .onboarding-two-col-grid {
     grid-template-columns: 1fr;
   }
+
+  .onboarding-pension-guidance-card {
+    padding: 18px 18px 16px;
+    gap: 12px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -3766,6 +3891,25 @@ tbody tr:nth-child(even) {
   .onboarding-main-inner.onboarding-module {
     border-radius: 14px;
     padding: 16px;
+  }
+
+  .onboarding-pension-guidance-card {
+    border-radius: 14px;
+    padding: 16px 14px;
+    gap: 10px;
+  }
+
+  .onboarding-pension-guidance-title {
+    font-size: 21px;
+  }
+
+  .onboarding-pension-guidance-copy {
+    font-size: 14px;
+  }
+
+  .onboarding-pension-guidance-link {
+    width: 100%;
+    justify-content: center;
   }
 
   .onboarding-mobile-progress {

@@ -88,6 +88,7 @@ export default function DashboardShell({ firstName, hasRelevantAgreements, child
   const router = useRouter();
   const hasName = Boolean(firstName?.trim());
   const greeting = hasName ? `Hi ${firstName?.trim()}` : "Hi there";
+  const compactGreeting = hasName ? (firstName?.trim() ?? "there") : "there";
 
   const signOut = async () => {
     await supabaseBrowser().auth.signOut();
@@ -105,6 +106,9 @@ export default function DashboardShell({ firstName, hasRelevantAgreements, child
             <span className="sr-only">Untie</span>
           </Link>
           <p className="dashboard-greeting">{greeting}</p>
+          <p className="dashboard-greeting-compact" title={greeting}>
+            {compactGreeting}
+          </p>
         </div>
 
         <nav className="dashboard-nav-list">
