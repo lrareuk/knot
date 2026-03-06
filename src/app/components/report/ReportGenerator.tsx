@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatCurrency } from "@/lib/domain/currency";
 import { interpretScenarioAgreements } from "@/lib/domain/interpret-scenario-agreements";
+import { summarizeScenarioAgreementWarningsByScenario } from "@/lib/domain/scenario-agreement-summary";
 import type { ScenarioRecord } from "@/lib/domain/types";
 import type { JurisdictionProfile } from "@/lib/legal/jurisdictions";
 import type { LegalAgreementTerm } from "@/lib/legal/types";
@@ -67,6 +68,11 @@ export default function ReportGenerator({
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState<GeneratedReport | null>(null);
   const [offsettingRiskAcknowledged, setOffsettingRiskAcknowledged] = useState(false);
+  const hasAgreementTerms = agreementTerms.length > 0;
+  const agreementWarningsByScenarioId = useMemo(
+    () => summarizeScenarioAgreementWarningsByScenario(scenarios, jurisdictionProfile?.code ?? "GB-EAW", agreementTerms),
+    [agreementTerms, jurisdictionProfile?.code, scenarios]
+  );
 
   const requiresOffsettingRiskAck = useMemo(
     () => requiresReportOffsettingRiskAcknowledgement(scenarios, selected, jurisdictionProfile?.code ?? ""),
@@ -180,6 +186,10 @@ export default function ReportGenerator({
       <section className="dashboard-report-selection" aria-label="Scenario selection">
         {scenarios.map((scenario) => {
           const checked = selected.includes(scenario.id);
+          const agreementSummary = agreementWarningsByScenarioId[scenario.id] ?? {
+            total: 0,
+            highest: null,
+          };
 
           return (
             <button
@@ -198,6 +208,15 @@ export default function ReportGenerator({
                   Net: {formatCurrency(scenario.results.user_net_position, currencyCode)} · Monthly:{" "}
                   {formatCurrency(scenario.results.user_monthly_surplus_deficit, currencyCode)}/mo
                 </span>
+                {hasAgreementTerms ? (
+                  <span
+                    className={`dashboard-report-option-legal${agreementSummary.highest ? ` is-${agreementSummary.highest}` : " is-clear"}`}
+                  >
+                    {agreementSummary.total > 0
+                      ? `${agreementSummary.total} legal agreement warning${agreementSummary.total === 1 ? "" : "s"}`
+                      : "Agreement checks clear"}
+                  </span>
+                ) : null}
               </span>
             </button>
           );
@@ -263,6 +282,12 @@ export default function ReportGenerator({
         {jurisdictionProfile ? (
           <p className="dashboard-status">
             Jurisdiction profile: {jurisdictionProfile.display_name}. {jurisdictionProfile.property_framework}
+          </p>
+        ) : null}
+        {!hasAgreementTerms ? (
+          <p className="dashboard-status">
+            No extracted legal agreement terms found. Add or extract agreement data in <a href="/settings" className="inline-link">Settings</a>{" "}
+            to include clause-aware warnings in report decisions.
           </p>
         ) : null}
 

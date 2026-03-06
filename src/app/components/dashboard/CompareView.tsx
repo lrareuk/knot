@@ -3,21 +3,29 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import ComparisonTable from "@/app/components/dashboard/ComparisonTable";
+import { summarizeScenarioAgreementWarningsByScenario } from "@/lib/domain/scenario-agreement-summary";
 import type { ScenarioRecord, ScenarioResults } from "@/lib/domain/types";
+import type { LegalAgreementTerm } from "@/lib/legal/types";
 
 type Props = {
   baseline: ScenarioResults;
   scenarios: ScenarioRecord[];
   currencyCode: "GBP" | "USD" | "CAD";
   jurisdictionCode: string;
+  agreementTerms: LegalAgreementTerm[];
 };
 
-export default function CompareView({ baseline, scenarios, currencyCode, jurisdictionCode }: Props) {
+export default function CompareView({ baseline, scenarios, currencyCode, jurisdictionCode, agreementTerms }: Props) {
   const [selectedScenarioIds, setSelectedScenarioIds] = useState<string[]>(() => scenarios.slice(0, 2).map((scenario) => scenario.id));
 
   const selectedScenarios = useMemo(
     () => scenarios.filter((scenario) => selectedScenarioIds.includes(scenario.id)),
     [scenarios, selectedScenarioIds]
+  );
+  const hasAgreementTerms = agreementTerms.length > 0;
+  const agreementWarningsByScenarioId = useMemo(
+    () => summarizeScenarioAgreementWarningsByScenario(scenarios, jurisdictionCode, agreementTerms),
+    [agreementTerms, jurisdictionCode, scenarios]
   );
 
   const toggleScenario = (id: string) => {
@@ -63,11 +71,20 @@ export default function CompareView({ baseline, scenarios, currencyCode, jurisdi
       <header className="dashboard-page-intro">
         <h1 className="dashboard-page-title">Compare scenarios</h1>
         <p className="dashboard-page-subtitle">Select 2–3 scenarios to compare side by side against your baseline.</p>
+        {hasAgreementTerms ? (
+          <p className="dashboard-page-meta">Legal agreement warnings are shown on each scenario chip.</p>
+        ) : (
+          <p className="dashboard-page-meta">No extracted legal agreement terms found for warning checks.</p>
+        )}
       </header>
 
       <section className="dashboard-chip-row" aria-label="Scenario selection">
         {scenarios.map((scenario) => {
           const selected = selectedScenarioIds.includes(scenario.id);
+          const agreementSummary = agreementWarningsByScenarioId[scenario.id] ?? {
+            total: 0,
+            highest: null,
+          };
           return (
             <button
               key={scenario.id}
@@ -76,7 +93,21 @@ export default function CompareView({ baseline, scenarios, currencyCode, jurisdi
               onClick={() => toggleScenario(scenario.id)}
               aria-pressed={selected}
             >
-              {scenario.name}
+              <span className="dashboard-chip-content">
+                <span>{scenario.name}</span>
+                {hasAgreementTerms ? (
+                  <span
+                    className={`dashboard-chip-legal${agreementSummary.highest ? ` is-${agreementSummary.highest}` : " is-clear"}`}
+                    title={
+                      agreementSummary.total > 0
+                        ? `${agreementSummary.total} legal agreement warning(s) in this scenario`
+                        : "No legal-agreement conflicts detected for this scenario."
+                    }
+                  >
+                    {agreementSummary.total > 0 ? `${agreementSummary.total} legal` : "checked"}
+                  </span>
+                ) : null}
+              </span>
             </button>
           );
         })}

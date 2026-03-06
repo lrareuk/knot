@@ -5,11 +5,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import CreateScenarioButton from "@/app/components/dashboard/CreateScenarioButton";
 import { formatCurrency } from "@/lib/domain/currency";
+import { summarizeScenarioAgreementWarningsByScenario } from "@/lib/domain/scenario-agreement-summary";
 import type { ScenarioRecord } from "@/lib/domain/types";
+import type { LegalAgreementTerm } from "@/lib/legal/types";
 
 type Props = {
   initialScenarios: ScenarioRecord[];
   currencyCode: "GBP" | "USD" | "CAD";
+  jurisdictionCode: string;
+  agreementTerms: LegalAgreementTerm[];
 };
 
 type BusyMap = Record<string, boolean>;
@@ -45,7 +49,15 @@ function updatedText(value: string) {
   return `Updated ${updatedDateFormatter.format(date)}`;
 }
 
-export default function ScenarioListView({ initialScenarios, currencyCode }: Props) {
+function agreementSummaryText(summary: { total: number }) {
+  if (summary.total === 0) {
+    return "Agreement checked";
+  }
+
+  return `${summary.total} legal warning${summary.total === 1 ? "" : "s"}`;
+}
+
+export default function ScenarioListView({ initialScenarios, currencyCode, jurisdictionCode, agreementTerms }: Props) {
   const router = useRouter();
   const [scenarios, setScenarios] = useState(initialScenarios);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -69,6 +81,11 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
   const canCreate = scenarios.length < MAX_SCENARIOS;
   const slotsRemaining = Math.max(0, MAX_SCENARIOS - scenarios.length);
   const anyBusy = useMemo(() => Object.values(busyMap).some(Boolean), [busyMap]);
+  const hasAgreementTerms = agreementTerms.length > 0;
+  const agreementWarningsByScenarioId = useMemo(
+    () => summarizeScenarioAgreementWarningsByScenario(scenarios, jurisdictionCode, agreementTerms),
+    [agreementTerms, jurisdictionCode, scenarios]
+  );
 
   const updateScenario = (id: string, updater: (scenario: ScenarioRecord) => ScenarioRecord) => {
     setScenarios((current) => current.map((scenario) => (scenario.id === id ? updater(scenario) : scenario)));
@@ -144,6 +161,9 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
             <p className="dashboard-scenarios-meta-pill is-subtle">
               {slotsRemaining} slot{slotsRemaining === 1 ? "" : "s"} left
             </p>
+            {hasAgreementTerms ? (
+              <p className="dashboard-scenarios-meta-pill is-subtle">Legal agreement checks active</p>
+            ) : null}
           </div>
         </div>
 
@@ -169,6 +189,13 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
             const isRenaming = renamingId === scenario.id;
             const isConfirmingDelete = confirmDeleteId === scenario.id;
             const isBusy = busyMap[scenario.id] || false;
+            const agreementSummary = agreementWarningsByScenarioId[scenario.id] ?? {
+              total: 0,
+              high: 0,
+              warning: 0,
+              info: 0,
+              highest: null,
+            };
 
             return (
               <article
@@ -227,6 +254,18 @@ export default function ScenarioListView({ initialScenarios, currencyCode }: Pro
                           <h2 className="dashboard-scenario-name">{scenario.name}</h2>
                         )}
                         <p className="dashboard-scenario-updated">{updatedText(scenario.updated_at)}</p>
+                        {hasAgreementTerms ? (
+                          <p
+                            className={`dashboard-scenario-agreement-pill${agreementSummary.highest ? ` is-${agreementSummary.highest}` : " is-clear"}`}
+                            title={
+                              agreementSummary.total > 0
+                                ? `${agreementSummary.high} high, ${agreementSummary.warning} warning, ${agreementSummary.info} info`
+                                : "No legal-agreement conflicts detected for this scenario."
+                            }
+                          >
+                            {agreementSummaryText(agreementSummary)}
+                          </p>
+                        ) : null}
                       </div>
 
                       <div className="dashboard-scenario-menu-wrap" ref={openMenuId === scenario.id ? menuRef : null}>
