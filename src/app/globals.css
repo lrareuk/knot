@@ -3359,6 +3359,9 @@ tbody tr:nth-child(even) {
   display: grid;
   gap: 14px;
   overflow: hidden;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
 }
 
 .onboarding-pension-guidance-card::before {
@@ -3372,6 +3375,7 @@ tbody tr:nth-child(even) {
 .onboarding-pension-guidance-head {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
 .onboarding-pension-guidance-kicker {
@@ -3390,6 +3394,9 @@ tbody tr:nth-child(even) {
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--onb-text);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .onboarding-pension-guidance-copy {
@@ -3398,6 +3405,8 @@ tbody tr:nth-child(even) {
   line-height: 1.65;
   color: var(--onb-muted);
   max-width: 72ch;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .onboarding-pension-guidance-list {
@@ -3411,16 +3420,19 @@ tbody tr:nth-child(even) {
 .onboarding-pension-guidance-list li {
   position: relative;
   margin: 0;
-  padding-left: 18px;
+  padding-left: 22px;
   font-size: 14px;
   line-height: 1.55;
   color: var(--onb-muted);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .onboarding-pension-guidance-list li::before {
   content: "";
   position: absolute;
-  left: 0;
+  left: 4px;
   top: 9px;
   width: 7px;
   height: 7px;
@@ -3442,6 +3454,8 @@ tbody tr:nth-child(even) {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .onboarding-pension-guidance-link {
@@ -3457,6 +3471,10 @@ tbody tr:nth-child(even) {
   line-height: 1.2;
   text-decoration: none;
   transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .onboarding-pension-guidance-link:hover {
