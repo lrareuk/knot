@@ -5,14 +5,15 @@ import ContinueButton from "@/components/onboarding/ContinueButton";
 import CurrencyInput from "@/components/onboarding/CurrencyInput";
 import ItemCard from "@/components/onboarding/ItemCard";
 import ModuleHeader from "@/components/onboarding/ModuleHeader";
+import ModuleSection from "@/components/onboarding/ModuleSection";
 import SelectInput from "@/components/onboarding/SelectInput";
 import Toggle from "@/components/onboarding/Toggle";
 import { useOnboardingUI } from "@/components/onboarding/OnboardingUIContext";
-import { createDefaultDependant } from "@/lib/onboarding/defaults";
 import { formatMoney, toNumber } from "@/lib/onboarding/currency";
-import { EXPENDITURE_FIELDS, MODULES } from "@/types/financial";
+import { createDefaultDependant } from "@/lib/onboarding/defaults";
 import { useFinancialStore } from "@/stores/financial-position";
 import type { DependantItem, ExpenditureData } from "@/types/financial";
+import { EXPENDITURE_FIELDS, MODULES } from "@/types/financial";
 
 const DEPENDANTS_MODULE = MODULES.find((module) => module.name === "dependants")!;
 
@@ -67,7 +68,10 @@ export default function OnboardingDependantsPage() {
     <div className="onboarding-module-body">
       <ModuleHeader title={DEPENDANTS_MODULE.title} description={DEPENDANTS_MODULE.description} />
 
-      <section className="onboarding-stack-md">
+      <ModuleSection
+        title="Dependant children"
+        description="Capture care arrangements so your scenarios reflect real monthly responsibilities."
+      >
         <Toggle
           label="Do you have dependant children?"
           value={hasDependantChildren}
@@ -140,11 +144,12 @@ export default function OnboardingDependantsPage() {
               + Add another child
             </button>
           </div>
-        ) : null}
-      </section>
+        ) : (
+          <p className="onboarding-field-help">No children added. You can toggle this back on at any time.</p>
+        )}
+      </ModuleSection>
 
-      <section className="onboarding-expenditure-section">
-        <h3 className="onboarding-expenditure-heading">Monthly expenditure</h3>
+      <ModuleSection title="Monthly expenditure" description="Add recurring household costs to balance income and spending.">
         <div className="onboarding-two-col-grid">
           {EXPENDITURE_FIELDS.map((field) => (
             <CurrencyInput
@@ -165,7 +170,7 @@ export default function OnboardingDependantsPage() {
           <span>Total monthly expenditure</span>
           <span>{formatMoney(monthlyExpenditureTotal, currencyCode)}</span>
         </div>
-      </section>
+      </ModuleSection>
 
       <ContinueButton />
     </div>

@@ -5,6 +5,7 @@ import ContinueButton from "@/components/onboarding/ContinueButton";
 import CurrencyInput from "@/components/onboarding/CurrencyInput";
 import ItemCard from "@/components/onboarding/ItemCard";
 import ModuleHeader from "@/components/onboarding/ModuleHeader";
+import ModuleSection from "@/components/onboarding/ModuleSection";
 import SelectInput from "@/components/onboarding/SelectInput";
 import TextInput from "@/components/onboarding/TextInput";
 import Toggle from "@/components/onboarding/Toggle";
@@ -47,12 +48,14 @@ export default function OnboardingPensionsPage() {
   return (
     <div className="onboarding-module-body">
       <ModuleHeader title={PENSIONS_MODULE.title} description={PENSIONS_MODULE.description} />
+
       {jurisdiction === "GB-EAW" ? (
-        <p className="onboarding-field-help">
+        <p className="onboarding-inline-note">
           In England and Wales, pension and property trade-offs can look balanced in capital but diverge in retirement income.
           Add realistic projected annual pension income where possible.
         </p>
       ) : null}
+
       {isUnitedKingdomJurisdiction ? (
         <section className="onboarding-pension-guidance-card" role="note" aria-label="Pension guidance">
           <header className="onboarding-pension-guidance-head">
@@ -86,165 +89,167 @@ export default function OnboardingPensionsPage() {
         </section>
       ) : null}
 
-      <div className="onboarding-card-list">
-        {pensions.map((pension, index) => {
-          const canDelete = pensions.length > 1;
-          const showCurrentValue = pension.pension_type === "defined_contribution";
-          const showAnnualAmount = pension.pension_type === "defined_benefit" || pension.pension_type === "state";
+      <ModuleSection title="Pension entries" description="Add each pension pot and projected retirement income.">
+        <div className="onboarding-card-list">
+          {pensions.map((pension, index) => {
+            const canDelete = pensions.length > 1;
+            const showCurrentValue = pension.pension_type === "defined_contribution";
+            const showAnnualAmount = pension.pension_type === "defined_benefit" || pension.pension_type === "state";
 
-          return (
-            <ItemCard
-              key={pension.id}
-              title="Pension"
-              index={index}
-              canDelete={canDelete}
-              onDelete={() => {
-                if (!canDelete) {
-                  return;
-                }
-                setPensions(pensions.filter((entry) => entry.id !== pension.id));
-              }}
-            >
-              <TextInput
-                label="What would you call this pension?"
-                value={pension.label}
-                onChange={(value) => updatePension(pension.id, { label: value })}
-              />
-
-              <div className="onboarding-two-col-grid">
-                <SelectInput
-                  label="Whose pension?"
-                  value={pension.holder}
-                  onChange={(value) => updatePension(pension.id, { holder: value as PensionItem["holder"] })}
-                  options={[
-                    { value: "user", label: "Yours" },
-                    { value: "partner", label: "Your partner's" },
-                  ]}
-                />
-                <SelectInput
-                  label="Pension type"
-                  value={pension.pension_type}
-                  onChange={(value) => {
-                    const nextType = value as PensionItem["pension_type"];
-                    updatePension(pension.id, {
-                      pension_type: nextType,
-                      current_value: nextType === "defined_contribution" ? pension.current_value : null,
-                      annual_amount: nextType === "defined_contribution" ? null : pension.annual_amount,
-                    });
-                  }}
-                  options={[
-                    { value: "defined_contribution", label: "Defined contribution" },
-                    { value: "defined_benefit", label: "Defined benefit" },
-                    { value: "state", label: "State pension" },
-                  ]}
-                />
-              </div>
-
-              <div className={`onboarding-fade-field ${showCurrentValue ? "" : "is-hidden"}`}>
-                <CurrencyInput
-                  label="Current value"
-                  value={pension.current_value}
-                  onChange={(value) => updatePension(pension.id, { current_value: value })}
-                  showEstimate
-                  isEstimated={pension.is_estimated.current_value}
-                  onEstimateToggle={() =>
-                    updatePension(pension.id, {
-                      is_estimated: {
-                        ...pension.is_estimated,
-                        current_value: !pension.is_estimated.current_value,
-                      },
-                    })
+            return (
+              <ItemCard
+                key={pension.id}
+                title="Pension"
+                index={index}
+                canDelete={canDelete}
+                onDelete={() => {
+                  if (!canDelete) {
+                    return;
                   }
+                  setPensions(pensions.filter((entry) => entry.id !== pension.id));
+                }}
+              >
+                <TextInput
+                  label="What would you call this pension?"
+                  value={pension.label}
+                  onChange={(value) => updatePension(pension.id, { label: value })}
                 />
-              </div>
 
-              <div className={`onboarding-fade-field ${showAnnualAmount ? "" : "is-hidden"}`}>
-                <CurrencyInput
-                  label="Current annual amount"
-                  value={pension.annual_amount}
-                  onChange={(value) => updatePension(pension.id, { annual_amount: value })}
-                  showEstimate
-                  isEstimated={pension.is_estimated.annual_amount}
-                  onEstimateToggle={() =>
-                    updatePension(pension.id, {
-                      is_estimated: {
-                        ...pension.is_estimated,
-                        annual_amount: !pension.is_estimated.annual_amount,
-                      },
-                    })
-                  }
-                />
-                {pension.pension_type === "state" && isUnitedKingdomJurisdiction ? (
-                  <p className="onboarding-field-help">
-                    State pension rates change each tax year. Check your personal forecast at{" "}
-                    <a href="https://www.gov.uk/check-state-pension" target="_blank" rel="noreferrer" className="onboarding-inline-link">
-                      gov.uk/check-state-pension
-                    </a>
-                    .
-                  </p>
-                ) : pension.pension_type === "state" ? (
-                  <p className="onboarding-field-help">
-                    Add your latest annual estimate from your pension statement or government benefits account.
-                  </p>
+                <div className="onboarding-two-col-grid">
+                  <SelectInput
+                    label="Whose pension?"
+                    value={pension.holder}
+                    onChange={(value) => updatePension(pension.id, { holder: value as PensionItem["holder"] })}
+                    options={[
+                      { value: "user", label: "Yours" },
+                      { value: "partner", label: "Your partner's" },
+                    ]}
+                  />
+                  <SelectInput
+                    label="Pension type"
+                    value={pension.pension_type}
+                    onChange={(value) => {
+                      const nextType = value as PensionItem["pension_type"];
+                      updatePension(pension.id, {
+                        pension_type: nextType,
+                        current_value: nextType === "defined_contribution" ? pension.current_value : null,
+                        annual_amount: nextType === "defined_contribution" ? null : pension.annual_amount,
+                      });
+                    }}
+                    options={[
+                      { value: "defined_contribution", label: "Defined contribution" },
+                      { value: "defined_benefit", label: "Defined benefit" },
+                      { value: "state", label: "State pension" },
+                    ]}
+                  />
+                </div>
+
+                <div className={`onboarding-fade-field ${showCurrentValue ? "" : "is-hidden"}`}>
+                  <CurrencyInput
+                    label="Current value"
+                    value={pension.current_value}
+                    onChange={(value) => updatePension(pension.id, { current_value: value })}
+                    showEstimate
+                    isEstimated={pension.is_estimated.current_value}
+                    onEstimateToggle={() =>
+                      updatePension(pension.id, {
+                        is_estimated: {
+                          ...pension.is_estimated,
+                          current_value: !pension.is_estimated.current_value,
+                        },
+                      })
+                    }
+                  />
+                </div>
+
+                <div className={`onboarding-fade-field ${showAnnualAmount ? "" : "is-hidden"}`}>
+                  <CurrencyInput
+                    label="Current annual amount"
+                    value={pension.annual_amount}
+                    onChange={(value) => updatePension(pension.id, { annual_amount: value })}
+                    showEstimate
+                    isEstimated={pension.is_estimated.annual_amount}
+                    onEstimateToggle={() =>
+                      updatePension(pension.id, {
+                        is_estimated: {
+                          ...pension.is_estimated,
+                          annual_amount: !pension.is_estimated.annual_amount,
+                        },
+                      })
+                    }
+                  />
+                  {pension.pension_type === "state" && isUnitedKingdomJurisdiction ? (
+                    <p className="onboarding-field-help">
+                      State pension rates change each tax year. Check your personal forecast at{" "}
+                      <a href="https://www.gov.uk/check-state-pension" target="_blank" rel="noreferrer" className="onboarding-inline-link">
+                        gov.uk/check-state-pension
+                      </a>
+                      .
+                    </p>
+                  ) : pension.pension_type === "state" ? (
+                    <p className="onboarding-field-help">
+                      Add your latest annual estimate from your pension statement or government benefits account.
+                    </p>
                   ) : null}
-              </div>
+                </div>
 
-              <CurrencyInput
-                label="Projected annual retirement income"
-                value={pension.projected_annual_income}
-                onChange={(value) => updatePension(pension.id, { projected_annual_income: value })}
-                help="Your best estimate of annual income this pension could provide in retirement."
-                showEstimate
-                isEstimated={pension.is_estimated.projected_annual_income}
-                onEstimateToggle={() =>
-                  updatePension(pension.id, {
-                    is_estimated: {
-                      ...pension.is_estimated,
-                      projected_annual_income: !pension.is_estimated.projected_annual_income,
-                    },
-                  })
-                }
-              />
-
-              {isScottishJurisdiction ? (
                 <CurrencyInput
-                  label="Relevant-date matrimonial value (Scotland)"
-                  value={pension.scottish_relevant_date_value}
-                  onChange={(value) => updatePension(pension.id, { scottish_relevant_date_value: value })}
-                  help="If known, enter the pension value attributable to matrimonial property at the relevant date."
+                  label="Projected annual retirement income"
+                  value={pension.projected_annual_income}
+                  onChange={(value) => updatePension(pension.id, { projected_annual_income: value })}
+                  help="Your best estimate of annual income this pension could provide in retirement."
                   showEstimate
-                  isEstimated={pension.is_estimated.scottish_relevant_date_value}
+                  isEstimated={pension.is_estimated.projected_annual_income}
                   onEstimateToggle={() =>
                     updatePension(pension.id, {
                       is_estimated: {
                         ...pension.is_estimated,
-                        scottish_relevant_date_value: !pension.is_estimated.scottish_relevant_date_value,
+                        projected_annual_income: !pension.is_estimated.projected_annual_income,
                       },
                     })
                   }
                 />
-              ) : null}
 
-              <Toggle
-                label="Matrimonial?"
-                value={pension.is_matrimonial}
-                onChange={(value) => updatePension(pension.id, { is_matrimonial: value })}
-              />
-            </ItemCard>
-          );
-        })}
-      </div>
+                {isScottishJurisdiction ? (
+                  <CurrencyInput
+                    label="Relevant-date matrimonial value (Scotland)"
+                    value={pension.scottish_relevant_date_value}
+                    onChange={(value) => updatePension(pension.id, { scottish_relevant_date_value: value })}
+                    help="If known, enter the pension value attributable to matrimonial property at the relevant date."
+                    showEstimate
+                    isEstimated={pension.is_estimated.scottish_relevant_date_value}
+                    onEstimateToggle={() =>
+                      updatePension(pension.id, {
+                        is_estimated: {
+                          ...pension.is_estimated,
+                          scottish_relevant_date_value: !pension.is_estimated.scottish_relevant_date_value,
+                        },
+                      })
+                    }
+                  />
+                ) : null}
 
-      <button
-        type="button"
-        className="onboarding-add-another"
-        onClick={() => setPensions([...pensions, createDefaultPension(pensions.length + 1)])}
-      >
-        + Add another pension
-      </button>
+                <Toggle
+                  label="Matrimonial?"
+                  value={pension.is_matrimonial}
+                  onChange={(value) => updatePension(pension.id, { is_matrimonial: value })}
+                />
+              </ItemCard>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          className="onboarding-add-another"
+          onClick={() => setPensions([...pensions, createDefaultPension(pensions.length + 1)])}
+        >
+          + Add another pension
+        </button>
+      </ModuleSection>
 
       {jurisdiction === "GB-EAW" ? (
-        <p className="onboarding-field-help">
+        <p className="onboarding-inline-note">
           Untie provides modelling only, not legal or regulated financial advice. Before committing to pension sharing or offsetting
           terms, seek legal advice and specialist pensions advice where appropriate.
         </p>

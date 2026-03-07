@@ -7,6 +7,12 @@ import { formatCurrency } from "@/lib/domain/currency";
 import { computeScenario } from "@/lib/domain/compute-scenario";
 import { interpretScenarioAgreements } from "@/lib/domain/interpret-scenario-agreements";
 import { getJurisdictionProfile } from "@/lib/legal/jurisdictions";
+import {
+  FCA_REGISTER_URL,
+  GOV_UK_PENSION_INQUIRY_FORM_URL,
+  MONEYHELPER_PENSIONS_DIVORCE_URL,
+  MONEYHELPER_PODE_APPOINTMENT_URL,
+} from "@/lib/pension-guidance-links";
 import type { FinancialPosition, ScenarioConfig, ScenarioRecord, ScenarioResults } from "@/lib/domain/types";
 import type { AgreementInterpretationSeverity, AgreementInterpretationWarning, LegalAgreementTerm } from "@/lib/legal/types";
 
@@ -32,12 +38,6 @@ type SplitSliderProps = {
 
 const SECTION_ORDER: SectionKey[] = ["property", "pension", "savings", "debts", "maintenance", "housing", "income"];
 const SECTION_KEY_SET = new Set<SectionKey>(SECTION_ORDER);
-
-const MONEYHELPER_PENSIONS_DIVORCE_URL = "https://www.moneyhelper.org.uk/en/family-and-care/divorce-and-separation/pensions-and-divorce";
-const MONEYHELPER_PODE_APPOINTMENT_URL =
-  "https://www.moneyhelper.org.uk/en/family-and-care/divorce-and-separation/book-your-pensions-and-divorce-appointment";
-const GOV_UK_PENSION_INQUIRY_FORM_URL = "https://www.gov.uk/government/publications/pension-inquiry-form-br20";
-const FCA_REGISTER_URL = "https://register.fca.org.uk/s/";
 
 function parseNumber(value: string) {
   const parsed = Number(value);

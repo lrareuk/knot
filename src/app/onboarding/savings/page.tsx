@@ -5,6 +5,7 @@ import ContinueButton from "@/components/onboarding/ContinueButton";
 import CurrencyInput from "@/components/onboarding/CurrencyInput";
 import ItemCard from "@/components/onboarding/ItemCard";
 import ModuleHeader from "@/components/onboarding/ModuleHeader";
+import ModuleSection from "@/components/onboarding/ModuleSection";
 import SelectInput from "@/components/onboarding/SelectInput";
 import TextInput from "@/components/onboarding/TextInput";
 import Toggle from "@/components/onboarding/Toggle";
@@ -38,88 +39,89 @@ export default function OnboardingSavingsPage() {
   return (
     <div className="onboarding-module-body">
       <ModuleHeader title={SAVINGS_MODULE.title} description={SAVINGS_MODULE.description} />
+      <ModuleSection title="Accounts and investments" description="List each account or investment and who holds it.">
+        <div className="onboarding-card-list">
+          {savingsItems.map((savings, index) => {
+            const canDelete = savingsItems.length > 1;
 
-      <div className="onboarding-card-list">
-        {savingsItems.map((savings, index) => {
-          const canDelete = savingsItems.length > 1;
-
-          return (
-            <ItemCard
-              key={savings.id}
-              title="Account"
-              index={index}
-              canDelete={canDelete}
-              onDelete={() => {
-                if (!canDelete) {
-                  return;
-                }
-                setSavings(savingsItems.filter((entry) => entry.id !== savings.id));
-              }}
-            >
-              <TextInput
-                label="What would you call this account?"
-                value={savings.label}
-                onChange={(value) => updateSavings(savings.id, { label: value })}
-              />
-
-              <div className="onboarding-two-col-grid">
-                <SelectInput
-                  label="Type"
-                  value={savings.type}
-                  onChange={(value) => updateSavings(savings.id, { type: value as SavingsItem["type"] })}
-                  options={[
-                    { value: "cash", label: "Cash" },
-                    { value: "isa", label: "ISA" },
-                    { value: "investment", label: "Investment" },
-                    { value: "crypto", label: "Crypto" },
-                    { value: "other", label: "Other" },
-                  ]}
+            return (
+              <ItemCard
+                key={savings.id}
+                title="Account"
+                index={index}
+                canDelete={canDelete}
+                onDelete={() => {
+                  if (!canDelete) {
+                    return;
+                  }
+                  setSavings(savingsItems.filter((entry) => entry.id !== savings.id));
+                }}
+              >
+                <TextInput
+                  label="What would you call this account?"
+                  value={savings.label}
+                  onChange={(value) => updateSavings(savings.id, { label: value })}
                 />
-                <SelectInput
-                  label="Whose?"
-                  value={savings.holder}
-                  onChange={(value) => updateSavings(savings.id, { holder: value as SavingsItem["holder"] })}
-                  options={[
-                    { value: "user", label: "Yours" },
-                    { value: "partner", label: "Your partner's" },
-                    { value: "joint", label: "Joint" },
-                  ]}
+
+                <div className="onboarding-two-col-grid">
+                  <SelectInput
+                    label="Type"
+                    value={savings.type}
+                    onChange={(value) => updateSavings(savings.id, { type: value as SavingsItem["type"] })}
+                    options={[
+                      { value: "cash", label: "Cash" },
+                      { value: "isa", label: "ISA" },
+                      { value: "investment", label: "Investment" },
+                      { value: "crypto", label: "Crypto" },
+                      { value: "other", label: "Other" },
+                    ]}
+                  />
+                  <SelectInput
+                    label="Whose?"
+                    value={savings.holder}
+                    onChange={(value) => updateSavings(savings.id, { holder: value as SavingsItem["holder"] })}
+                    options={[
+                      { value: "user", label: "Yours" },
+                      { value: "partner", label: "Your partner's" },
+                      { value: "joint", label: "Joint" },
+                    ]}
+                  />
+                </div>
+
+                <CurrencyInput
+                  label="Value"
+                  value={savings.current_value}
+                  onChange={(value) => updateSavings(savings.id, { current_value: value })}
+                  showEstimate
+                  isEstimated={savings.is_estimated.current_value}
+                  onEstimateToggle={() =>
+                    updateSavings(savings.id, {
+                      is_estimated: {
+                        ...savings.is_estimated,
+                        current_value: !savings.is_estimated.current_value,
+                      },
+                    })
+                  }
                 />
-              </div>
 
-              <CurrencyInput
-                label="Value"
-                value={savings.current_value}
-                onChange={(value) => updateSavings(savings.id, { current_value: value })}
-                showEstimate
-                isEstimated={savings.is_estimated.current_value}
-                onEstimateToggle={() =>
-                  updateSavings(savings.id, {
-                    is_estimated: {
-                      ...savings.is_estimated,
-                      current_value: !savings.is_estimated.current_value,
-                    },
-                  })
-                }
-              />
+                <Toggle
+                  label="Matrimonial?"
+                  value={savings.is_matrimonial}
+                  onChange={(value) => updateSavings(savings.id, { is_matrimonial: value })}
+                />
+              </ItemCard>
+            );
+          })}
+        </div>
 
-              <Toggle
-                label="Matrimonial?"
-                value={savings.is_matrimonial}
-                onChange={(value) => updateSavings(savings.id, { is_matrimonial: value })}
-              />
-            </ItemCard>
-          );
-        })}
-      </div>
-
-      <button
-        type="button"
-        className="onboarding-add-another"
-        onClick={() => setSavings([...savingsItems, createDefaultSavings(savingsItems.length + 1)])}
-      >
-        + Add another account
-      </button>
+        <button
+          type="button"
+          className="onboarding-add-another"
+          onClick={() => setSavings([...savingsItems, createDefaultSavings(savingsItems.length + 1)])}
+        >
+          + Add another account
+        </button>
+      </ModuleSection>
 
       <ContinueButton />
     </div>
