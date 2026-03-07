@@ -1536,10 +1536,6 @@ tbody tr:nth-child(even) {
   color: var(--text-primary);
 }
 
-.onboarding-theme section {
-  padding: 0;
-}
-
 .onboarding-theme input,
 .onboarding-theme select,
 .onboarding-theme textarea,
@@ -3390,7 +3386,7 @@ tbody tr:nth-child(even) {
   color: var(--onb-muted);
 }
 
-.onboarding-module-section {
+.onboarding-theme .onboarding-module-section {
   border: 1px solid var(--onb-border);
   border-radius: 18px;
   background:
@@ -3402,14 +3398,14 @@ tbody tr:nth-child(even) {
   gap: var(--onb-section-gap);
 }
 
-.onboarding-module-section-head {
+.onboarding-theme .onboarding-module-section-head {
   display: grid;
   gap: 10px;
   padding-bottom: 16px;
   border-bottom: 1px solid var(--onb-border);
 }
 
-.onboarding-module-section-kicker {
+.onboarding-theme .onboarding-module-section-kicker {
   margin: 0;
   font-size: 10px;
   font-weight: 600;
@@ -3418,7 +3414,7 @@ tbody tr:nth-child(even) {
   color: var(--onb-subtle);
 }
 
-.onboarding-module-section-title {
+.onboarding-theme .onboarding-module-section-title {
   margin: 0;
   font-family: var(--font-headline);
   font-size: clamp(22px, 2.4vw, 29px);
@@ -3428,7 +3424,7 @@ tbody tr:nth-child(even) {
   max-inline-size: 100%;
 }
 
-.onboarding-module-section-copy {
+.onboarding-theme .onboarding-module-section-copy {
   margin: 0;
   max-width: var(--onb-content-max);
   font-size: 15px;
@@ -3437,7 +3433,7 @@ tbody tr:nth-child(even) {
   max-inline-size: 100%;
 }
 
-.onboarding-module-section-body {
+.onboarding-theme .onboarding-module-section-body {
   display: grid;
   gap: var(--onb-field-gap);
 }
@@ -3553,7 +3549,7 @@ tbody tr:nth-child(even) {
   gap: var(--onb-field-gap);
 }
 
-.onboarding-pension-guidance-card {
+.onboarding-theme .onboarding-pension-guidance-card {
   position: relative;
   border: 1px solid color-mix(in srgb, var(--onb-accent) 34%, var(--onb-border));
   border-radius: 18px;
@@ -3571,7 +3567,7 @@ tbody tr:nth-child(even) {
   max-width: 100%;
 }
 
-.onboarding-pension-guidance-card::before {
+.onboarding-theme .onboarding-pension-guidance-card::before {
   content: "";
   position: absolute;
   inset: 0 0 auto;
@@ -3579,14 +3575,14 @@ tbody tr:nth-child(even) {
   background: linear-gradient(90deg, rgb(232 37 119 / 0.8), rgb(196 106 94 / 0.55));
 }
 
-.onboarding-pension-guidance-head {
+.onboarding-theme .onboarding-pension-guidance-head {
   display: grid;
   gap: 8px;
   min-width: 0;
   padding-inline: 4px;
 }
 
-.onboarding-pension-guidance-kicker {
+.onboarding-theme .onboarding-pension-guidance-kicker {
   margin: 0;
   font-size: 10px;
   font-weight: 600;
@@ -3596,7 +3592,7 @@ tbody tr:nth-child(even) {
   max-inline-size: 100%;
 }
 
-.onboarding-pension-guidance-title {
+.onboarding-theme .onboarding-pension-guidance-title {
   margin: 0;
   font-family: var(--font-headline);
   font-size: clamp(24px, 2.5vw, 30px);
@@ -3610,7 +3606,7 @@ tbody tr:nth-child(even) {
   word-break: normal;
 }
 
-.onboarding-pension-guidance-copy {
+.onboarding-theme .onboarding-pension-guidance-copy {
   margin: 0;
   font-size: 16px;
   line-height: 1.72;
@@ -3623,20 +3619,23 @@ tbody tr:nth-child(even) {
   padding-inline: 4px;
 }
 
-.onboarding-pension-guidance-list {
+.onboarding-theme .onboarding-pension-guidance-list {
   margin: 0;
   padding: 0 4px;
   list-style: none;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   max-width: var(--onb-content-max);
   max-inline-size: 100%;
 }
 
-.onboarding-pension-guidance-list li {
+.onboarding-theme .onboarding-pension-guidance-list li {
   position: relative;
   margin: 0;
-  padding-left: 24px;
+  padding: 11px 14px 11px 40px;
+  border: 1px solid color-mix(in srgb, var(--onb-border) 76%, rgb(232 37 119 / 0.28));
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgb(20 20 20 / 0.64), rgb(16 16 16 / 0.68));
   font-size: 15px;
   line-height: 1.66;
   color: var(--onb-muted);
@@ -3647,20 +3646,25 @@ tbody tr:nth-child(even) {
   word-break: normal;
 }
 
-.onboarding-pension-guidance-list li::before {
+.onboarding-theme .onboarding-pension-guidance-list li strong {
+  color: #ffe9f2;
+  font-weight: 600;
+}
+
+.onboarding-theme .onboarding-pension-guidance-list li::before {
   content: "";
   position: absolute;
-  left: 6px;
-  top: 9px;
-  width: 7px;
-  height: 7px;
+  left: 18px;
+  top: 18px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--onb-accent-strong) 76%, #fff 24%);
   box-shadow: 0 0 0 3px rgb(232 37 119 / 0.18);
 }
 
-.onboarding-pension-guidance-links-title {
-  margin: 8px 0 0;
+.onboarding-theme .onboarding-pension-guidance-links-title {
+  margin: 10px 0 0;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.6px;
@@ -3670,24 +3674,27 @@ tbody tr:nth-child(even) {
   max-inline-size: 100%;
 }
 
-.onboarding-pension-guidance-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 10px;
+.onboarding-theme .onboarding-pension-guidance-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
   min-width: 0;
   max-width: 100%;
-  padding: 4px 4px 2px;
+  padding: 6px 4px 4px;
 }
 
-.onboarding-pension-guidance-link {
-  display: inline-flex;
+.onboarding-theme .onboarding-pension-guidance-link {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  min-height: 40px;
+  row-gap: 3px;
+  column-gap: 10px;
+  min-height: 56px;
   border: 1px solid var(--onb-border-strong);
-  border-radius: 999px;
+  border-radius: 12px;
   background: rgb(18 18 18 / 0.58);
   color: #ffdbe9;
-  padding: 0 16px;
+  padding: 10px 13px;
   font-size: 13px;
   line-height: 1.35;
   text-decoration: none;
@@ -3700,7 +3707,34 @@ tbody tr:nth-child(even) {
   max-inline-size: 100%;
 }
 
-.onboarding-pension-guidance-link:hover {
+.onboarding-theme .onboarding-pension-guidance-link-label {
+  grid-column: 1;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffe8f2;
+  line-height: 1.35;
+  overflow-wrap: break-word;
+}
+
+.onboarding-theme .onboarding-pension-guidance-link-meta {
+  grid-column: 1;
+  margin: 0;
+  font-size: 11px;
+  color: var(--onb-subtle);
+  letter-spacing: 0.2px;
+}
+
+.onboarding-theme .onboarding-pension-guidance-link-arrow {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: #f2c3d8;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.onboarding-theme .onboarding-pension-guidance-link:hover {
   border-color: rgb(232 37 119 / 0.62);
   background: rgb(232 37 119 / 0.12);
   color: #ffe9f2;
@@ -4108,7 +4142,7 @@ tbody tr:nth-child(even) {
     padding: 24px;
   }
 
-  .onboarding-module-section {
+  .onboarding-theme .onboarding-module-section {
     padding: 18px 18px 20px;
   }
 
@@ -4117,7 +4151,7 @@ tbody tr:nth-child(even) {
     grid-template-columns: 1fr;
   }
 
-  .onboarding-pension-guidance-card {
+  .onboarding-theme .onboarding-pension-guidance-card {
     padding: 24px 24px 22px;
     gap: 16px;
   }
@@ -4157,23 +4191,22 @@ tbody tr:nth-child(even) {
     padding-bottom: 16px;
   }
 
-  .onboarding-pension-guidance-card {
+  .onboarding-theme .onboarding-pension-guidance-card {
     border-radius: 14px;
     padding: 20px 20px 18px;
     gap: 14px;
   }
 
-  .onboarding-pension-guidance-title {
+  .onboarding-theme .onboarding-pension-guidance-title {
     font-size: 23px;
   }
 
-  .onboarding-pension-guidance-copy {
+  .onboarding-theme .onboarding-pension-guidance-copy {
     font-size: 15px;
   }
 
-  .onboarding-pension-guidance-link {
+  .onboarding-theme .onboarding-pension-guidance-link {
     width: 100%;
-    justify-content: center;
   }
 
   .onboarding-mobile-progress {
@@ -4195,12 +4228,12 @@ tbody tr:nth-child(even) {
     font-size: 15px;
   }
 
-  .onboarding-module-section {
+  .onboarding-theme .onboarding-module-section {
     padding: 16px;
     border-radius: 14px;
   }
 
-  .onboarding-module-section-title {
+  .onboarding-theme .onboarding-module-section-title {
     font-size: 22px;
   }
 

@@ -21,6 +21,28 @@ const MONEYHELPER_PODE_APPOINTMENT_URL =
   "https://www.moneyhelper.org.uk/en/family-and-care/divorce-and-separation/book-your-pensions-and-divorce-appointment";
 const GOV_UK_PENSION_INQUIRY_FORM_URL = "https://www.gov.uk/government/publications/pension-inquiry-form-br20";
 const FCA_REGISTER_URL = "https://register.fca.org.uk/s/";
+const GUIDANCE_LINKS = [
+  {
+    href: MONEYHELPER_PENSIONS_DIVORCE_URL,
+    label: "MoneyHelper pensions and divorce",
+    meta: "Overview and practical guidance",
+  },
+  {
+    href: MONEYHELPER_PODE_APPOINTMENT_URL,
+    label: "Book pensions-on-divorce appointment",
+    meta: "Free specialist guidance session",
+  },
+  {
+    href: GOV_UK_PENSION_INQUIRY_FORM_URL,
+    label: "GOV.UK BR20",
+    meta: "State pension inquiry form",
+  },
+  {
+    href: FCA_REGISTER_URL,
+    label: "FCA Register",
+    meta: "Check regulated advisers",
+  },
+] as const;
 
 export default function OnboardingPensionsPage() {
   const { jurisdiction } = useOnboardingUI();
@@ -67,24 +89,27 @@ export default function OnboardingPensionsPage() {
             scenario carefully before relying on a settlement position.
           </p>
           <ul className="onboarding-pension-guidance-list">
-            <li>Gather the latest value and income information for each scheme before setting shares.</li>
-            <li>Check retirement income impact, not only capital totals, when offsetting pension against property.</li>
-            <li>If needed, request state pension details via BR20 and check your forecast on GOV.UK.</li>
+            <li>
+              <strong>Gather current scheme values first.</strong> Use up-to-date valuation and projected income data for every pension.
+            </li>
+            <li>
+              <strong>Check retirement income impact.</strong> Offset calculations can look fair on capital but diverge in long-term income.
+            </li>
+            <li>
+              <strong>Verify state pension details.</strong> Use BR20 and your forecast before finalising any settlement assumptions.
+            </li>
           </ul>
           <p className="onboarding-pension-guidance-links-title">Guidance and advice</p>
           <div className="onboarding-pension-guidance-links">
-            <a href={MONEYHELPER_PENSIONS_DIVORCE_URL} target="_blank" rel="noreferrer" className="onboarding-pension-guidance-link">
-              MoneyHelper pensions and divorce
-            </a>
-            <a href={MONEYHELPER_PODE_APPOINTMENT_URL} target="_blank" rel="noreferrer" className="onboarding-pension-guidance-link">
-              Book pensions-on-divorce appointment
-            </a>
-            <a href={GOV_UK_PENSION_INQUIRY_FORM_URL} target="_blank" rel="noreferrer" className="onboarding-pension-guidance-link">
-              GOV.UK BR20
-            </a>
-            <a href={FCA_REGISTER_URL} target="_blank" rel="noreferrer" className="onboarding-pension-guidance-link">
-              FCA Register
-            </a>
+            {GUIDANCE_LINKS.map((link) => (
+              <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="onboarding-pension-guidance-link">
+                <span className="onboarding-pension-guidance-link-label">{link.label}</span>
+                <span className="onboarding-pension-guidance-link-meta">{link.meta}</span>
+                <span className="onboarding-pension-guidance-link-arrow" aria-hidden>
+                  ↗
+                </span>
+              </a>
+            ))}
           </div>
         </section>
       ) : null}
