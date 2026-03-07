@@ -3019,6 +3019,14 @@ tbody tr:nth-child(even) {
   --onb-warning: var(--warning);
   --onb-radius: 14px;
   --onb-shadow: 0 18px 40px rgb(0 0 0 / 0.34);
+  --onb-content-max: 66ch;
+  --onb-copy-leading: 1.68;
+  --onb-module-pad: clamp(28px, 2.6vw, 38px);
+  --onb-section-pad: clamp(20px, 2.2vw, 30px);
+  --onb-block-gap: 30px;
+  --onb-section-gap: 20px;
+  --onb-field-gap: 18px;
+  --onb-grid-gap: 20px;
   background:
     radial-gradient(circle at 18% 0%, rgb(194 24 91 / 0.09), transparent 40%),
     radial-gradient(circle at 100% 100%, rgb(196 106 94 / 0.08), transparent 36%),
@@ -3115,14 +3123,18 @@ tbody tr:nth-child(even) {
 .onboarding-theme .onboarding-nav-label,
 .onboarding-theme .onboarding-sidebar-greeting {
   min-width: 0;
-  overflow-wrap: anywhere;
+  max-inline-size: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .onboarding-theme .onboarding-expenditure-total span,
 .onboarding-theme .onboarding-review-total-row span,
 .onboarding-theme .onboarding-review-total-row strong {
   min-width: 0;
-  overflow-wrap: anywhere;
+  max-inline-size: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .onboarding-theme .onboarding-module-header-top,
@@ -3266,11 +3278,11 @@ tbody tr:nth-child(even) {
 }
 
 .onboarding-main {
-  max-width: 920px;
+  max-width: 900px;
   width: 100%;
   min-height: auto;
   justify-self: center;
-  padding: 8px 0 42px;
+  padding: 10px 0 48px;
 }
 
 .onboarding-main-inner {
@@ -3282,7 +3294,7 @@ tbody tr:nth-child(even) {
   border-radius: 22px;
   background: linear-gradient(180deg, rgb(30 30 30 / 0.88), rgb(22 22 22 / 0.93));
   box-shadow: var(--onb-shadow);
-  padding: 28px;
+  padding: var(--onb-module-pad);
 }
 
 .onboarding-context {
@@ -3341,14 +3353,14 @@ tbody tr:nth-child(even) {
 
 .onboarding-module-body {
   display: grid;
-  gap: 24px;
+  gap: var(--onb-block-gap);
 }
 
 .onboarding-module-header {
   margin-bottom: 0;
   display: grid;
-  gap: 10px;
-  padding-bottom: 18px;
+  gap: 14px;
+  padding-bottom: 24px;
   border-bottom: 1px solid var(--onb-border);
 }
 
@@ -3368,13 +3380,13 @@ tbody tr:nth-child(even) {
 .onboarding-module-title {
   font-size: clamp(34px, 4.2vw, 44px);
   letter-spacing: -0.8px;
-  line-height: 1.08;
+  line-height: 1.04;
 }
 
 .onboarding-module-description {
-  max-width: 720px;
-  font-size: 16px;
-  line-height: 1.55;
+  max-width: var(--onb-content-max);
+  font-size: 17px;
+  line-height: var(--onb-copy-leading);
   color: var(--onb-muted);
 }
 
@@ -3385,15 +3397,15 @@ tbody tr:nth-child(even) {
     radial-gradient(circle at 0% 0%, rgb(201 26 98 / 0.12), transparent 38%),
     linear-gradient(180deg, rgb(35 35 35 / 0.82), rgb(23 23 23 / 0.9));
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04), 0 10px 26px rgb(0 0 0 / 0.18);
-  padding: 18px clamp(16px, 2vw, 24px);
+  padding: var(--onb-section-pad);
   display: grid;
-  gap: 16px;
+  gap: var(--onb-section-gap);
 }
 
 .onboarding-module-section-head {
   display: grid;
-  gap: 6px;
-  padding-bottom: 12px;
+  gap: 10px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--onb-border);
 }
 
@@ -3409,23 +3421,25 @@ tbody tr:nth-child(even) {
 .onboarding-module-section-title {
   margin: 0;
   font-family: var(--font-headline);
-  font-size: clamp(20px, 2.2vw, 26px);
-  line-height: 1.2;
+  font-size: clamp(22px, 2.4vw, 29px);
+  line-height: 1.24;
   letter-spacing: -0.3px;
   color: var(--onb-text);
+  max-inline-size: 100%;
 }
 
 .onboarding-module-section-copy {
   margin: 0;
-  max-width: 68ch;
-  font-size: 14px;
-  line-height: 1.55;
+  max-width: var(--onb-content-max);
+  font-size: 15px;
+  line-height: var(--onb-copy-leading);
   color: var(--onb-muted);
+  max-inline-size: 100%;
 }
 
 .onboarding-module-section-body {
   display: grid;
-  gap: 14px;
+  gap: var(--onb-field-gap);
 }
 
 .onboarding-field-label {
@@ -3488,10 +3502,11 @@ tbody tr:nth-child(even) {
   border-left: 3px solid color-mix(in srgb, var(--onb-accent) 76%, #fff 24%);
   border-radius: 12px;
   background: rgb(201 26 98 / 0.08);
-  padding: 11px 12px;
-  font-size: 13px;
-  line-height: 1.55;
+  padding: 14px 16px;
+  font-size: 14px;
+  line-height: 1.65;
   color: var(--onb-muted);
+  max-width: var(--onb-content-max);
 }
 
 .onboarding-estimate-toggle {
@@ -3535,7 +3550,7 @@ tbody tr:nth-child(even) {
 }
 
 .onboarding-card-list {
-  gap: 14px;
+  gap: var(--onb-field-gap);
 }
 
 .onboarding-pension-guidance-card {
@@ -3546,10 +3561,10 @@ tbody tr:nth-child(even) {
     radial-gradient(circle at 10% -10%, rgb(232 37 119 / 0.18), transparent 56%),
     radial-gradient(circle at 100% 100%, rgb(196 106 94 / 0.14), transparent 52%),
     linear-gradient(160deg, rgb(38 38 38 / 0.96), rgb(24 24 24 / 0.96));
-  padding: 26px clamp(26px, 3vw, 40px) 22px;
+  padding: clamp(28px, 3vw, 42px);
   box-shadow: 0 14px 34px rgb(0 0 0 / 0.28);
   display: grid;
-  gap: 14px;
+  gap: 18px;
   overflow: hidden;
   box-sizing: border-box;
   width: 100%;
@@ -3566,9 +3581,9 @@ tbody tr:nth-child(even) {
 
 .onboarding-pension-guidance-head {
   display: grid;
-  gap: 4px;
+  gap: 8px;
   min-width: 0;
-  padding-inline: 2px;
+  padding-inline: 4px;
 }
 
 .onboarding-pension-guidance-kicker {
@@ -3578,49 +3593,58 @@ tbody tr:nth-child(even) {
   letter-spacing: 2px;
   text-transform: uppercase;
   color: #f1bfd5;
+  max-inline-size: 100%;
 }
 
 .onboarding-pension-guidance-title {
   margin: 0;
   font-family: var(--font-headline);
-  font-size: clamp(20px, 2.1vw, 24px);
-  line-height: 1.2;
+  font-size: clamp(24px, 2.5vw, 30px);
+  line-height: 1.22;
   letter-spacing: -0.01em;
   color: var(--onb-text);
   min-width: 0;
-  max-width: 100%;
-  overflow-wrap: anywhere;
+  max-width: var(--onb-content-max);
+  max-inline-size: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .onboarding-pension-guidance-copy {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 16px;
+  line-height: 1.72;
   color: var(--onb-muted);
-  max-width: 72ch;
+  max-width: var(--onb-content-max);
+  max-inline-size: 100%;
   min-width: 0;
-  overflow-wrap: anywhere;
-  padding-inline: 2px;
+  overflow-wrap: break-word;
+  word-break: normal;
+  padding-inline: 4px;
 }
 
 .onboarding-pension-guidance-list {
   margin: 0;
-  padding: 0 2px;
+  padding: 0 4px;
   list-style: none;
   display: grid;
-  gap: 9px;
+  gap: 12px;
+  max-width: var(--onb-content-max);
+  max-inline-size: 100%;
 }
 
 .onboarding-pension-guidance-list li {
   position: relative;
   margin: 0;
   padding-left: 24px;
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 15px;
+  line-height: 1.66;
   color: var(--onb-muted);
   min-width: 0;
-  max-width: 100%;
-  overflow-wrap: anywhere;
+  max-width: 62ch;
+  max-inline-size: 100%;
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
 .onboarding-pension-guidance-list li::before {
@@ -3636,41 +3660,44 @@ tbody tr:nth-child(even) {
 }
 
 .onboarding-pension-guidance-links-title {
-  margin: 2px 0 0;
+  margin: 8px 0 0;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.6px;
   text-transform: uppercase;
   color: var(--onb-subtle);
-  padding-inline: 2px;
+  padding-inline: 4px;
+  max-inline-size: 100%;
 }
 
 .onboarding-pension-guidance-links {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px 10px;
   min-width: 0;
   max-width: 100%;
-  padding-inline: 2px;
+  padding: 4px 4px 2px;
 }
 
 .onboarding-pension-guidance-link {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
+  min-height: 40px;
   border: 1px solid var(--onb-border-strong);
   border-radius: 999px;
   background: rgb(18 18 18 / 0.58);
   color: #ffdbe9;
-  padding: 0 12px;
-  font-size: 12px;
-  line-height: 1.2;
+  padding: 0 16px;
+  font-size: 13px;
+  line-height: 1.35;
   text-decoration: none;
   transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
   max-width: 100%;
   min-width: 0;
   white-space: normal;
   overflow-wrap: anywhere;
+  word-break: break-word;
+  max-inline-size: 100%;
 }
 
 .onboarding-pension-guidance-link:hover {
@@ -3684,12 +3711,12 @@ tbody tr:nth-child(even) {
   border: 1px solid var(--onb-border);
   border-radius: 16px;
   background: linear-gradient(180deg, rgb(34 34 34 / 0.86), rgb(24 24 24 / 0.9));
-  padding: 15px;
+  padding: clamp(18px, 1.8vw, 24px);
 }
 
 .onboarding-item-card-head {
-  margin-bottom: 14px;
-  padding-bottom: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--onb-border);
 }
 
@@ -3726,12 +3753,12 @@ tbody tr:nth-child(even) {
 }
 
 .onboarding-item-card-body {
-  gap: 13px;
+  gap: var(--onb-field-gap);
 }
 
 .onboarding-two-col-grid {
-  gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--onb-grid-gap);
+  grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
 }
 
 .onboarding-computed-field {
@@ -3769,7 +3796,7 @@ tbody tr:nth-child(even) {
 
 .onboarding-income-grid {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 14px;
+  gap: var(--onb-grid-gap);
 }
 
 .onboarding-income-column,
@@ -3777,7 +3804,7 @@ tbody tr:nth-child(even) {
   border: 1px solid var(--onb-border);
   border-radius: 14px;
   background: linear-gradient(180deg, rgb(34 34 34 / 0.82), rgb(24 24 24 / 0.88));
-  padding: 16px clamp(16px, 2vw, 22px);
+  padding: clamp(18px, 2vw, 24px);
 }
 
 .onboarding-income-heading {
@@ -3789,8 +3816,8 @@ tbody tr:nth-child(even) {
 }
 
 .onboarding-income-fields {
-  margin-top: 12px;
-  gap: 14px;
+  margin-top: 14px;
+  gap: var(--onb-field-gap);
 }
 
 .onboarding-income-divider {
@@ -3852,6 +3879,7 @@ tbody tr:nth-child(even) {
 
 .onboarding-inline-link {
   color: #f1bfd5;
+  overflow-wrap: anywhere;
 }
 
 .onboarding-inline-link:hover {
@@ -4077,11 +4105,11 @@ tbody tr:nth-child(even) {
   }
 
   .onboarding-main-inner.onboarding-module {
-    padding: 20px;
+    padding: 24px;
   }
 
   .onboarding-module-section {
-    padding: 16px 16px 18px;
+    padding: 18px 18px 20px;
   }
 
   .onboarding-income-grid,
@@ -4090,8 +4118,8 @@ tbody tr:nth-child(even) {
   }
 
   .onboarding-pension-guidance-card {
-    padding: 20px 24px 18px;
-    gap: 12px;
+    padding: 24px 24px 22px;
+    gap: 16px;
   }
 }
 
@@ -4117,26 +4145,30 @@ tbody tr:nth-child(even) {
 
   .onboarding-main-inner.onboarding-module {
     border-radius: 14px;
-    padding: 16px;
+    padding: 18px;
+  }
+
+  .onboarding-module-body {
+    gap: 20px;
   }
 
   .onboarding-module-header {
-    gap: 8px;
-    padding-bottom: 14px;
+    gap: 10px;
+    padding-bottom: 16px;
   }
 
   .onboarding-pension-guidance-card {
     border-radius: 14px;
-    padding: 18px 20px;
-    gap: 10px;
+    padding: 20px 20px 18px;
+    gap: 14px;
   }
 
   .onboarding-pension-guidance-title {
-    font-size: 21px;
+    font-size: 23px;
   }
 
   .onboarding-pension-guidance-copy {
-    font-size: 14px;
+    font-size: 15px;
   }
 
   .onboarding-pension-guidance-link {
@@ -4164,12 +4196,12 @@ tbody tr:nth-child(even) {
   }
 
   .onboarding-module-section {
-    padding: 14px;
+    padding: 16px;
     border-radius: 14px;
   }
 
   .onboarding-module-section-title {
-    font-size: 20px;
+    font-size: 22px;
   }
 
   .onboarding-review-page {
