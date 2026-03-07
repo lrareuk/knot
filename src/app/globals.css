@@ -3026,6 +3026,112 @@ tbody tr:nth-child(even) {
   color: var(--onb-text);
 }
 
+/* Defensive overflow guards for onboarding modules/cards */
+.onboarding-theme .onboarding-main-inner.onboarding-module,
+.onboarding-theme .onboarding-module-body,
+.onboarding-theme .onboarding-module-header,
+.onboarding-theme .onboarding-module-header-top,
+.onboarding-theme .onboarding-module-header-actions,
+.onboarding-theme .onboarding-card-list,
+.onboarding-theme .onboarding-item-card,
+.onboarding-theme .onboarding-item-card-head,
+.onboarding-theme .onboarding-item-card-confirm,
+.onboarding-theme .onboarding-item-card-body,
+.onboarding-theme .onboarding-two-col-grid,
+.onboarding-theme .onboarding-income-grid,
+.onboarding-theme .onboarding-income-column,
+.onboarding-theme .onboarding-income-footer,
+.onboarding-theme .onboarding-computed-field,
+.onboarding-theme .onboarding-expenditure-section,
+.onboarding-theme .onboarding-expenditure-total,
+.onboarding-theme .onboarding-review-page,
+.onboarding-theme .onboarding-review-header,
+.onboarding-theme .onboarding-review-progress-banner,
+.onboarding-theme .onboarding-review-complete-banner,
+.onboarding-theme .onboarding-review-banner-metrics,
+.onboarding-theme .onboarding-review-card,
+.onboarding-theme .onboarding-review-card-head,
+.onboarding-theme .onboarding-review-card-title-wrap,
+.onboarding-theme .onboarding-review-card-body,
+.onboarding-theme .onboarding-review-totals,
+.onboarding-theme .onboarding-review-total-row,
+.onboarding-theme .onboarding-inline-actions,
+.onboarding-theme .onboarding-checkbox-option,
+.onboarding-theme .onboarding-context,
+.onboarding-theme .onboarding-context-guidance-wrap,
+.onboarding-theme .onboarding-guidance-drawer,
+.onboarding-theme .onboarding-guidance-drawer-head,
+.onboarding-theme .onboarding-sidebar,
+.onboarding-theme .onboarding-nav-item {
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.onboarding-theme .onboarding-module-title,
+.onboarding-theme .onboarding-module-description,
+.onboarding-theme .onboarding-context-guidance,
+.onboarding-theme .onboarding-context-reassurance,
+.onboarding-theme .onboarding-total-label,
+.onboarding-theme .onboarding-total-value,
+.onboarding-theme .onboarding-field-label,
+.onboarding-theme .onboarding-field-help,
+.onboarding-theme .onboarding-field-error,
+.onboarding-theme .onboarding-estimate-toggle,
+.onboarding-theme .onboarding-item-card-title,
+.onboarding-theme .onboarding-item-card-confirm-copy,
+.onboarding-theme .onboarding-computed-label,
+.onboarding-theme .onboarding-computed-value,
+.onboarding-theme .onboarding-income-heading,
+.onboarding-theme .onboarding-expenditure-heading,
+.onboarding-theme .onboarding-continue-warning,
+.onboarding-theme .onboarding-inline-link,
+.onboarding-theme .onboarding-review-header h1,
+.onboarding-theme .onboarding-review-header p,
+.onboarding-theme .onboarding-review-banner-kicker,
+.onboarding-theme .onboarding-review-complete-banner h2,
+.onboarding-theme .onboarding-review-complete-banner p,
+.onboarding-theme .onboarding-review-banner-metrics article span,
+.onboarding-theme .onboarding-review-banner-metrics article strong,
+.onboarding-theme .onboarding-review-card-section-title,
+.onboarding-theme .onboarding-review-card-title-wrap h2,
+.onboarding-theme .onboarding-review-status-pill,
+.onboarding-theme .onboarding-review-edit-link,
+.onboarding-theme .onboarding-review-card-body p,
+.onboarding-theme .onboarding-review-card-copy,
+.onboarding-theme .onboarding-review-empty,
+.onboarding-theme .onboarding-review-warning,
+.onboarding-theme .onboarding-review-ready-copy,
+.onboarding-theme .onboarding-review-error,
+.onboarding-theme .onboarding-checkbox-option span,
+.onboarding-theme .onboarding-inline-button,
+.onboarding-theme .onboarding-nav-label,
+.onboarding-theme .onboarding-sidebar-greeting {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.onboarding-theme .onboarding-expenditure-total span,
+.onboarding-theme .onboarding-review-total-row span,
+.onboarding-theme .onboarding-review-total-row strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.onboarding-theme .onboarding-module-header-top,
+.onboarding-theme .onboarding-item-card-head,
+.onboarding-theme .onboarding-item-card-confirm,
+.onboarding-theme .onboarding-review-card-head,
+.onboarding-theme .onboarding-review-card-title-wrap,
+.onboarding-theme .onboarding-review-total-row,
+.onboarding-theme .onboarding-total-row {
+  flex-wrap: wrap;
+}
+
+.onboarding-theme .onboarding-item-card-confirm-copy {
+  flex: 1 1 180px;
+  margin-right: 0;
+}
+
 .onboarding-shell {
   min-height: 100vh;
   padding: 18px;
