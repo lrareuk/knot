@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { requireApiUser } from "@/lib/server/api";
+import { requirePaidApiUser } from "@/lib/server/api";
 
 export async function GET() {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }

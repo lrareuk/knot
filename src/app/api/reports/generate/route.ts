@@ -6,7 +6,7 @@ import { interpretScenarioAgreements } from "@/lib/domain/interpret-scenario-agr
 import { generateScenarioObservations } from "@/lib/domain/observations";
 import { SCENARIO_MODEL_VERSION } from "@/lib/domain/types";
 import { getJurisdictionProfile } from "@/lib/legal/jurisdictions";
-import { badRequest, requireApiUser, serverError } from "@/lib/server/api";
+import { badRequest, requirePaidApiUser, serverError } from "@/lib/server/api";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 import { ClarityReportDocument } from "@/lib/report/ClarityReportDocument";
 import { supabaseAdmin } from "@/lib/supabase/admin";
@@ -17,7 +17,7 @@ const payloadSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }

@@ -251,4 +251,57 @@ describe("/api/marketplace/inquiries", () => {
     expect(response.status).toBe(400);
     expect(payload.error).toBe("Offsetting risk acknowledgement is required before sharing this inquiry");
   });
+
+  it("rolls back inquiry when first message creation fails", async () => {
+    const rollbackEqRequester = vi.fn().mockResolvedValue({ error: null });
+    const rollbackEqId = vi.fn().mockReturnValue({ eq: rollbackEqRequester });
+    const rollbackDelete = vi.fn().mockReturnValue({ eq: rollbackEqId });
+    const rollbackFrom = vi.fn().mockReturnValue({ delete: rollbackDelete });
+
+    mockRequirePaidApiUser.mockResolvedValue({
+      response: null,
+      user: { id: "user-1" },
+      profile: {
+        jurisdiction: "GB-EAW",
+        currency_code: "GBP",
+        has_relevant_agreements: true,
+        financial_abuse_acknowledged_at: "2026-03-06T00:00:00.000Z",
+        financial_abuse_ack_version: "2026-03-06",
+      },
+      supabase: {
+        from: rollbackFrom,
+      },
+    });
+    mockCreateInquiry.mockResolvedValue({
+      inquiry: { id: "inq-1" },
+      error: null,
+    });
+    mockCreateMarketplaceMessage.mockResolvedValue({
+      message: null,
+      error: { message: "insert failed" },
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/marketplace/inquiries", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          profile_id: "11111111-1111-4111-8111-111111111111",
+          message: "This is a valid inquiry message with enough detail.",
+          selected_scenario_ids: ["11111111-1111-4111-8111-111111111111"],
+          finished_modelling_confirmed: true,
+          offsetting_risk_acknowledged: true,
+        }),
+      })
+    );
+
+    const payload = (await response.json()) as { error?: string };
+    expect(response.status).toBe(500);
+    expect(payload.error).toBe("Unable to create inquiry");
+    expect(rollbackFrom).toHaveBeenCalledWith("marketplace_inquiries");
+    expect(rollbackEqId).toHaveBeenCalledWith("id", "inq-1");
+    expect(rollbackEqRequester).toHaveBeenCalledWith("requester_user_id", "user-1");
+  });
 });

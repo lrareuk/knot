@@ -6,6 +6,7 @@ import {
   createRecoveryMasterKeyCookie,
   isRecoveryAdminEmail,
   RECOVERY_MASTER_KEY_COOKIE,
+  RECOVERY_MASTER_KEY_COOKIE_PATH,
   sendRecoveryMasterKeyEmail,
 } from "@/lib/server/admin-recovery";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -52,7 +53,7 @@ export async function POST() {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    path: "/admin/recovery",
+    path: RECOVERY_MASTER_KEY_COOKIE_PATH,
     maxAge: cookiePayload.ttlMinutes * 60,
   });
 

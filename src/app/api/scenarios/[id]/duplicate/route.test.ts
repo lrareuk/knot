@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { mockRequireApiUser, mockListScenarios, mockGetOrCreateFinancialPosition, mockComputeScenario } = vi.hoisted(() => ({
-  mockRequireApiUser: vi.fn(),
+const { mockRequirePaidApiUser, mockListScenarios, mockGetOrCreateFinancialPosition, mockComputeScenario } = vi.hoisted(() => ({
+  mockRequirePaidApiUser: vi.fn(),
   mockListScenarios: vi.fn(),
   mockGetOrCreateFinancialPosition: vi.fn(),
   mockComputeScenario: vi.fn(),
 }));
 
 vi.mock("@/lib/server/api", () => ({
-  requireApiUser: mockRequireApiUser,
+  requirePaidApiUser: mockRequirePaidApiUser,
   badRequest: (message: string) => new Response(JSON.stringify({ error: message }), { status: 400 }),
   serverError: (message: string) => new Response(JSON.stringify({ error: message }), { status: 500 }),
 }));
@@ -66,7 +66,7 @@ describe("POST /api/scenarios/[id]/duplicate", () => {
 
   it("duplicates a scenario and returns a new record", async () => {
     const { supabase, insert, createdScenario } = createSupabaseMock();
-    mockRequireApiUser.mockResolvedValue({
+    mockRequirePaidApiUser.mockResolvedValue({
       response: null,
       user: { id: "user-1" },
       supabase,
@@ -90,7 +90,7 @@ describe("POST /api/scenarios/[id]/duplicate", () => {
 
   it("returns 400 when the user already has 5 scenarios", async () => {
     const { supabase } = createSupabaseMock();
-    mockRequireApiUser.mockResolvedValue({
+    mockRequirePaidApiUser.mockResolvedValue({
       response: null,
       user: { id: "user-1" },
       supabase,

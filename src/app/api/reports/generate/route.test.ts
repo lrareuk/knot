@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
-  mockRequireApiUser,
+  mockRequirePaidApiUser,
   mockGetOrCreateFinancialPosition,
   mockComputeBaseline,
   mockComputeScenario,
@@ -9,7 +9,7 @@ const {
   mockRenderToBuffer,
   mockSupabaseAdmin,
 } = vi.hoisted(() => ({
-  mockRequireApiUser: vi.fn(),
+  mockRequirePaidApiUser: vi.fn(),
   mockGetOrCreateFinancialPosition: vi.fn(),
   mockComputeBaseline: vi.fn(),
   mockComputeScenario: vi.fn(),
@@ -19,7 +19,7 @@ const {
 }));
 
 vi.mock("@/lib/server/api", () => ({
-  requireApiUser: mockRequireApiUser,
+  requirePaidApiUser: mockRequirePaidApiUser,
   badRequest: (message: string) => new Response(JSON.stringify({ error: message }), { status: 400 }),
   serverError: (message: string) => new Response(JSON.stringify({ error: message }), { status: 500 }),
 }));
@@ -140,7 +140,7 @@ describe("POST /api/reports/generate", () => {
     const supabase = createUserSupabaseMock();
     const admin = createAdminSupabaseMock();
 
-    mockRequireApiUser.mockResolvedValue({
+    mockRequirePaidApiUser.mockResolvedValue({
       response: null,
       user: { id: "user-1" },
       profile: { jurisdiction: "GB-EAW", currency_code: "GBP" },
@@ -174,7 +174,7 @@ describe("POST /api/reports/generate", () => {
       specialist_advice_recommended: false,
     });
 
-    mockRequireApiUser.mockResolvedValue({
+    mockRequirePaidApiUser.mockResolvedValue({
       response: null,
       user: { id: "user-1" },
       profile: { jurisdiction: "GB-EAW", currency_code: "GBP" },
@@ -192,5 +192,26 @@ describe("POST /api/reports/generate", () => {
     const payload = (await response.json()) as { error?: string };
     expect(response.status).toBe(400);
     expect(payload.error).toBe("Offsetting risk acknowledgement is required before generating this report");
+  });
+
+  it("returns 402 when payment is required", async () => {
+    mockRequirePaidApiUser.mockResolvedValue({
+      response: new Response(JSON.stringify({ error: "Payment required" }), { status: 402 }),
+      user: null,
+      profile: null,
+      supabase: null,
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/report/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ scenario_ids: [scenarioId], offsetting_risk_acknowledged: true }),
+      })
+    );
+    const payload = (await response.json()) as { error?: string };
+
+    expect(response.status).toBe(402);
+    expect(payload.error).toBe("Payment required");
   });
 });

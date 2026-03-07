@@ -3,7 +3,7 @@ import { z } from "zod";
 import { computeScenario } from "@/lib/domain/compute-scenario";
 import { buildScenarioConfigFromTemplate, SCENARIO_TEMPLATE_KEYS } from "@/lib/domain/scenario-templates";
 import { scenarioConfigSchema } from "@/lib/domain/schemas";
-import { badRequest, requireApiUser, serverError } from "@/lib/server/api";
+import { badRequest, requirePaidApiUser, serverError } from "@/lib/server/api";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 import { listScenarios } from "@/lib/server/scenarios";
 
@@ -23,7 +23,7 @@ const deleteSchema = z.object({
 });
 
 export async function GET() {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }
@@ -37,7 +37,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }
@@ -134,7 +134,7 @@ export async function PATCH(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }

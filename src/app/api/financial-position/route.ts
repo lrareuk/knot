@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { financialPositionSchema } from "@/lib/domain/schemas";
 import { ensureStableItemIds, getOrCreateFinancialPosition } from "@/lib/server/financial-position";
-import { badRequest, requireApiUser, serverError } from "@/lib/server/api";
+import { badRequest, requirePaidApiUser, serverError } from "@/lib/server/api";
 
 function normalizeEquity(position: ReturnType<typeof financialPositionSchema.parse>) {
   return {
@@ -14,7 +14,7 @@ function normalizeEquity(position: ReturnType<typeof financialPositionSchema.par
 }
 
 export async function GET() {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }
@@ -24,7 +24,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }

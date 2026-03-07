@@ -4,6 +4,7 @@ const DEFAULT_RECOVERY_ADMIN_EMAIL = "alex@lrare.co.uk";
 const DEFAULT_MASTER_KEY_TTL_MINUTES = 10;
 
 export const RECOVERY_MASTER_KEY_COOKIE = "panic_recovery_master_key";
+export const RECOVERY_MASTER_KEY_COOKIE_PATH = "/api/internal/admin/reinstate";
 
 type MasterKeyCookiePayload = {
   admin_email: string;

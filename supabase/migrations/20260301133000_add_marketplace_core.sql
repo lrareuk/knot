@@ -27,19 +27,7 @@ create table if not exists public.marketplace_profiles (
   verification_status text not null default 'pending',
   is_visible boolean not null default false,
   is_accepting_new_clients boolean not null default true,
-  search_text text generated always as (
-    lower(
-      concat_ws(
-        ' ',
-        coalesce(display_name, ''),
-        coalesce(firm_name, ''),
-        coalesce(headline, ''),
-        coalesce(bio, ''),
-        array_to_string(jurisdiction_codes, ' '),
-        array_to_string(specialisms, ' ')
-      )
-    )
-  ) stored,
+  search_text text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint marketplace_profiles_professional_type_check
@@ -87,6 +75,47 @@ create table if not exists public.marketplace_profiles (
   constraint marketplace_profiles_verification_status_check
     check (verification_status in ('pending', 'verified', 'suspended'))
 );
+
+create or replace function public.sync_marketplace_profile_search_text()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  new.search_text := lower(
+    concat_ws(
+      ' ',
+      coalesce(new.display_name, ''),
+      coalesce(new.firm_name, ''),
+      coalesce(new.headline, ''),
+      coalesce(new.bio, ''),
+      array_to_string(coalesce(new.jurisdiction_codes, '{}'::text[]), ' '),
+      array_to_string(coalesce(new.specialisms, '{}'::text[]), ' ')
+    )
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists set_marketplace_profiles_search_text on public.marketplace_profiles;
+create trigger set_marketplace_profiles_search_text
+before insert or update on public.marketplace_profiles
+for each row
+execute function public.sync_marketplace_profile_search_text();
+
+update public.marketplace_profiles
+set search_text = lower(
+  concat_ws(
+    ' ',
+    coalesce(display_name, ''),
+    coalesce(firm_name, ''),
+    coalesce(headline, ''),
+    coalesce(bio, ''),
+    array_to_string(coalesce(jurisdiction_codes, '{}'::text[]), ' '),
+    array_to_string(coalesce(specialisms, '{}'::text[]), ' ')
+  )
+)
+where true;
 
 create table if not exists public.marketplace_inquiries (
   id uuid primary key default gen_random_uuid(),

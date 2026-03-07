@@ -3,7 +3,7 @@ import { z } from "zod";
 import { computeScenario } from "@/lib/domain/compute-scenario";
 import { scenarioConfigSchema } from "@/lib/domain/schemas";
 import { SCENARIO_MODEL_VERSION } from "@/lib/domain/types";
-import { requireApiUser, serverError } from "@/lib/server/api";
+import { requirePaidApiUser, serverError } from "@/lib/server/api";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 
 const patchSchema = z.object({
@@ -12,7 +12,7 @@ const patchSchema = z.object({
 });
 
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }
@@ -46,13 +46,18 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }
 
   const { id } = await params;
-  const payload = await req.json();
+  let payload: unknown;
+  try {
+    payload = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  }
   const parsed = patchSchema.safeParse(payload);
 
   if (!parsed.success) {
@@ -91,7 +96,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }

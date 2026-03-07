@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { badRequest, serverError } from "@/lib/server/api";
-import { isRecoveryAdminEmail, RECOVERY_MASTER_KEY_COOKIE, verifyRecoveryMasterKey } from "@/lib/server/admin-recovery";
+import {
+  isRecoveryAdminEmail,
+  RECOVERY_MASTER_KEY_COOKIE,
+  RECOVERY_MASTER_KEY_COOKIE_PATH,
+  verifyRecoveryMasterKey,
+} from "@/lib/server/admin-recovery";
 import { extractClientIp, reinstatePanicAccount } from "@/lib/server/panic-reinstatement";
 import { supabaseServer } from "@/lib/supabase/server";
 
@@ -67,7 +72,7 @@ export async function POST(req: Request) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    path: "/admin/recovery",
+    path: RECOVERY_MASTER_KEY_COOKIE_PATH,
     maxAge: 0,
   });
 

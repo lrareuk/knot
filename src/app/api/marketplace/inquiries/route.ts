@@ -154,11 +154,21 @@ export async function POST(req: Request) {
     return serverError("Unable to create inquiry");
   }
 
-  await createMarketplaceMessage(context.supabase, {
+  const { message, error: messageError } = await createMarketplaceMessage(context.supabase, {
     inquiryId: inquiry.id,
     senderUserId: context.user.id,
     body: parsed.data.message,
   });
+
+  if (messageError || !message) {
+    await context.supabase
+      .from("marketplace_inquiries")
+      .delete()
+      .eq("id", inquiry.id)
+      .eq("requester_user_id", context.user.id);
+
+    return serverError("Unable to create inquiry");
+  }
 
   return NextResponse.json({ inquiry }, { status: 201 });
 }

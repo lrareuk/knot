@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
-  mockRequireApiUser,
+  mockRequirePaidApiUser,
   mockListScenarios,
   mockGetOrCreateFinancialPosition,
   mockBuildScenarioConfigFromTemplate,
   mockComputeScenario,
 } = vi.hoisted(() => ({
-  mockRequireApiUser: vi.fn(),
+  mockRequirePaidApiUser: vi.fn(),
   mockListScenarios: vi.fn(),
   mockGetOrCreateFinancialPosition: vi.fn(),
   mockBuildScenarioConfigFromTemplate: vi.fn(),
@@ -15,7 +15,7 @@ const {
 }));
 
 vi.mock("@/lib/server/api", () => ({
-  requireApiUser: mockRequireApiUser,
+  requirePaidApiUser: mockRequirePaidApiUser,
   badRequest: (message: string) => new Response(JSON.stringify({ error: message }), { status: 400 }),
   serverError: (message: string) => new Response(JSON.stringify({ error: message }), { status: 500 }),
 }));
@@ -95,7 +95,7 @@ describe("POST /api/scenarios", () => {
 
   it("creates a scenario with equal split defaults by default", async () => {
     const { supabase, insert, createdScenario } = createSupabaseMock();
-    mockRequireApiUser.mockResolvedValue({ response: null, user: { id: "user-1" }, supabase });
+    mockRequirePaidApiUser.mockResolvedValue({ response: null, user: { id: "user-1" }, supabase });
     mockListScenarios.mockResolvedValue([]);
 
     const response = await POST(
@@ -121,7 +121,7 @@ describe("POST /api/scenarios", () => {
 
   it("creates a scenario with an explicit template and name", async () => {
     const { supabase, insert } = createSupabaseMock();
-    mockRequireApiUser.mockResolvedValue({ response: null, user: { id: "user-1" }, supabase });
+    mockRequirePaidApiUser.mockResolvedValue({ response: null, user: { id: "user-1" }, supabase });
     mockListScenarios.mockResolvedValue([{ id: "existing-1" }]);
 
     const response = await POST(
@@ -143,7 +143,7 @@ describe("POST /api/scenarios", () => {
 
   it("returns 400 for invalid template", async () => {
     const { supabase } = createSupabaseMock();
-    mockRequireApiUser.mockResolvedValue({ response: null, user: { id: "user-1" }, supabase });
+    mockRequirePaidApiUser.mockResolvedValue({ response: null, user: { id: "user-1" }, supabase });
 
     const response = await POST(
       new Request("http://localhost/api/scenarios", {
@@ -161,7 +161,7 @@ describe("POST /api/scenarios", () => {
 
   it("returns 400 when user already has 5 scenarios", async () => {
     const { supabase } = createSupabaseMock();
-    mockRequireApiUser.mockResolvedValue({ response: null, user: { id: "user-1" }, supabase });
+    mockRequirePaidApiUser.mockResolvedValue({ response: null, user: { id: "user-1" }, supabase });
     mockListScenarios.mockResolvedValue([{ id: "1" }, { id: "2" }, { id: "3" }, { id: "4" }, { id: "5" }]);
 
     const response = await POST(
@@ -175,5 +175,26 @@ describe("POST /api/scenarios", () => {
 
     expect(response.status).toBe(400);
     expect(payload.error).toBe("Maximum 5 scenarios");
+  });
+
+  it("returns 402 when payment is required", async () => {
+    mockRequirePaidApiUser.mockResolvedValue({
+      response: new Response(JSON.stringify({ error: "Payment required" }), { status: 402 }),
+      user: null,
+      supabase: null,
+    });
+
+    const response = await POST(
+      new Request("http://localhost/api/scenarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      })
+    );
+    const payload = (await response.json()) as { error?: string };
+
+    expect(response.status).toBe(402);
+    expect(payload.error).toBe("Payment required");
+    expect(mockListScenarios).not.toHaveBeenCalled();
   });
 });

@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { computeScenario } from "@/lib/domain/compute-scenario";
 import type { ScenarioConfig, ScenarioRecord } from "@/lib/domain/types";
-import { badRequest, requireApiUser, serverError } from "@/lib/server/api";
+import { badRequest, requirePaidApiUser, serverError } from "@/lib/server/api";
 import { getOrCreateFinancialPosition } from "@/lib/server/financial-position";
 import { listScenarios } from "@/lib/server/scenarios";
 
 export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const context = await requireApiUser();
+  const context = await requirePaidApiUser();
   if (context.response || !context.user) {
     return context.response;
   }

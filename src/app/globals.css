@@ -3354,7 +3354,7 @@ tbody tr:nth-child(even) {
     radial-gradient(circle at 10% -10%, rgb(232 37 119 / 0.18), transparent 56%),
     radial-gradient(circle at 100% 100%, rgb(196 106 94 / 0.14), transparent 52%),
     linear-gradient(160deg, rgb(38 38 38 / 0.96), rgb(24 24 24 / 0.96));
-  padding: 20px 22px;
+  padding: 20px 30px;
   box-shadow: 0 14px 34px rgb(0 0 0 / 0.28);
   display: grid;
   gap: 14px;
@@ -3863,7 +3863,7 @@ tbody tr:nth-child(even) {
   }
 
   .onboarding-pension-guidance-card {
-    padding: 18px 18px 16px;
+    padding: 18px 24px 16px;
     gap: 12px;
   }
 }
@@ -3895,7 +3895,7 @@ tbody tr:nth-child(even) {
 
   .onboarding-pension-guidance-card {
     border-radius: 14px;
-    padding: 16px 14px;
+    padding: 16px 18px;
     gap: 10px;
   }
 
